@@ -19,15 +19,11 @@
 				const { expires_at, provider_token, provider_refresh_token, user } = session;
 				const { provider } = user.app_metadata;
 
-				if (!expires_at || !provider_token || !provider_refresh_token) {
+				if (!expires_at || !provider_token || !provider_refresh_token || !provider) {
 					console.log('missing data. not updating user oauth token');
 					return;
 				}
-				// do something
 				// format tokens for db
-				// access_token
-				// refresh_token
-				// expiry
 				supabaseClient
 					.from('user_oauth_token')
 					.upsert({
@@ -40,9 +36,8 @@
 						}
 					})
 					.then(({ data, error }) => {
-						console.log(data);
 						if (error) {
-							console.log(error);
+							console.log(data, error);
 						}
 					});
 			}
