@@ -114,7 +114,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 	// if this is the first sync, we are done
 	if prevSyncHistory.HistoryID == 0 {
-		// TODO: Trigger historic sync
+		// TODO: Trigger historic sync on first notification
 		return nil
 	}
 
