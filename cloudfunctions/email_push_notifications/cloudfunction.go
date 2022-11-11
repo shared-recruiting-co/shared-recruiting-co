@@ -34,7 +34,7 @@ type PubSubMessage struct {
 
 type EmailPushNotification struct {
 	Email     string `json:"emailAddress"`
-	HistoryID int64  `json:"historyId"`
+	HistoryID uint64 `json:"historyId"`
 }
 
 type EmailHistory struct {
