@@ -1,16 +1,13 @@
 <script lang="ts">
 	import { supabaseClient } from '$lib/supabase/client';
 
-	let loading = false;
-	let email: string;
-
 	const handleLogin = async () => {
 		try {
-			loading = true;
 			const { data, error } = await supabaseClient.auth.signInWithOAuth({
 				provider: 'google',
 				options: {
-					queryParams: { access_type: 'offline' },
+					// request refresh token from Google
+					queryParams: { access_type: 'offline', prompt: 'consent' },
 					scopes:
 						'https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.labels'
 				}
@@ -21,9 +18,8 @@
 			if (error instanceof Error) {
 				alert(error.message);
 			}
-		} finally {
-			loading = false;
 		}
+		
 	};
 </script>
 
