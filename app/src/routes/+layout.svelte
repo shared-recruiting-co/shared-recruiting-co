@@ -6,7 +6,7 @@
 	import { onMount } from 'svelte';
 
 	// convert to ms and get iso string
-	const expriryFromExpiresAt = (expiresAt: number) => new Date(expiresAt * 1000).toISOString()
+	const expriryFromExpiresAt = (expiresAt: number) => new Date(expiresAt * 1000).toISOString();
 
 	onMount(() => {
 		const {
@@ -14,9 +14,9 @@
 		} = supabaseClient.auth.onAuthStateChange((event, session) => {
 			invalidate('supabase:auth');
 
-			if (event === "SIGNED_IN" && session) {
+			if (event === 'SIGNED_IN' && session) {
 				// synchronize provider tokens with db
-				const { expires_at, provider_token, provider_refresh_token,  user } = session;
+				const { expires_at, provider_token, provider_refresh_token, user } = session;
 				const { provider } = user.app_metadata;
 
 				if (!expires_at || !provider_token || !provider_refresh_token) {
@@ -28,20 +28,23 @@
 				// access_token
 				// refresh_token
 				// expiry
-				supabaseClient.from('user_oauth_token').upsert({
-					user_id: user.id,
-					provider,
-					token: {
-					access_token: provider_token,
-					refresh_token: provider_refresh_token,
-					expiry: expriryFromExpiresAt(expires_at),
-					}
-				}).then(({ data, error }) => {
-					console.log(data)
-					if (error) {
-						console.log(error);
-					}
-				});
+				supabaseClient
+					.from('user_oauth_token')
+					.upsert({
+						user_id: user.id,
+						provider,
+						token: {
+							access_token: provider_token,
+							refresh_token: provider_refresh_token,
+							expiry: expriryFromExpiresAt(expires_at)
+						}
+					})
+					.then(({ data, error }) => {
+						console.log(data);
+						if (error) {
+							console.log(error);
+						}
+					});
 			}
 		});
 
