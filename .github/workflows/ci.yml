@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push: {}
+  # allow manual triggers
+  workflow_dispatch: {}
+
+jobs:
+  supabase:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: supabase/setup-cli@v1
+        with:
+          # version of CLI to use...consider switching to latest
+          version: 1.12.1
+
+      - name: "Start Supabase local development setup"
+        working-directory: ./app
+        run: supabase start
+
+      - name: "Verify generated types are up-to-date"
+        working-directory: ./app
+        run: |
+          npm run gen-types
+          if [ "$(git diff --ignore-space-at-eol types.ts | wc -l)" -gt "0" ]; then
+            echo "Detected uncommitted changes after build. See status below:"
+            git diff
+            exit 1
+          fi
