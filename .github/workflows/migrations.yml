@@ -25,7 +25,7 @@ jobs:
           version: 1.12.1
 
       - name: "Push DB Changes to Production"
+        working-directory: ./app
         run: |
-          cd app
           supabase link --project-ref $SUPABASE_PROJECT_ID
           supabase db push
