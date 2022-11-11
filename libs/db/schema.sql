@@ -1,3 +1,13 @@
+-- Start: Supabase auth.users table
+-- Include a simplified Supabase auth.users table in the schema for SQLC compilation
+create schema if not exists auth;
+create table auth.users (
+    id uuid primary key,
+    email text not null
+);
+-- End: Supabase auth.users table
+
+-- Add moddatetime extension
 create extension if not exists moddatetime schema extensions;
 
 -- User OAuth Token Table
