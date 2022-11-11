@@ -1,7 +1,8 @@
 name: CI
 
 on:
-  push: {}
+  # run only on PRs because supabase start is slow
+  pull_request: {}
   # allow manual triggers
   workflow_dispatch: {}
 
