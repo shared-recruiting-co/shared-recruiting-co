@@ -3,7 +3,7 @@
 
 	const handleLogin = async () => {
 		try {
-			const { data, error } = await supabaseClient.auth.signInWithOAuth({
+			const { error } = await supabaseClient.auth.signInWithOAuth({
 				provider: 'google',
 				options: {
 					// request refresh token from Google
@@ -12,7 +12,6 @@
 						'https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.labels'
 				}
 			});
-			console.log(data);
 			if (error) throw error;
 		} catch (error) {
 			if (error instanceof Error) {
