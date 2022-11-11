@@ -8,7 +8,7 @@ const maxResults = 500
 const historyTypeMessageAdded = "messageAdded"
 const defaultLabelID = "INBOX"
 
-func GetNewEmailsSince(srv *gmail.Service, userID string, historyID int64, labelID string) ([]*gmail.Message, error) {
+func GetNewEmailsSince(srv *gmail.Service, userID string, historyID uint64, labelID string) ([]*gmail.Message, error) {
 	if labelID == "" {
 		labelID = defaultLabelID
 	}
