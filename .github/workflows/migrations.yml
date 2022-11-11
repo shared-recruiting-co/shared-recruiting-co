@@ -1,0 +1,30 @@
+name: Deploy Migrations to Production
+
+on:
+  push:
+    branches:
+      - main
+  # allow manual triggers
+  workflow_dispatch: {}
+
+jobs:
+  migration:
+    runs-on: ubuntu-latest
+
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: supabase/setup-cli@v1
+        with:
+          # version of CLI to use...consider switching to latest
+          version: 1.12.1
+
+      - name: "Push DB Changes to Production"
+        run: |
+          supabase link --project-ref $SUPABASE_PROJECT_ID
+          supabase db push
