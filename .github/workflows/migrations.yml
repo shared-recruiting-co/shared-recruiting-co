@@ -26,5 +26,6 @@ jobs:
 
       - name: "Push DB Changes to Production"
         run: |
+          cd app
           supabase link --project-ref $SUPABASE_PROJECT_ID
           supabase db push
