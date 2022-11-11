@@ -87,7 +87,11 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		return err
 	}
 
-	queries := client.New(db)
+	// prepare queries
+	queries, err := client.Prepare(ctx, db)
+	if err != nil {
+		return err
+	}
 
 	// 1. Get User from email address
 	user, err := queries.GetUserByEmail(ctx, email)

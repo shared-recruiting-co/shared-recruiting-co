@@ -20,7 +20,7 @@ where email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (AuthUser, error) {
-	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+	row := q.queryRow(ctx, q.getUserByEmailStmt, getUserByEmail, email)
 	var i AuthUser
 	err := row.Scan(&i.ID, &i.Email)
 	return i, err
@@ -37,7 +37,7 @@ where user_id = $1
 `
 
 func (q *Queries) GetUserEmailSyncHistory(ctx context.Context, userID uuid.UUID) (UserEmailSyncHistory, error) {
-	row := q.db.QueryRowContext(ctx, getUserEmailSyncHistory, userID)
+	row := q.queryRow(ctx, q.getUserEmailSyncHistoryStmt, getUserEmailSyncHistory, userID)
 	var i UserEmailSyncHistory
 	err := row.Scan(
 		&i.UserID,
@@ -65,7 +65,7 @@ type GetUserOAuthTokenParams struct {
 }
 
 func (q *Queries) GetUserOAuthToken(ctx context.Context, arg GetUserOAuthTokenParams) (UserOauthToken, error) {
-	row := q.db.QueryRowContext(ctx, getUserOAuthToken, arg.UserID, arg.Provider)
+	row := q.queryRow(ctx, q.getUserOAuthTokenStmt, getUserOAuthToken, arg.UserID, arg.Provider)
 	var i UserOauthToken
 	err := row.Scan(
 		&i.UserID,
@@ -89,7 +89,7 @@ where provider = $1
 `
 
 func (q *Queries) ListOAuthTokensByProvider(ctx context.Context, provider string) ([]UserOauthToken, error) {
-	rows, err := q.db.QueryContext(ctx, listOAuthTokensByProvider, provider)
+	rows, err := q.query(ctx, q.listOAuthTokensByProviderStmt, listOAuthTokensByProvider, provider)
 	if err != nil {
 		return nil, err
 	}
@@ -129,6 +129,6 @@ type UspertUserEmailSyncHistoryParams struct {
 }
 
 func (q *Queries) UspertUserEmailSyncHistory(ctx context.Context, arg UspertUserEmailSyncHistoryParams) error {
-	_, err := q.db.ExecContext(ctx, uspertUserEmailSyncHistory, arg.UserID, arg.HistoryID)
+	_, err := q.exec(ctx, q.uspertUserEmailSyncHistoryStmt, uspertUserEmailSyncHistory, arg.UserID, arg.HistoryID)
 	return err
 }
