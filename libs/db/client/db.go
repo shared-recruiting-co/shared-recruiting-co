@@ -7,6 +7,7 @@ package client
 import (
 	"context"
 	"database/sql"
+	"fmt"
 )
 
 type DBTX interface {
@@ -20,12 +21,108 @@ func New(db DBTX) *Queries {
 	return &Queries{db: db}
 }
 
+func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
+	q := Queries{db: db}
+	var err error
+	if q.getUserByEmailStmt, err = db.PrepareContext(ctx, getUserByEmail); err != nil {
+		return nil, fmt.Errorf("error preparing query GetUserByEmail: %w", err)
+	}
+	if q.getUserEmailSyncHistoryStmt, err = db.PrepareContext(ctx, getUserEmailSyncHistory); err != nil {
+		return nil, fmt.Errorf("error preparing query GetUserEmailSyncHistory: %w", err)
+	}
+	if q.getUserOAuthTokenStmt, err = db.PrepareContext(ctx, getUserOAuthToken); err != nil {
+		return nil, fmt.Errorf("error preparing query GetUserOAuthToken: %w", err)
+	}
+	if q.listOAuthTokensByProviderStmt, err = db.PrepareContext(ctx, listOAuthTokensByProvider); err != nil {
+		return nil, fmt.Errorf("error preparing query ListOAuthTokensByProvider: %w", err)
+	}
+	if q.uspertUserEmailSyncHistoryStmt, err = db.PrepareContext(ctx, uspertUserEmailSyncHistory); err != nil {
+		return nil, fmt.Errorf("error preparing query UspertUserEmailSyncHistory: %w", err)
+	}
+	return &q, nil
+}
+
+func (q *Queries) Close() error {
+	var err error
+	if q.getUserByEmailStmt != nil {
+		if cerr := q.getUserByEmailStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getUserByEmailStmt: %w", cerr)
+		}
+	}
+	if q.getUserEmailSyncHistoryStmt != nil {
+		if cerr := q.getUserEmailSyncHistoryStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getUserEmailSyncHistoryStmt: %w", cerr)
+		}
+	}
+	if q.getUserOAuthTokenStmt != nil {
+		if cerr := q.getUserOAuthTokenStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getUserOAuthTokenStmt: %w", cerr)
+		}
+	}
+	if q.listOAuthTokensByProviderStmt != nil {
+		if cerr := q.listOAuthTokensByProviderStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listOAuthTokensByProviderStmt: %w", cerr)
+		}
+	}
+	if q.uspertUserEmailSyncHistoryStmt != nil {
+		if cerr := q.uspertUserEmailSyncHistoryStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing uspertUserEmailSyncHistoryStmt: %w", cerr)
+		}
+	}
+	return err
+}
+
+func (q *Queries) exec(ctx context.Context, stmt *sql.Stmt, query string, args ...interface{}) (sql.Result, error) {
+	switch {
+	case stmt != nil && q.tx != nil:
+		return q.tx.StmtContext(ctx, stmt).ExecContext(ctx, args...)
+	case stmt != nil:
+		return stmt.ExecContext(ctx, args...)
+	default:
+		return q.db.ExecContext(ctx, query, args...)
+	}
+}
+
+func (q *Queries) query(ctx context.Context, stmt *sql.Stmt, query string, args ...interface{}) (*sql.Rows, error) {
+	switch {
+	case stmt != nil && q.tx != nil:
+		return q.tx.StmtContext(ctx, stmt).QueryContext(ctx, args...)
+	case stmt != nil:
+		return stmt.QueryContext(ctx, args...)
+	default:
+		return q.db.QueryContext(ctx, query, args...)
+	}
+}
+
+func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, args ...interface{}) *sql.Row {
+	switch {
+	case stmt != nil && q.tx != nil:
+		return q.tx.StmtContext(ctx, stmt).QueryRowContext(ctx, args...)
+	case stmt != nil:
+		return stmt.QueryRowContext(ctx, args...)
+	default:
+		return q.db.QueryRowContext(ctx, query, args...)
+	}
+}
+
 type Queries struct {
-	db DBTX
+	db                             DBTX
+	tx                             *sql.Tx
+	getUserByEmailStmt             *sql.Stmt
+	getUserEmailSyncHistoryStmt    *sql.Stmt
+	getUserOAuthTokenStmt          *sql.Stmt
+	listOAuthTokensByProviderStmt  *sql.Stmt
+	uspertUserEmailSyncHistoryStmt *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db: tx,
+		db:                             tx,
+		tx:                             tx,
+		getUserByEmailStmt:             q.getUserByEmailStmt,
+		getUserEmailSyncHistoryStmt:    q.getUserEmailSyncHistoryStmt,
+		getUserOAuthTokenStmt:          q.getUserOAuthTokenStmt,
+		listOAuthTokensByProviderStmt:  q.listOAuthTokensByProviderStmt,
+		uspertUserEmailSyncHistoryStmt: q.uspertUserEmailSyncHistoryStmt,
 	}
 }
