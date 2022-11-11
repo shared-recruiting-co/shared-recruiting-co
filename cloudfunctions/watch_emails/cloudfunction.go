@@ -2,17 +2,22 @@ package cloudfunctions
 
 import (
 	"context"
+	"database/sql"
 	"encoding/base64"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
+	_ "github.com/lib/pq"
 
 	"google.golang.org/api/gmail/v1"
 
+	"github.com/shared-recruiting-co/libs/db/client"
 	mail "github.com/shared-recruiting-co/libs/gmail"
 )
+
+const provider = "google"
 
 func init() {
 	functions.HTTP("RunWatchEmails", runWatchEmails)
@@ -32,32 +37,50 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("error getting credentials: %v", err)
 		return
 	}
-	// TODO
-	// 1. Fetch auth tokens for all user
-	// 2. Spawn a goroutine for each user to watch their emails
-	// 3. Wait for all goroutines to finish
-	// 4. Mark success/failure in DB
-	auth, err := jsonFromEnv("GOOGLE_AUTH_TOKEN")
+
+	// Create SRC client
+	ctx := context.Background()
+
+	connectionURI := os.Getenv("DATABASE_URL")
+	db, err := sql.Open("postgres", connectionURI)
 	if err != nil {
-		log.Fatalf("error getting auth token: %v", err)
+		log.Fatalf("error connecting to database: %v", err)
 		return
 	}
 
-	ctx := context.Background()
-	srv, err := mail.NewGmailService(ctx, creds, auth)
+	queries := client.New(db)
 
+	// TODO
+	// v0 -> no pagination, no go routines
+	// 2. Spawn a goroutine for each user to watch their emails
+	// 3. Wait for all goroutines to finish
+	// 4. Mark success/failure in DB
+
+	// 1. Fetch auth tokens for all user
+	userTokens, err := queries.ListOAuthTokensByProvider(ctx, provider)
+	if err != nil {
+		log.Fatalf("error getting user tokens: %v", err)
+		return
+	}
+
+	var srv *gmail.Service
 	user := "me"
 	label := "UNREAD"
 	topic := os.Getenv("PUBSUB_TOPIC")
 
-	// Watch for changes in labelId
-	resp, err := srv.Users.Watch(user, &gmail.WatchRequest{
-		LabelIds:  []string{label},
-		TopicName: topic,
-	}).Do()
-	if err != nil {
-		log.Fatalf("unable to watch: %v", err)
+	for _, userToken := range userTokens {
+		auth := userToken.Token.RawMessage
+		srv, err = mail.NewGmailService(ctx, creds, []byte(auth))
+		// Watch for changes in labelId
+		resp, err := srv.Users.Watch(user, &gmail.WatchRequest{
+			LabelIds:  []string{label},
+			TopicName: topic,
+		}).Do()
+		if err != nil {
+			log.Fatalf("unable to watch: %v", err)
+		}
+		// success
+		log.Println(resp)
 	}
-	// success
-	log.Println(resp)
+	log.Println("done.")
 }

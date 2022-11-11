@@ -2,6 +2,7 @@ package cloudfunctions
 
 import (
 	"context"
+	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -10,9 +11,13 @@ import (
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
+	_ "github.com/lib/pq"
 
+	"github.com/shared-recruiting-co/libs/db/client"
 	mail "github.com/shared-recruiting-co/libs/gmail"
 )
+
+const provider = "google"
 
 func init() {
 	functions.CloudEvent("EmailPushNotificationHandler", emailPushNotificationHandler)
@@ -34,7 +39,7 @@ type PubSubMessage struct {
 
 type EmailPushNotification struct {
 	Email     string `json:"emailAddress"`
-	HistoryID int64  `json:"historyId"`
+	HistoryID uint64 `json:"historyId"`
 }
 
 type EmailHistory struct {
@@ -70,27 +75,73 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	log.Printf("Email: %s", email)
 	log.Printf("History ID: %d", historyID)
 
-	// TODO:
-	// 1. Make Request to Fetch Previous History ID
-	// 2. Make Request to Save New History ID (If anything goes wrong, then we reset the history ID to the previous one)
-	// 3. Fetch the user's access token
-	// 4. Create a Gmail service
 	creds, err := jsonFromEnv("GOOGLE_APPLICATION_CREDENTIALS")
 	if err != nil {
 		return err
 	}
-	auth, err := jsonFromEnv("GOOGLE_AUTH_TOKEN")
+
+	// 0, Create SRC client
+	connectionURI := os.Getenv("DATABASE_URL")
+	db, err := sql.Open("postgres", connectionURI)
 	if err != nil {
 		return err
 	}
+
+	// prepare queries
+	queries, err := client.Prepare(ctx, db)
+	if err != nil {
+		return err
+	}
+
+	// 1. Get User from email address
+	user, err := queries.GetUserByEmail(ctx, email)
+	if err != nil {
+		return err
+	}
+
+	// 2. Make Request to Fetch Previous History ID
+	prevSyncHistory, err := queries.GetUserEmailSyncHistory(ctx, user.ID)
+	if err == sql.ErrNoRows {
+		log.Printf("no email history found for email: %s", email)
+	} else {
+		return err
+	}
+
+	// 3. Make Request to proactively save new history (If anything goes wrong, then we reset the history ID to the previous one)
+	err = queries.UspertUserEmailSyncHistory(ctx, client.UspertUserEmailSyncHistoryParams{
+		UserID:    user.ID,
+		HistoryID: int64(historyID),
+	})
+	if err != nil {
+		return err
+	}
+
+	// if this is the first sync, we are done
+	if prevSyncHistory.HistoryID == 0 {
+		// TODO: Trigger historic sync on first notification
+		return nil
+	}
+
+	// 4. Get User' OAuth Token
+	userToken, err := queries.GetUserOAuthToken(ctx, client.GetUserOAuthTokenParams{
+		UserID:   user.ID,
+		Provider: provider,
+	})
+	if err != nil {
+		return err
+	}
+
+	// 5. Create Gmail Service
+	auth := []byte(userToken.Token.RawMessage)
 	srv, err := mail.NewGmailService(ctx, creds, auth)
-	user := "me"
-	// 5. Make Request to Fetch New Emails from Previous History ID
-	messages, err := mail.GetNewEmailsSince(srv, user, historyID, "INBOX")
+	gmailUser := "me"
+
+	// 6. Make Request to Fetch New Emails from Previous History ID
+	messages, err := mail.GetNewEmailsSince(srv, gmailUser, uint64(prevSyncHistory.HistoryID), "INBOX")
 	if err != nil {
 		return err
 	}
-	// 6. Stringify Emails
+	// 7. Stringify Emails
 	examples := []string{}
 	for _, message := range messages {
 		text, err := mail.MessageToString(message)
@@ -99,9 +150,11 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		}
 		examples = append(examples, text)
 	}
-	// 7. Make Request to Detect Recruiting Emails
-	// 8. Get or Create SRC Label
-	// 9. Batch Modify Emails
+
+	log.Printf("New Emails: %d", len(examples))
+	// 8. Make Request to Detect Recruiting Emails
+	// 9. Get or Create SRC Label
+	// 10. Batch Modify Emails
 
 	return nil
 }
