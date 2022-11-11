@@ -11,7 +11,7 @@ import (
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
 
-	"github.com/shared-recruiting-co/libs/gmail"
+	mail "github.com/shared-recruiting-co/libs/gmail"
 )
 
 func init() {
@@ -83,16 +83,17 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	if err != nil {
 		return err
 	}
-	srv, err := gmail.NewGmailService(ctx, creds, auth)
+	srv, err := mail.NewGmailService(ctx, creds, auth)
+	user := "me"
 	// 5. Make Request to Fetch New Emails from Previous History ID
-	messages, err := gmail.GetNewEmailsSince(srv, "me", historyID, "INBOX")
+	messages, err := mail.GetNewEmailsSince(srv, user, historyID, "INBOX")
 	if err != nil {
 		return err
 	}
 	// 6. Stringify Emails
 	examples := []string{}
 	for _, message := range messages {
-		text, err := gmail.MessageToString(message)
+		text, err := mail.MessageToString(message)
 		if err != nil {
 			return err
 		}
