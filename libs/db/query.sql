@@ -25,7 +25,7 @@ select
 from public.user_oauth_token
 where user_id = $1 and provider = $2;
 
--- GetUserEmailSyncHistory :one
+-- name: GetUserEmailSyncHistory :one
 select
     user_id,
     history_id,

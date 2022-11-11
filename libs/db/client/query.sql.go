@@ -26,6 +26,28 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (AuthUser, e
 	return i, err
 }
 
+const getUserEmailSyncHistory = `-- name: GetUserEmailSyncHistory :one
+select
+    user_id,
+    history_id,
+    created_at,
+    updated_at
+from public.user_email_sync_history
+where user_id = $1
+`
+
+func (q *Queries) GetUserEmailSyncHistory(ctx context.Context, userID uuid.UUID) (UserEmailSyncHistory, error) {
+	row := q.db.QueryRowContext(ctx, getUserEmailSyncHistory, userID)
+	var i UserEmailSyncHistory
+	err := row.Scan(
+		&i.UserID,
+		&i.HistoryID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getUserOAuthToken = `-- name: GetUserOAuthToken :one
 select
     user_id,
