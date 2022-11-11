@@ -42,7 +42,7 @@ type EmailHistory struct {
 	HistoryID int64  `json:"historyId"`
 }
 
-func JsonFromEnv(env string) ([]byte, error) {
+func jsonFromEnv(env string) ([]byte, error) {
 	encoded := os.Getenv(env)
 	decoded, err := base64.URLEncoding.DecodeString(encoded)
 
@@ -75,17 +75,17 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	// 2. Make Request to Save New History ID (If anything goes wrong, then we reset the history ID to the previous one)
 	// 3. Fetch the user's access token
 	// 4. Create a Gmail service
-	creds, err := JsonFromEnv("GOOGLE_APPLICATION_CREDENTIALS")
+	creds, err := jsonFromEnv("GOOGLE_APPLICATION_CREDENTIALS")
 	if err != nil {
 		return err
 	}
-	auth, err := JsonFromEnv("GOOGLE_AUTH_TOKEN")
+	auth, err := jsonFromEnv("GOOGLE_AUTH_TOKEN")
 	if err != nil {
 		return err
 	}
 	srv, err := gmail.NewGmailService(ctx, creds, auth)
 	// 5. Make Request to Fetch New Emails from Previous History ID
-	messages, err := gmail.GetNewEmailsSince(srv, historyID, "INBOX")
+	messages, err := gmail.GetNewEmailsSince(srv, "me", historyID, "INBOX")
 	if err != nil {
 		return err
 	}
