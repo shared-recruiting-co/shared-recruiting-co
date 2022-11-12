@@ -31,3 +31,27 @@ jobs:
             git diff
             exit 1
           fi
+
+  golang:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        directory: 
+          - "./cloudfunctions/email_push_notifications" 
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Build .
+        working-directory: ${{ matrix.directory }}
+        run: go install .
+
+      - name: Test
+        working-directory: ${{ matrix.directory }}
+        run: go test .
