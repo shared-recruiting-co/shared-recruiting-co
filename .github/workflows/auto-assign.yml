@@ -1,9 +1,10 @@
 name: Auto Assign
 on:
-  issues:
-    types: [opened, edited, labeled, unlabeled]
+  # issues:
+    # types: [opened, edited, labeled, unlabeled]
   pull_request:
-    types: [opened, edited, labeled, unlabeled]
+    types: [opened]
+    # types: [opened, edited, labeled, unlabeled]
 jobs:
   run:
     runs-on: ubuntu-latest
