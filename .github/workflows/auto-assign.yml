@@ -1,0 +1,20 @@
+name: Auto Assign
+on:
+  issues:
+    types: [opened, edited, labeled, unlabeled]
+  pull_request:
+    types: [opened, edited, labeled, unlabeled]
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: wow-actions/auto-assign@v2
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # using the `org/team_slug` or `/team_slug` syntax to add git team as reviewers
+          addReviewers: true
+          addAssignees: author
+          reviewers: |
+            devstein
+          numberOfReviewers: 1
+          skipKeywords: wip, draft
