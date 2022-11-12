@@ -39,6 +39,9 @@ jobs:
       matrix:
         directory: 
           - "./cloudfunctions/email_push_notifications" 
+          - "./cloudfunctions/watch_emails" 
+          - "./libs/db" 
+          - "./libs/gmail" 
 
     steps:
       - uses: actions/checkout@v3
