@@ -13,11 +13,17 @@ import (
 	"github.com/cloudevents/sdk-go/v2/event"
 	_ "github.com/lib/pq"
 
+	"google.golang.org/api/gmail/v1"
+
 	"github.com/shared-recruiting-co/libs/db/client"
 	mail "github.com/shared-recruiting-co/libs/gmail"
 )
 
-const provider = "google"
+const (
+	provider  = "google"
+	SRC_Label = "@src"
+	SRC_Color = "#16a765"
+)
 
 func init() {
 	functions.CloudEvent("EmailPushNotificationHandler", emailPushNotificationHandler)
@@ -133,28 +139,70 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 	// 5. Create Gmail Service
 	auth := []byte(userToken.Token.RawMessage)
-	srv, err := mail.NewGmailService(ctx, creds, auth)
+	gmailSrv, err := mail.NewGmailService(ctx, creds, auth)
 	gmailUser := "me"
 
 	// 6. Make Request to Fetch New Emails from Previous History ID
-	messages, err := mail.GetNewEmailsSince(srv, gmailUser, uint64(prevSyncHistory.HistoryID), "INBOX")
+	messages, err := mail.GetNewEmailsSince(gmailSrv, gmailUser, uint64(prevSyncHistory.HistoryID), "INBOX")
 	if err != nil {
 		return err
 	}
 	// 7. Stringify Emails
-	examples := []string{}
+	examples := map[string]string{}
 	for _, message := range messages {
 		text, err := mail.MessageToString(message)
 		if err != nil {
 			return err
 		}
-		examples = append(examples, text)
+		examples[message.Id] = text
 	}
 
-	log.Printf("New Emails: %d", len(examples))
-	// 8. Make Request to Detect Recruiting Emails
-	// 9. Get or Create SRC Label
-	// 10. Batch Modify Emails
+	log.Printf("Number of new emails: %d", len(examples))
+
+	// 8. Create recruiting detector client
+	classifier := NewClassifierClient(ctx, ClassifierClientArgs{
+		BaseURL: os.Getenv("CLASSIFIER_URL"),
+		ApiKey:  os.Getenv("CLASSIFIER_API_KEY"),
+	})
+
+	// 9. Batch predict on new emails
+	results, err := classifier.PredictBatch(examples)
+	if err != nil {
+		return err
+	}
+
+	// 10. Get IDs of new recruiting emails
+	recruitingEmailIDs := []string{}
+	for id, result := range results {
+		if !result {
+			continue
+		}
+		recruitingEmailIDs = append(recruitingEmailIDs, id)
+	}
+
+	// no new recruiting emails, return early
+	if len(recruitingEmailIDs) == 0 {
+		return nil
+	}
+
+	// 11. Get or Create SRC Label
+	label, err := mail.GetOrCreateLabel(gmailSrv, gmailUser, SRC_Label, SRC_Color)
+
+	// 12. Take action! (Batch Modify Emails)
+	err = gmailSrv.Users.Messages.BatchModify(gmailUser, &gmail.BatchModifyMessagesRequest{
+		Ids: recruitingEmailIDs,
+		// Add SRC Label
+		AddLabelIds: []string{label.Id},
+		// In future,
+		// - mark as read
+		// - archive
+		// - create response
+		// RemoveLabelIds: []string{"UNREAD"},
+	}).Do()
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
