@@ -13,8 +13,8 @@ import (
 
 	"google.golang.org/api/gmail/v1"
 
-	"github.com/shared-recruiting-co/libs/db/client"
-	mail "github.com/shared-recruiting-co/libs/gmail"
+	"github.com/shared-recruiting-co/shared-recruiting-co/libs/db/client"
+	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
 )
 
 const provider = "google"

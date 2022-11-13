@@ -1,4 +1,4 @@
-module github.com/shared-recruiting-co/cloudfunctions/watch_emails
+module github.com/shared-recruiting-co/shared-recruiting-co/cloudfunctions/watch_emails
 
 go 1.19
 
