@@ -1,4 +1,4 @@
-module github.com/shared-recruiting-co/libs/gmail
+module github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail
 
 go 1.19
 

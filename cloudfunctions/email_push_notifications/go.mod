@@ -1,4 +1,4 @@
-module github.com/shared-recruiting-co/cloudfunctions/email_push_notifications
+module github.com/shared-recruiting-co/shared-recruiting-co/cloudfunctions/email_push_notifications
 
 go 1.19
 
