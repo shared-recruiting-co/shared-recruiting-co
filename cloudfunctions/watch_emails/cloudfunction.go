@@ -69,8 +69,12 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 	topic := os.Getenv("PUBSUB_TOPIC")
 
 	for _, userToken := range userTokens {
-		auth := userToken.Token.RawMessage
-		srv, err = mail.NewGmailService(ctx, creds, []byte(auth))
+		auth := []byte(userToken.Token.RawMessage)
+
+		srv, err = mail.NewGmailService(ctx, creds, auth)
+		if err != nil {
+			log.Fatalf("unable to create gmail service: %v", err)
+		}
 		// Watch for changes in labelId
 		resp, err := srv.Users.Watch(user, &gmail.WatchRequest{
 			LabelIds:  []string{label},
