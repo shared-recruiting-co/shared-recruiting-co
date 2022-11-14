@@ -20,9 +20,10 @@ import (
 )
 
 const (
-	provider  = "google"
-	SRC_Label = "@SRC"
-	SRC_Color = "#16a765"
+	provider                = "google"
+	SRC_Label               = "@SRC"
+	SRC_JobOpportunityLabel = "@SRC/Job Opportunity"
+	SRC_Color               = "#16a765"
 )
 
 func init() {
@@ -186,13 +187,14 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	}
 
 	// 11. Get or Create SRC Label
-	label, err := mail.GetOrCreateLabel(gmailSrv, gmailUser, SRC_Label, SRC_Color)
+	srcLabel, err := mail.GetOrCreateLabel(gmailSrv, gmailUser, SRC_Label, SRC_Color)
+	srcJobOpportunityLabel, err := mail.GetOrCreateLabel(gmailSrv, gmailUser, SRC_JobOpportunityLabel, SRC_Color)
 
 	// 12. Take action! (Batch Modify Emails)
 	err = gmailSrv.Users.Messages.BatchModify(gmailUser, &gmail.BatchModifyMessagesRequest{
 		Ids: recruitingEmailIDs,
 		// Add SRC Label
-		AddLabelIds: []string{label.Id},
+		AddLabelIds: []string{srcLabel.Id, srcJobOpportunityLabel.Id},
 		// In future,
 		// - mark as read
 		// - archive
