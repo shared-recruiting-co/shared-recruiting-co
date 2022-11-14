@@ -158,7 +158,11 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		examples[message.Id] = text
 	}
 
-	log.Printf("Number of new emails: %d", len(examples))
+	log.Printf("number of new emails: %d", len(examples))
+
+	if len(examples) == 0 {
+		return nil
+	}
 
 	// 8. Create recruiting detector client
 	classifier := NewClassifierClient(ctx, ClassifierClientArgs{
