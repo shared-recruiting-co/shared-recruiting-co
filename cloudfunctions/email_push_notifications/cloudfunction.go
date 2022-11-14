@@ -21,7 +21,7 @@ import (
 
 const (
 	provider  = "google"
-	SRC_Label = "@src"
+	SRC_Label = "@SRC"
 	SRC_Color = "#16a765"
 )
 
