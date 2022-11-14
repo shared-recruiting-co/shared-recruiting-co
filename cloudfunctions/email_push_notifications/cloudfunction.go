@@ -110,7 +110,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	prevSyncHistory, err := queries.GetUserEmailSyncHistory(ctx, user.ID)
 	if err == sql.ErrNoRows {
 		log.Printf("no email history found for email: %s", email)
-	} else {
+	} else if err != nil {
 		return err
 	}
 
