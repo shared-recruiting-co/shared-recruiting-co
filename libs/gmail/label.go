@@ -4,7 +4,7 @@ import (
 	"google.golang.org/api/gmail/v1"
 )
 
-func GetOrCreateLabel(srv *gmail.Service, userID string, labelID string, labelColor string) (*gmail.Label, error) {
+func GetOrCreateLabel(srv *gmail.Service, userID string, labelID string, backgroundColor string, textColor string) (*gmail.Label, error) {
 	labels, err := srv.Users.Labels.List(userID).Do()
 
 	if err != nil {
@@ -18,9 +18,9 @@ func GetOrCreateLabel(srv *gmail.Service, userID string, labelID string, labelCo
 	}
 
 	label, err := srv.Users.Labels.Create(userID, &gmail.Label{Name: labelID, Color: &gmail.LabelColor{
-		BackgroundColor: labelColor,
+		BackgroundColor: backgroundColor,
 		// Always user white text for now...
-		TextColor: "#FFFFFF",
+		TextColor: textColor,
 	}}).Do()
 
 	if err != nil {
