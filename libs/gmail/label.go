@@ -19,6 +19,8 @@ func GetOrCreateLabel(srv *gmail.Service, userID string, labelID string, labelCo
 
 	label, err := srv.Users.Labels.Create(userID, &gmail.Label{Name: labelID, Color: &gmail.LabelColor{
 		BackgroundColor: labelColor,
+		// Always user white text for now...
+		TextColor: "#FFFFFF",
 	}}).Do()
 
 	if err != nil {
