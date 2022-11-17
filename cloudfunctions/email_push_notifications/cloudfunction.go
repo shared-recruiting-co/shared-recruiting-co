@@ -24,6 +24,7 @@ const (
 	SRC_Label               = "@SRC"
 	SRC_JobOpportunityLabel = "@SRC/Job Opportunity"
 	SRC_Color               = "#16a765"
+	White                   = "#ffffff"
 )
 
 func init() {
@@ -148,6 +149,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	if err != nil {
 		return err
 	}
+
 	// 7. Stringify Emails
 	examples := map[string]string{}
 	for _, message := range messages {
@@ -191,8 +193,8 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	}
 
 	// 11. Get or Create SRC Label
-	srcLabel, err := mail.GetOrCreateLabel(gmailSrv, gmailUser, SRC_Label, SRC_Color)
-	srcJobOpportunityLabel, err := mail.GetOrCreateLabel(gmailSrv, gmailUser, SRC_JobOpportunityLabel, SRC_Color)
+	srcLabel, err := mail.GetOrCreateLabel(gmailSrv, gmailUser, SRC_Label, SRC_Color, White)
+	srcJobOpportunityLabel, err := mail.GetOrCreateLabel(gmailSrv, gmailUser, SRC_JobOpportunityLabel, SRC_Color, White)
 
 	// 12. Take action! (Batch Modify Emails)
 	err = gmailSrv.Users.Messages.BatchModify(gmailUser, &gmail.BatchModifyMessagesRequest{
