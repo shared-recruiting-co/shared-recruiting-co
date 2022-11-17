@@ -13,7 +13,6 @@ func GetNewEmailsSince(srv *gmail.Service, userID string, historyID uint64, labe
 		labelID = defaultLabelID
 	}
 
-	// Fer now, fetch up to 500 emails instead of paginating
 	r, err := srv.Users.History.
 		List(userID).
 		LabelId(labelID).
@@ -26,29 +25,44 @@ func GetNewEmailsSince(srv *gmail.Service, userID string, historyID uint64, labe
 		return nil, err
 	}
 
-	// TODO: Paginate!
-	// srv.Users.History.List(userID).PageToken(r.NextPageToken)
-
 	emails := []*gmail.Message{}
+	for {
+		for _, h := range r.History {
+			// only look at messages added
+			for _, m := range h.MessagesAdded {
+				messageID := m.Message.Id
+				// payload isn't included in the history response
+				message, err := srv.Users.Messages.Get(userID, messageID).Do()
 
-	for _, h := range r.History {
-		// only look at messages added
-		for _, m := range h.MessagesAdded {
-			messageID := m.Message.Id
-			// payload isn't included in the history response
-			message, err := srv.Users.Messages.Get(userID, messageID).Do()
+				if err != nil {
+					// consider skipping
+					return nil, err
+				}
 
-			if err != nil {
-				// consider skipping
-				return nil, err
+				// skip empty messages
+				if message.Payload == nil {
+					continue
+				}
+
+				emails = append(emails, message)
 			}
+		}
+		// get next page if it exists
+		if r.NextPageToken == "" {
+			break
+		}
 
-			// skip empty messages
-			if message.Payload == nil {
-				continue
-			}
+		r, err = srv.Users.History.
+			List(userID).
+			LabelId(labelID).
+			StartHistoryId(historyID).
+			HistoryTypes(historyTypeMessageAdded).
+			MaxResults(maxResults).
+			PageToken(r.NextPageToken).
+			Do()
 
-			emails = append(emails, message)
+		if err != nil {
+			return emails, err
 		}
 	}
 
