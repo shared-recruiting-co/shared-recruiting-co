@@ -80,9 +80,6 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	email := emailPushNotification.Email
 	historyID := emailPushNotification.HistoryID
 
-	log.Printf("Email: %s", email)
-	log.Printf("History ID: %d", historyID)
-
 	creds, err := jsonFromEnv("GOOGLE_APPLICATION_CREDENTIALS")
 	if err != nil {
 		return err
@@ -124,12 +121,6 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		return err
 	}
 
-	// if this is the first sync, we are done
-	if prevSyncHistory.HistoryID == 0 {
-		// TODO: Trigger historic sync on first notification
-		return nil
-	}
-
 	// 4. Get User' OAuth Token
 	userToken, err := queries.GetUserOAuthToken(ctx, client.GetUserOAuthTokenParams{
 		UserID:   user.ID,
@@ -144,73 +135,104 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	gmailSrv, err := mail.NewGmailService(ctx, creds, auth)
 	gmailUser := "me"
 
-	// 6. Make Request to Fetch New Emails from Previous History ID
-	messages, err := mail.GetNewEmailsSince(gmailSrv, gmailUser, uint64(prevSyncHistory.HistoryID), "INBOX")
-	if err != nil {
-		return err
-	}
+	// 6. Get or Create SRC Label
+	srcLabel, err := mail.GetOrCreateLabel(gmailSrv, gmailUser, SRC_Label, SRC_Color, White)
+	srcJobOpportunityLabel, err := mail.GetOrCreateLabel(gmailSrv, gmailUser, SRC_JobOpportunityLabel, SRC_Color, White)
 
-	// 7. Stringify Emails
-	examples := map[string]string{}
-	for _, message := range messages {
-		text, err := mail.MessageToString(message)
-		if err != nil {
-			return err
-		}
-		examples[message.Id] = text
-	}
-
-	log.Printf("number of new emails: %d", len(examples))
-
-	if len(examples) == 0 {
-		return nil
-	}
-
-	// 8. Create recruiting detector client
+	// 7. Create recruiting detector client
 	classifier := NewClassifierClient(ctx, ClassifierClientArgs{
 		BaseURL: os.Getenv("CLASSIFIER_URL"),
 		ApiKey:  os.Getenv("CLASSIFIER_API_KEY"),
 	})
 
-	// 9. Batch predict on new emails
-	results, err := classifier.PredictBatch(examples)
-	if err != nil {
-		return err
-	}
+	var messages []*gmail.Message
+	pageToken := ""
 
-	// 10. Get IDs of new recruiting emails
-	recruitingEmailIDs := []string{}
-	for id, result := range results {
-		if !result {
-			continue
+	// batch process messages to reduce memory usage
+	for {
+
+		// 8. Make Request to Fetch New Emails from Previous History ID
+		// get next set of messages
+		// if this is the first notification, trigger a one-time sync
+		if prevSyncHistory.HistoryID == 0 {
+			messages, pageToken, err = GetEmailsSinceLastYear(gmailSrv, gmailUser, pageToken)
+		} else {
+			messages, pageToken, err = GetNewEmailsSince(gmailSrv, gmailUser, uint64(prevSyncHistory.HistoryID), "INBOX", pageToken)
 		}
-		recruitingEmailIDs = append(recruitingEmailIDs, id)
+
+		// for now, abort on error
+		if err != nil {
+			return err
+		}
+
+		// process messages
+		examples := map[string]string{}
+		for _, message := range messages {
+			// payload isn't included in the list endpoint responses
+			message, err := gmailSrv.Users.Messages.Get(gmailUser, message.Id).Do()
+
+			// for now, abort on error
+			if err != nil {
+				return err
+			}
+
+			if message.Payload == nil {
+				continue
+			}
+			text, err := mail.MessageToString(message)
+			examples[message.Id] = text
+		}
+
+		log.Printf("number of emails to classify: %d", len(examples))
+
+		if len(examples) == 0 {
+			break
+		}
+
+		// 9. Batch predict on new emails
+		results, err := classifier.PredictBatch(examples)
+		if err != nil {
+			return err
+		}
+
+		// 10. Get IDs of new recruiting emails
+		recruitingEmailIDs := []string{}
+		for id, result := range results {
+			if !result {
+				continue
+			}
+			recruitingEmailIDs = append(recruitingEmailIDs, id)
+		}
+
+		log.Printf("number of recruiting emails: %d", len(recruitingEmailIDs))
+
+		// no new recruiting emails, return early
+		if len(recruitingEmailIDs) == 0 {
+			return nil
+		}
+
+		// 11. Take action on recruiting emails
+		err = gmailSrv.Users.Messages.BatchModify(gmailUser, &gmail.BatchModifyMessagesRequest{
+			Ids: recruitingEmailIDs,
+			// Add SRC Label
+			AddLabelIds: []string{srcLabel.Id, srcJobOpportunityLabel.Id},
+			// In future,
+			// - mark as read
+			// - archive
+			// - create response
+			// RemoveLabelIds: []string{"UNREAD"},
+		}).Do()
+
+		// for now, abort on error
+		if err != nil {
+			return err
+		}
+
+		if pageToken == "" {
+			break
+		}
 	}
 
-	// no new recruiting emails, return early
-	if len(recruitingEmailIDs) == 0 {
-		return nil
-	}
-
-	// 11. Get or Create SRC Label
-	srcLabel, err := mail.GetOrCreateLabel(gmailSrv, gmailUser, SRC_Label, SRC_Color, White)
-	srcJobOpportunityLabel, err := mail.GetOrCreateLabel(gmailSrv, gmailUser, SRC_JobOpportunityLabel, SRC_Color, White)
-
-	// 12. Take action! (Batch Modify Emails)
-	err = gmailSrv.Users.Messages.BatchModify(gmailUser, &gmail.BatchModifyMessagesRequest{
-		Ids: recruitingEmailIDs,
-		// Add SRC Label
-		AddLabelIds: []string{srcLabel.Id, srcJobOpportunityLabel.Id},
-		// In future,
-		// - mark as read
-		// - archive
-		// - create response
-		// RemoveLabelIds: []string{"UNREAD"},
-	}).Do()
-
-	if err != nil {
-		return err
-	}
-
+	log.Printf("done.")
 	return nil
 }
