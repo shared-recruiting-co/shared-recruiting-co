@@ -73,7 +73,7 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 
 		srv, err = mail.NewGmailService(ctx, creds, auth)
 		if err != nil {
-			log.Fatalf("unable to create gmail service: %v", err)
+			log.Fatalf("error creating gmail service: %v", err)
 		}
 		// Watch for changes in labelId
 		resp, err := srv.Users.Watch(user, &gmail.WatchRequest{
@@ -81,7 +81,7 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 			TopicName: topic,
 		}).Do()
 		if err != nil {
-			log.Fatalf("unable to watch: %v", err)
+			log.Fatalf("error watching: %v", err)
 		}
 		// success
 		log.Println(resp)
