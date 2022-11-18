@@ -82,26 +82,26 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 	creds, err := jsonFromEnv("GOOGLE_APPLICATION_CREDENTIALS")
 	if err != nil {
-		return err
+		return fmt.Errorf("error fetching google app credentials: %v", err)
 	}
 
 	// 0, Create SRC client
 	connectionURI := os.Getenv("DATABASE_URL")
 	db, err := sql.Open("postgres", connectionURI)
 	if err != nil {
-		return err
+		return fmt.Errorf("error connecting to database: %v", err)
 	}
 
 	// prepare queries
 	queries, err := client.Prepare(ctx, db)
 	if err != nil {
-		return err
+		return fmt.Errorf("error preparing db queries: %v", err)
 	}
 
 	// 1. Get User from email address
 	user, err := queries.GetUserByEmail(ctx, email)
 	if err != nil {
-		return err
+		return fmt.Errorf("error getting user from email: %v", err)
 	}
 
 	// 2. Make Request to Fetch Previous History ID
@@ -109,7 +109,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	if err == sql.ErrNoRows {
 		log.Printf("no email history found for email: %s", email)
 	} else if err != nil {
-		return err
+		return fmt.Errorf("error getting user email sync history: %v", err)
 	}
 
 	// 3. Make Request to proactively save new history (If anything goes wrong, then we reset the history ID to the previous one)
@@ -118,7 +118,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		HistoryID: int64(historyID),
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("error upserting email sync history: %v", err)
 	}
 
 	// 4. Get User' OAuth Token
@@ -127,7 +127,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		Provider: provider,
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("error getting user oauth token: %v", err)
 	}
 
 	// 5. Create Gmail Service
@@ -137,7 +137,13 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 	// 6. Get or Create SRC Label
 	srcLabel, err := mail.GetOrCreateLabel(gmailSrv, gmailUser, SRC_Label, SRC_Color, White)
+	if err != nil {
+		return fmt.Errorf("error getting or creating the SRC label: %v", err)
+	}
 	srcJobOpportunityLabel, err := mail.GetOrCreateLabel(gmailSrv, gmailUser, SRC_JobOpportunityLabel, SRC_Color, White)
+	if err != nil {
+		return fmt.Errorf("error getting or creating the SRC job opportunity label: %v", err)
+	}
 
 	// 7. Create recruiting detector client
 	classifier := NewClassifierClient(ctx, ClassifierClientArgs{
@@ -162,7 +168,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 		// for now, abort on error
 		if err != nil {
-			return err
+			return fmt.Errorf("error fetching emails: %v", err)
 		}
 
 		// process messages
@@ -173,7 +179,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 			// for now, abort on error
 			if err != nil {
-				return err
+				return fmt.Errorf("error getting message: %v", err)
 			}
 
 			if message.Payload == nil {
@@ -192,7 +198,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		// 9. Batch predict on new emails
 		results, err := classifier.PredictBatch(examples)
 		if err != nil {
-			return err
+			return fmt.Errorf("error predicting on examples: %v", err)
 		}
 
 		// 10. Get IDs of new recruiting emails
@@ -225,7 +231,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 		// for now, abort on error
 		if err != nil {
-			return err
+			return fmt.Errorf("error modifying recruiting emails: %v", err)
 		}
 
 		if pageToken == "" {
