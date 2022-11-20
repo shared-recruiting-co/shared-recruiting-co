@@ -43,7 +43,7 @@ You shall not forge headers or otherwise manipulate identifiers in order to disg
 You shall not use the Service for any purpose that is unlawful or prohibited by this Agreement, or which infringes the rights of SRC or others.
 
 ### 9. Feedback
-If you provide ideas, suggestions, or other feedback to SRC in connection with the Service (such as suggestions for improvements to the Service) ("Feedback"), you acknowledge that the Feedback is not confidential and you grant SRC (and our successors and assigns) a perpetual, irrevocable, worldwide, sublicensable, transferrable, royalty-free, fully paid-up right and license to use, reproduce, display, perform, distribute, sell, and otherwise fully exploit all Feedback.
+If you provide ideas, suggestions, or other feedback to SRC in connection with the Service (such as suggestions for improvements to the Service) ("**Feedback**"), you acknowledge that the Feedback is not confidential and you grant SRC (and our successors and assigns) a perpetual, irrevocable, worldwide, sublicensable, transferrable, royalty-free, fully paid-up right and license to use, reproduce, display, perform, distribute, sell, and otherwise fully exploit all Feedback.
 
 ### 10. Indemnification
 You shall defend, indemnify, and hold harmless SRC and each of our employees, contractors, directors, providers, suppliers and representatives from all liabilities, damages, losses, settlements, claims, actions, suits, demands, proceedings, costs and expenses, including attorneys' fees, that arise from or in connection with your misuse of the Service or breach of this Agreement.
