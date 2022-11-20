@@ -2,7 +2,11 @@
 module.exports = {
 	content: ['./src/**/*.{html,js,svelte,ts}'],
 	theme: {
-		extend: {}
+		extend: {
+			fontFamily: {
+				sans: ['Miriam Libre', 'sans-serif']
+			}
+		}
 	},
 	plugins: [require('@tailwindcss/typography')]
 };
