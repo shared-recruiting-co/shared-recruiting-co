@@ -6,8 +6,9 @@
 			const { error } = await supabaseClient.auth.signInWithOAuth({
 				provider: 'google',
 				options: {
+					redirectTo: `${window.location.origin}/login/callback`,
 					// request refresh token from Google
-					queryParams: { access_type: 'offline', prompt: 'consent' },
+					queryParams: { access_type: 'offline' },
 					scopes:
 						'https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.labels'
 				}
