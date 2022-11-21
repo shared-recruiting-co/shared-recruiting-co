@@ -105,12 +105,6 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// get the current history id
-
-	// create classifier client
-	// sync historic emails
-	// save history id
-	// watch for new emails
 	creds, err := jsonFromEnv("GOOGLE_APPLICATION_CREDENTIALS")
 	if err != nil {
 		log.Printf("error fetching google app credentials: %v", err)
@@ -135,7 +129,7 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 4. Get User' OAuth Token
+	// Get User' OAuth Token
 	userToken, err := queries.GetUserOAuthToken(ctx, client.GetUserOAuthTokenParams{
 		UserID:   userID,
 		Provider: provider,
@@ -147,12 +141,12 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 5. Create Gmail Service
+	// Create Gmail Service
 	auth := []byte(userToken.Token.RawMessage)
 	gmailSrv, err := mail.NewGmailService(ctx, creds, auth)
 	gmailUser := "me"
 
-	// 6. Create SRC Labels
+	// Create SRC Labels
 	srcLabel, err := mail.GetOrCreateLabel(gmailSrv, gmailUser, SRC_Label, SRC_Color, White)
 	if err != nil {
 		log.Printf("error getting or creating the SRC label: %v", err)
@@ -166,7 +160,7 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 7. Create recruiting detector client
+	// Create recruiting detector client
 	classifier := NewClassifierClient(ctx, ClassifierClientArgs{
 		BaseURL: os.Getenv("CLASSIFIER_URL"),
 		ApiKey:  os.Getenv("CLASSIFIER_API_KEY"),
@@ -177,7 +171,7 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 
 	// batch process messages to reduce memory usage
 	for {
-		// 8. Make Request to Fetch New Emails from Previous History ID
+		// Make Request to Fetch New Emails from Previous History ID
 		// get next set of messages
 		// if this is the first notification, trigger a one-time sync
 		messages, pageToken, err = GetEmailsSinceLastYear(gmailSrv, gmailUser, pageToken)
@@ -215,7 +209,7 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		// 9. Batch predict on new emails
+		// Batch predict on new emails
 		results, err := classifier.PredictBatch(examples)
 		if err != nil {
 			log.Printf("error predicting on examples: %v", err)
@@ -223,7 +217,7 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// 10. Get IDs of new recruiting emails
+		// Get IDs of new recruiting emails
 		recruitingEmailIDs := []string{}
 		for id, result := range results {
 			if !result {
@@ -234,7 +228,7 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf("number of recruiting emails: %d", len(recruitingEmailIDs))
 
-		// 11. Take action on recruiting emails
+		// Take action on recruiting emails
 		if len(recruitingEmailIDs) > 0 {
 			err = gmailSrv.Users.Messages.BatchModify(gmailUser, &gmail.BatchModifyMessagesRequest{
 				Ids: recruitingEmailIDs,
