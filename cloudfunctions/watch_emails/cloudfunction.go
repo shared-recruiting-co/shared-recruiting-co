@@ -70,12 +70,15 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 	label := "UNREAD"
 	topic := os.Getenv("PUBSUB_TOPIC")
 
+	hasError := false
+
 	for _, userToken := range userTokens {
 		auth := []byte(userToken.Token.RawMessage)
 
 		srv, err = mail.NewGmailService(ctx, creds, auth)
 		if err != nil {
 			log.Printf("error creating gmail service: %v", err)
+			hasError = true
 			continue
 		}
 		// Watch for changes in labelId
@@ -86,10 +89,17 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			log.Printf("error watching: %v", err)
+			hasError = true
 			continue
 		}
 		// success
 		log.Printf("watching: %v", resp)
 	}
+
+	// write error status code for tracking
+	if hasError {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
 	log.Println("done.")
 }
