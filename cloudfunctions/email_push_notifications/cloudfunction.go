@@ -212,26 +212,23 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 		log.Printf("number of recruiting emails: %d", len(recruitingEmailIDs))
 
-		// no new recruiting emails, return early
-		if len(recruitingEmailIDs) == 0 {
-			return nil
-		}
-
 		// 11. Take action on recruiting emails
-		err = gmailSrv.Users.Messages.BatchModify(gmailUser, &gmail.BatchModifyMessagesRequest{
-			Ids: recruitingEmailIDs,
-			// Add SRC Label
-			AddLabelIds: []string{srcLabel.Id, srcJobOpportunityLabel.Id},
-			// In future,
-			// - mark as read
-			// - archive
-			// - create response
-			// RemoveLabelIds: []string{"UNREAD"},
-		}).Do()
+		if len(recruitingEmailIDs) > 0 {
+			err = gmailSrv.Users.Messages.BatchModify(gmailUser, &gmail.BatchModifyMessagesRequest{
+				Ids: recruitingEmailIDs,
+				// Add SRC Label
+				AddLabelIds: []string{srcLabel.Id, srcJobOpportunityLabel.Id},
+				// In future,
+				// - mark as read
+				// - archive
+				// - create response
+				// RemoveLabelIds: []string{"UNREAD"},
+			}).Do()
 
-		// for now, abort on error
-		if err != nil {
-			return fmt.Errorf("error modifying recruiting emails: %v", err)
+			// for now, abort on error
+			if err != nil {
+				return fmt.Errorf("error modifying recruiting emails: %v", err)
+			}
 		}
 
 		if pageToken == "" {
