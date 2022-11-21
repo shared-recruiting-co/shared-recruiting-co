@@ -1,7 +1,6 @@
 package cloudfunctions
 
 import (
-	"context"
 	"database/sql"
 	"encoding/base64"
 	"log"
@@ -39,7 +38,7 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create SRC client
-	ctx := context.Background()
+	ctx := r.Context()
 
 	connectionURI := os.Getenv("DATABASE_URL")
 	db, err := sql.Open("postgres", connectionURI)
