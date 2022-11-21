@@ -20,11 +20,12 @@ import (
 )
 
 const (
-	provider                = "google"
-	SRC_Label               = "@SRC"
-	SRC_JobOpportunityLabel = "@SRC/Job Opportunity"
-	SRC_Color               = "#16a765"
-	White                   = "#ffffff"
+	provider                     = "google"
+	SRC_Label                    = "@SRC"
+	SRC_JobOpportunityLabel      = "@SRC/Job Opportunity"
+	SRC_Color                    = "#ff7537"
+	SRC_JobOpportunityLabelColor = "#16a765"
+	White                        = "#ffffff"
 )
 
 func init() {
@@ -153,7 +154,7 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	srcJobOpportunityLabel, err := mail.GetOrCreateLabel(gmailSrv, gmailUser, SRC_JobOpportunityLabel, SRC_Color, White)
+	srcJobOpportunityLabel, err := mail.GetOrCreateLabel(gmailSrv, gmailUser, SRC_JobOpportunityLabel, SRC_JobOpportunityLabelColor, White)
 	if err != nil {
 		log.Printf("error getting or creating the SRC job opportunity label: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
