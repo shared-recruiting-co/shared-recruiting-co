@@ -3,6 +3,7 @@ go 1.19
 use (
 	./cloudfunctions/email_push_notifications
 	./cloudfunctions/watch_emails
+	./cloudfunctions/new_user_workflow
 	./libs/db
 	./libs/gmail
 )

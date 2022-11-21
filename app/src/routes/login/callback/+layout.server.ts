@@ -1,6 +1,8 @@
 import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 
+import { NEW_USER_WORKFLOW_ENDPOINT } from '$env/static/private';
+
 import { getSupabase } from '@supabase/auth-helpers-sveltekit';
 
 // convert to ms and get iso string
@@ -41,7 +43,14 @@ export const load: LayoutServerLoad = async (event) => {
 			if (!data && !selectError) {
 				console.log('user has not had their email synced. triggering new user workflow...');
 				// make an authenticated request to the login workflow
-				// TODO
+				// async workflow: trigger request, but do not wait for response
+				fetch(NEW_USER_WORKFLOW_ENDPOINT, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${session.access_token}`
+					}
+				})
 			}
 		}
 	}
