@@ -98,6 +98,8 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+	email := claims["email"].(string)
+	log.Printf("running workflow for user %s / %s", email, sub)
 
 	userID, err := uuid.Parse(sub)
 	if err != nil {
