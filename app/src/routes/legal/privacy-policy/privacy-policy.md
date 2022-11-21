@@ -2,7 +2,6 @@ _Last Updated: Nov 20, 2022_
 
 Welcome to SRC. Shared Recruiting Company, LLC. ("**SRC**", "**we**", "**us**", or "**our**") is a candidate-centric recruiting platform.
 
-
 ## Our Commitment to Privacy
 
 We value your trust and take our privacy obligations seriously. We have developed this Privacy Policy to provide you with clear answers to your questions so you can understand how your personal information and data is collected, held and processed by us. In this Privacy Policy, we explain how we process personal data and the rights you have to limit our use of your personal data. If you have any questions or concerns about our Privacy Policy, or with the handling of your personal information, please contact our team at privacy@sharedrecruiting.co. By using our recruiting application [and other related websites, applications or services] (the "**Services**"), you agree to our processing of personal data required by  the Services in accordance with this Privacy Policy. We may update this Privacy Policy from time to time by posting a new version on this web page. When we make an update to this page, we will update the “last updated” date above to reflect the date of the most recent change. By continuing to use our Services, you agree that you accept updates to this Privacy Policy.
@@ -12,6 +11,7 @@ We value your trust and take our privacy obligations seriously. We have develope
 This Privacy Policy applies to all personal data processed through our Services, which include:
 
 #### Personal Data you provide
+
 1. Information required to service your account, including but not limited to your name, contact information, and communication methods.
 2. Information required to provide our services, including but not limited to linked accounts and addresses, communication history, configurations.
 3. Application and website usage data used to improve our product.
@@ -19,7 +19,7 @@ This Privacy Policy applies to all personal data processed through our Services,
 
 ## Who is the data controller or processor?
 
-Data protection law in certain jurisdictions differentiates between the “controller” and “processor” of information. When you use our our product as an employee of an organization which subscribes to us, your organization (i.e., our customer) is the data controller, and we are a data processor acting on its behalf. If you use our product as an individual, we will act as a processor on your behalf. 
+Data protection law in certain jurisdictions differentiates between the “controller” and “processor” of information. When you use our our product as an employee of an organization which subscribes to us, your organization (i.e., our customer) is the data controller, and we are a data processor acting on its behalf. If you use our product as an individual, we will act as a processor on your behalf.
 
 ## How do we use your personal data?
 
@@ -31,7 +31,7 @@ You can request closure of your account directly from the our product. Please b
 
 ## What permissions does SRC need in order for our service to work?
 
-We need certain permissions in order for our Service to function. We use the following Google Mail scopes 
+We need certain permissions in order for our Service to function. We use the following Google Mail scopes
 
 #### https://www.googleapis.com/auth/gmail.modify
 
@@ -57,7 +57,7 @@ If you live in certain countries or jurisdictions (for example, European Union m
 
 ## What data do you collect from my email? 
 
-Our service requires that we process information from email messages in your account. This information primarily includes subjects, senders, header matter, bodies, labels, and other organizational details. 
+Our service requires that we process information from email messages in your account. This information primarily includes subjects, senders, header matter, bodies, labels, and other organizational details.
 
 We do not store the body of email communications. All email body information stays within your Gmail account.
 
