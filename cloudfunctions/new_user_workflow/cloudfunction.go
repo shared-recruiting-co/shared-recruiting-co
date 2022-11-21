@@ -132,6 +132,14 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// check if we've already synced the user
+	history, _ := queries.GetUserEmailSyncHistory(ctx, userID)
+	if history.HistoryID != 0 {
+		log.Printf("user already synced")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
 	// Get User' OAuth Token
 	userToken, err := queries.GetUserOAuthToken(ctx, client.GetUserOAuthTokenParams{
 		UserID:   userID,
