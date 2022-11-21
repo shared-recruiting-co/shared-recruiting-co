@@ -1,10 +1,11 @@
-module github.com/shared-recruiting-co/shared-recruiting-co/cloudfunctions/email_push_notifications
+module github.com/shared-recruiting-co/shared-recruiting-co/cloudfunctions/new_user_workflow
 
 go 1.19
 
 require (
 	github.com/GoogleCloudPlatform/functions-framework-go v1.6.1
-	github.com/cloudevents/sdk-go/v2 v2.12.0
+	github.com/golang-jwt/jwt/v4 v4.4.2
+	github.com/google/uuid v1.3.0
 	github.com/lib/pq v1.10.7
 	github.com/shared-recruiting-co/shared-recruiting-co/libs/db v0.0.0-20221121004742-eab5e74ed313
 	github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20221121004742-eab5e74ed313
@@ -14,9 +15,9 @@ require (
 require (
 	cloud.google.com/go/compute v1.12.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.1 // indirect
+	github.com/cloudevents/sdk-go/v2 v2.12.0 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.7.0 // indirect
 	github.com/jaytaylor/html2text v0.0.0-20211105163654-bc68cce691ba // indirect
