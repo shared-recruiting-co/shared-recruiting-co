@@ -33,7 +33,8 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 	log.Println("received watch trigger")
 	creds, err := jsonFromEnv("GOOGLE_APPLICATION_CREDENTIALS")
 	if err != nil {
-		log.Fatalf("error getting credentials: %v", err)
+		log.Printf("error getting credentials: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -43,7 +44,8 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 	connectionURI := os.Getenv("DATABASE_URL")
 	db, err := sql.Open("postgres", connectionURI)
 	if err != nil {
-		log.Fatalf("error connecting to database: %v", err)
+		log.Printf("error connecting to database: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -58,7 +60,8 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 	// 1. Fetch auth tokens for all user
 	userTokens, err := queries.ListOAuthTokensByProvider(ctx, provider)
 	if err != nil {
-		log.Fatalf("error getting user tokens: %v", err)
+		log.Printf("error getting user tokens: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -72,18 +75,21 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 
 		srv, err = mail.NewGmailService(ctx, creds, auth)
 		if err != nil {
-			log.Fatalf("error creating gmail service: %v", err)
+			log.Printf("error creating gmail service: %v", err)
+			continue
 		}
 		// Watch for changes in labelId
 		resp, err := srv.Users.Watch(user, &gmail.WatchRequest{
 			LabelIds:  []string{label},
 			TopicName: topic,
 		}).Do()
+
 		if err != nil {
-			log.Fatalf("error watching: %v", err)
+			log.Printf("error watching: %v", err)
+			continue
 		}
 		// success
-		log.Println(resp)
+		log.Printf("watching: %v", resp)
 	}
 	log.Println("done.")
 }
