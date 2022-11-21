@@ -11,4 +11,3 @@
 		{@html marked(content)}
 	</article>
 </div>
-
