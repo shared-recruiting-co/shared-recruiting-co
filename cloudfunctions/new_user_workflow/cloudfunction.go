@@ -97,8 +97,8 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	userID, err := uuid.Parse(sub)
 
+	userID, err := uuid.Parse(sub)
 	if err != nil {
 		log.Printf("error parsing user id into uuid: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
