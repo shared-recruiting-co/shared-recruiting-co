@@ -8,7 +8,6 @@
 	import Header from '$lib/components/Header.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 
-
 	onMount(() => {
 		const {
 			data: { subscription }
@@ -21,7 +20,6 @@
 		};
 	});
 </script>
-
 
 <Header />
 <slot />
