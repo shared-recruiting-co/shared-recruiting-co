@@ -1,9 +1,13 @@
 <script lang="ts">
+	import { invalidate } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import '../app.css';
 
 	import { supabaseClient } from '$lib/supabase/client';
-	import { invalidate } from '$app/navigation';
-	import { onMount } from 'svelte';
+
+	import Header from '$lib/components/Header.svelte';
+	import Footer from '$lib/components/Footer.svelte';
+
 
 	onMount(() => {
 		const {
@@ -18,4 +22,7 @@
 	});
 </script>
 
+
+<Header />
 <slot />
+<Footer />
