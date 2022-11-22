@@ -13,6 +13,8 @@
 				options: {
 					redirectTo: `${window.location.origin}/login/callback`,
 					// request refresh token from Google
+					// prompt: 'consent' forces the consent flow every time the user logs in, so we always regenerate a refresh token
+					// Once the app is approved by Google, we can remove the prompt: 'consent' option, so the user only has to consent once
 					queryParams: { access_type: 'offline', prompt: 'consent' },
 					scopes:
 						'https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.labels'
