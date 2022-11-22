@@ -13,7 +13,7 @@
 				options: {
 					redirectTo: `${window.location.origin}/login/callback`,
 					// request refresh token from Google
-					queryParams: { access_type: 'offline' },
+					queryParams: { access_type: 'offline', prompt: 'consent' },
 					scopes:
 						'https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.labels'
 				}
