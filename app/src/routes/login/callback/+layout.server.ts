@@ -18,42 +18,48 @@ export const load: LayoutServerLoad = async (event) => {
 
 	if (!expires_at || !provider_token || !provider_refresh_token || !provider) {
 		console.log('missing data. not updating user oauth token');
-	} else {
-		console.log('saving user oauth token...');
-		// format tokens for db
-		const { error } = await supabaseClient.from('user_oauth_token').upsert({
-			user_id: user.id,
-			provider,
-			token: {
-				access_token: provider_token,
-				refresh_token: provider_refresh_token,
-				expiry: expriryFromExpiresAt(expires_at)
-			}
-		});
-		if (error) {
-			console.log('failed to save user oauth token:', error);
-		} else {
-			// check if user has had their email synced
-			const { data, error: selectError } = await supabaseClient
-				.from('user_email_sync_history')
-				.select('user_id')
-				.maybeSingle();
+		throw redirect(307, '/?missing_provider=true');
+	}
 
-			// if not, trigger login workflow
-			if (!data && !selectError) {
-				console.log('user has not had their email synced. triggering new user workflow...');
-				// make an authenticated request to the login workflow
-				// async workflow: trigger request, but do not wait for response
+	console.log('saving user oauth token...');
+	// format tokens for db
+	const { error } = await supabaseClient.from('user_oauth_token').upsert({
+		user_id: user.id,
+		provider,
+		token: {
+			access_token: provider_token,
+			refresh_token: provider_refresh_token,
+			expiry: expriryFromExpiresAt(expires_at)
+		}
+	});
+	if (error) {
+		console.log('failed to save user oauth token:', error);
+	} else {
+		// check if user has had their email synced
+		const { data, error: selectError } = await supabaseClient
+			.from('user_email_sync_history')
+			.select('user_id')
+			.maybeSingle();
+
+		// if not, trigger login workflow
+		if (!data && !selectError) {
+			console.log('user has not had their email synced. triggering new user workflow...');
+			// make an authenticated request to the login workflow
+			// async workflow: trigger request, but do not wait for response
+			try {
 				fetch(NEW_USER_WORKFLOW_ENDPOINT, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
 						Authorization: `Bearer ${session.access_token}`
 					}
-				})
+				});
+			} catch (e) {
+				console.log('error triggering new user workflow');
 			}
 		}
 	}
+
 	// redirect home
 	throw redirect(307, '/');
 };
