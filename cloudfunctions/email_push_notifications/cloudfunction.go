@@ -92,6 +92,9 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	if err != nil {
 		return fmt.Errorf("error connecting to database: %v", err)
 	}
+	defer db.Close()
+	// use a max of 2 connections
+	db.SetMaxOpenConns(2)
 
 	// prepare queries
 	queries, err := client.Prepare(ctx, db)

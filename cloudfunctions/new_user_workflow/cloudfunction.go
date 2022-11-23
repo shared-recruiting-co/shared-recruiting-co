@@ -123,6 +123,9 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	defer db.Close()
+	// use a max of 2 connections
+	db.SetMaxOpenConns(2)
 
 	// prepare queries
 	queries, err := client.Prepare(ctx, db)
