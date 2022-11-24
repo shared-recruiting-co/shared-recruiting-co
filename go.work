@@ -4,6 +4,7 @@ use (
 	./cloudfunctions/email_push_notifications
 	./cloudfunctions/watch_emails
 	./cloudfunctions/new_user_workflow
+	./cloudfunctions/collect_examples
 	./libs/db
 	./libs/gmail
 )
