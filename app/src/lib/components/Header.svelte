@@ -1,7 +1,19 @@
+<script lang="ts">
+	import { page } from '$app/stores';
+	import { supabaseClient } from '$lib/supabase/client';
+
+	const handleLogout = async () => {
+		await supabaseClient.auth.signOut();
+	};
+</script>
+
 <header
 	class="bg-base-100 sticky top-0 z-50 flex flex-row flex-nowrap items-center justify-between space-x-4 px-4  py-4 text-lg sm:text-xl"
 >
-	<a href="/" class="text-primary text-xl sm:text-2xl md:min-w-[150px]">Shared Recruiting Co.</a>
+	<div class="flex flex-row items-center space-x-4">
+		<img src="/logo.svg" alt="Shared Recruiting Co" class="h-6 md:h-10" />
+		<a href="/" class="text-primary text-xl sm:text-2xl md:min-w-[150px]">Shared Recruiting Co.</a>
+	</div>
 	<div class="hidden md:space-x-4">
 		<a href="/#product" class="text-base font-medium text-gray-500 hover:text-gray-900">Product</a>
 		<a href="/#features" class="text-base font-medium text-gray-500 hover:text-gray-900">Features</a
@@ -11,6 +23,7 @@
 		>
 		<a href="#faqs" class="text-base font-medium text-gray-500 hover:text-gray-900">FAQs</a>
 	</div>
+
 	<div class="flex items-center justify-end space-x-4 md:min-w-[150px]">
 		<a
 			href="https://github.com/shared-recruiting-co/shared-recruiting-co"
@@ -25,5 +38,11 @@
 				/>
 			</svg>
 		</a>
+		{#if $page.data.session}
+			<button
+				class="group inline-flex items-center justify-center rounded-full bg-slate-900 py-2 px-4 text-sm font-semibold text-white hover:bg-slate-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300"
+				on:click={handleLogout}>Log Out</button
+			>
+		{/if}
 	</div>
 </header>

@@ -29,13 +29,51 @@
 	};
 </script>
 
-<div class="flex min-h-screen flex-col items-center justify-center">
-	<h1 class="pb-8 text-center text-6xl">Welcome to the S.R.C</h1>
-	{#if $page.data.session}
-		<p class="py-8 text-center text-2xl">You are logged in!</p>
-		<button on:click={handleLogout} class="rounded bg-gray-900 px-4 py-1 text-white">Log Out</button
+<div class="mx-auto max-w-7xl px-4 pt-20 pb-16 text-center sm:px-6 lg:px-8 lg:pt-32">
+	<h1
+		class="font-display mx-auto max-w-4xl text-5xl font-medium tracking-tight text-slate-900 sm:text-7xl"
+	>
+		Hate recruiting emails? <br />
+		<span class="text-blue-600">So do we.</span>
+	</h1>
+	<p class="mx-auto mt-6 max-w-2xl text-lg tracking-tight text-slate-700">
+		The Shared Recruiting Co (SRC) is an AI recruiting assistant that lives in your inbox. SRC keeps
+		your inbox clean when you aren’t looking for jobs and supercharges your job search once you are.
+	</p>
+	<div class="mt-10 flex justify-center gap-x-6">
+		<a
+			class="group inline-flex items-center justify-center rounded-full bg-slate-900 py-2 px-4 text-sm font-semibold text-white hover:bg-slate-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300"
+			href="https://62g7tcps1dn.typeform.com/to/ZR3hSTZi">Request an Invite</a
 		>
-	{:else}
-		<button on:click={handleLogin} class="rounded bg-gray-900 px-4 py-1 text-white">Log In</button>
-	{/if}
+		<a
+			class="group inline-flex items-center justify-center rounded-full py-2 px-4 text-sm text-slate-700 ring-1 ring-slate-200 hover:text-slate-900 hover:ring-slate-300 focus:outline-none focus-visible:outline-blue-600 focus-visible:ring-slate-300 active:bg-slate-100 active:text-slate-600"
+			href="https://github.com/shared-recruiting-co/shared-recruiting-co"
+			target="_blank"
+			rel="noopener noreferrer"
+		>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke-width="1.5"
+				stroke="currentColor"
+				class="h-6 w-6"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"
+				/>
+			</svg>
+			<span class="ml-3">Read the Code</span></a
+		>
+	</div>
+	<p class="mx-auto mt-10 max-w-2xl text-sm tracking-tight text-slate-700">
+		<sup>*</sup>SRC is currently in an invite only beta.
+		{#if !$page.data.session}
+			If you have an account, <button class="text-blue-600 underline" on:click={handleLogin}
+				>login here.</button
+			>
+		{/if}
+	</p>
 </div>
