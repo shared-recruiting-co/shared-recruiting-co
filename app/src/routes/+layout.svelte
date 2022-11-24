@@ -21,6 +21,10 @@
 	});
 </script>
 
-<Header />
-<slot />
-<Footer />
+<body class="flex h-full flex-col">
+	<Header />
+	<main>
+		<slot />
+	</main>
+	<Footer />
+</body>
