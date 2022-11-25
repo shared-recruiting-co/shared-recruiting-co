@@ -283,7 +283,7 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("watch response: %v", resp)
 
-	err = queries.UspertUserEmailSyncHistory(ctx, client.UspertUserEmailSyncHistoryParams{
+	err = queries.UpsertUserEmailSyncHistoryID(ctx, client.UpsertUserEmailSyncHistoryIDParams{
 		UserID:    userID,
 		HistoryID: int64(resp.HistoryId),
 	})
