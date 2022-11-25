@@ -7,6 +7,7 @@ package client
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
@@ -30,6 +31,7 @@ const getUserEmailSyncHistory = `-- name: GetUserEmailSyncHistory :one
 select
     user_id,
     history_id,
+    examples_collected_at,
     created_at,
     updated_at
 from public.user_email_sync_history
@@ -42,6 +44,7 @@ func (q *Queries) GetUserEmailSyncHistory(ctx context.Context, userID uuid.UUID)
 	err := row.Scan(
 		&i.UserID,
 		&i.HistoryID,
+		&i.ExamplesCollectedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -117,18 +120,38 @@ func (q *Queries) ListOAuthTokensByProvider(ctx context.Context, provider string
 	return items, nil
 }
 
-const uspertUserEmailSyncHistory = `-- name: UspertUserEmailSyncHistory :exec
+const upsertUserEmailSyncHistory = `-- name: UpsertUserEmailSyncHistory :exec
+insert into public.user_email_sync_history(user_id, history_id, examples_collected_at)
+values ($1, $2, $3)
+on conflict (user_id) do 
+update set 
+    history_id = excluded.history_id, 
+    examples_collected_at = excluded.examples_collected_at
+`
+
+type UpsertUserEmailSyncHistoryParams struct {
+	UserID              uuid.UUID    `json:"user_id"`
+	HistoryID           int64        `json:"history_id"`
+	ExamplesCollectedAt sql.NullTime `json:"examples_collected_at"`
+}
+
+func (q *Queries) UpsertUserEmailSyncHistory(ctx context.Context, arg UpsertUserEmailSyncHistoryParams) error {
+	_, err := q.exec(ctx, q.upsertUserEmailSyncHistoryStmt, upsertUserEmailSyncHistory, arg.UserID, arg.HistoryID, arg.ExamplesCollectedAt)
+	return err
+}
+
+const upsertUserEmailSyncHistoryID = `-- name: UpsertUserEmailSyncHistoryID :exec
 insert into public.user_email_sync_history(user_id, history_id)
 values ($1, $2)
 on conflict (user_id) do update set history_id = excluded.history_id
 `
 
-type UspertUserEmailSyncHistoryParams struct {
+type UpsertUserEmailSyncHistoryIDParams struct {
 	UserID    uuid.UUID `json:"user_id"`
 	HistoryID int64     `json:"history_id"`
 }
 
-func (q *Queries) UspertUserEmailSyncHistory(ctx context.Context, arg UspertUserEmailSyncHistoryParams) error {
-	_, err := q.exec(ctx, q.uspertUserEmailSyncHistoryStmt, uspertUserEmailSyncHistory, arg.UserID, arg.HistoryID)
+func (q *Queries) UpsertUserEmailSyncHistoryID(ctx context.Context, arg UpsertUserEmailSyncHistoryIDParams) error {
+	_, err := q.exec(ctx, q.upsertUserEmailSyncHistoryIDStmt, upsertUserEmailSyncHistoryID, arg.UserID, arg.HistoryID)
 	return err
 }

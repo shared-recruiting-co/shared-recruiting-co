@@ -117,7 +117,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	}
 
 	// 3. Make Request to proactively save new history (If anything goes wrong, then we reset the history ID to the previous one)
-	err = queries.UspertUserEmailSyncHistory(ctx, client.UspertUserEmailSyncHistoryParams{
+	err = queries.UpsertUserEmailSyncHistoryID(ctx, client.UpsertUserEmailSyncHistoryIDParams{
 		UserID:    user.ID,
 		HistoryID: int64(historyID),
 	})
