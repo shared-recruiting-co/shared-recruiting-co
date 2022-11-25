@@ -18,12 +18,7 @@ import (
 )
 
 const (
-	provider                     = "google"
-	SRC_Label                    = "@SRC"
-	SRC_JobOpportunityLabel      = "@SRC/Job Opportunity"
-	SRC_Color                    = "#ff7537"
-	SRC_JobOpportunityLabelColor = "#16a765"
-	White                        = "#ffffff"
+	provider = "google"
 )
 
 func init() {
@@ -98,6 +93,13 @@ func collectExamples(w http.ResponseWriter, r *http.Request) {
 		}
 		gmailUser := "me"
 
+		srcLabel, err := mail.GetOrCreateSRCLabel(gmailSrv, gmailUser)
+		if err != nil {
+			log.Printf("error getting or creating the SRC label: %v", err)
+			hasError = true
+			continue
+		}
+
 		// Create recruiting detector client
 		var messages []*gmail.Message
 		pageToken := ""
@@ -115,7 +117,7 @@ func collectExamples(w http.ResponseWriter, r *http.Request) {
 				startDate = history.ExamplesCollectedAt.Time
 			}
 			// start
-			messages, pageToken, err = GetSRCEmails(gmailSrv, gmailUser, startDate, pageToken)
+			messages, pageToken, err = GetSRCEmails(gmailSrv, gmailUser, srcLabel.Id, startDate, pageToken)
 
 			// for now, abort on error
 			if err != nil {
