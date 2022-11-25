@@ -79,6 +79,7 @@ func collectExamples(w http.ResponseWriter, r *http.Request) {
 	hasError := false
 
 	for _, userToken := range userTokens {
+		log.Printf("processing user %s", userToken.UserID)
 		// get the last scraped date from sync history
 		history, err := queries.GetUserEmailSyncHistory(ctx, userToken.UserID)
 		if err != nil {
@@ -122,6 +123,8 @@ func collectExamples(w http.ResponseWriter, r *http.Request) {
 				hasError = true
 				break
 			}
+
+			log.Printf("found %d messages to collect", len(messages))
 
 			// forward each message
 			for _, message := range messages {
