@@ -37,10 +37,8 @@ func jsonFromEnv(env string) ([]byte, error) {
 	return decoded, err
 }
 
-// collectExamples
-// In this function, we want to
-// For each user that has opted-in (as of now it's all users in private beta)
-// In future we can do this in realtime whenever a email is labeled with @SRC, but for now we'll just do it ad-hoc in batch
+// collectExamples collects examples from each user's inbox and forwards them to examples@sharedrecruiting.co
+// In the future, we can do this in realtime whenever a email is labeled with @SRC, but for now we'll just do it ad-hoc in batch
 func collectExamples(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	creds, err := jsonFromEnv("GOOGLE_APPLICATION_CREDENTIALS")
