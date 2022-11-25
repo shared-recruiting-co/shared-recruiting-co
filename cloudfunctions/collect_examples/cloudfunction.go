@@ -143,12 +143,7 @@ func collectExamples(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		// save today as the last sync time
-		// TODO
-		// Add examples_collected_at to GetSRCEmails call
-		// Run supabase migration
-		// Review logic
-		// done
+		// save sync date
 		err = queries.UpsertUserEmailSyncHistory(ctx, client.UpsertUserEmailSyncHistoryParams{
 			UserID:    userToken.UserID,
 			HistoryID: history.HistoryID,
