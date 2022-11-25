@@ -20,12 +20,7 @@ import (
 )
 
 const (
-	provider                     = "google"
-	SRC_Label                    = "@SRC"
-	SRC_JobOpportunityLabel      = "@SRC/Job Opportunity"
-	SRC_Color                    = "#ff7537"
-	SRC_JobOpportunityLabelColor = "#16a765"
-	White                        = "#ffffff"
+	provider = "google"
 )
 
 func init() {
@@ -140,11 +135,11 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	gmailUser := "me"
 
 	// 6. Get or Create SRC Label
-	srcLabel, err := mail.GetOrCreateLabel(gmailSrv, gmailUser, SRC_Label, SRC_Color, White)
+	srcLabel, err := mail.GetOrCreateSRCLabel(gmailSrv, gmailUser)
 	if err != nil {
 		return fmt.Errorf("error getting or creating the SRC label: %v", err)
 	}
-	srcJobOpportunityLabel, err := mail.GetOrCreateLabel(gmailSrv, gmailUser, SRC_JobOpportunityLabel, SRC_JobOpportunityLabelColor, White)
+	srcJobOpportunityLabel, err := mail.GetOrCreateSRCJobOpportunityLabel(gmailSrv, gmailUser)
 	if err != nil {
 		return fmt.Errorf("error getting or creating the SRC job opportunity label: %v", err)
 	}
