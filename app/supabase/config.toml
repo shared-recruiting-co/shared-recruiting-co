@@ -57,8 +57,8 @@ enable_confirmations = false
 # Use an external OAuth provider. The full list of providers are: `apple`, `azure`, `bitbucket`,
 # `discord`, `facebook`, `github`, `gitlab`, `google`, `twitch`, `twitter`, `slack`, `spotify`.
 [auth.external.google]
-enabled = false
-client_id = ""
+enabled = true
+client_id = "894040705294-b799av3mdoieaqs7e18bknfascrrm0vt.apps.googleusercontent.com"
 secret = ""
 # Overrides the default auth provider URL. Used to support self-hosted gitlab, single-tenant Azure,
 # or any other third-party OIDC providers.
