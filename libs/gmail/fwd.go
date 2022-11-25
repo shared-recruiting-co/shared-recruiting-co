@@ -148,8 +148,6 @@ func (m ForwardMessage) Raw() string {
 	// add the parent content
 	raw += fmt.Sprintf("\r\n\r\n%s", parentContent)
 
-	fmt.Println(raw)
-
 	// 6. Encode the message
 	return base64.URLEncoding.EncodeToString([]byte(raw))
 }

@@ -9,8 +9,8 @@ import (
 
 const maxResults = 250
 
-func GetSRCEmails(srv *gmail.Service, userID string, startDate time.Time, pageToken string) ([]*gmail.Message, string, error) {
-	builder := srv.Users.Messages.List(userID).PageToken(pageToken).MaxResults(maxResults)
+func GetSRCEmails(srv *gmail.Service, userID string, labelId string, startDate time.Time, pageToken string) ([]*gmail.Message, string, error) {
+	builder := srv.Users.Messages.List(userID).LabelIds(labelId).PageToken(pageToken).MaxResults(maxResults)
 
 	if !startDate.IsZero() {
 		// start the search from the start date
