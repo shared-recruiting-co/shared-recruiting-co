@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	_ "github.com/lib/pq"
@@ -80,6 +81,14 @@ func collectExamples(w http.ResponseWriter, r *http.Request) {
 	hasError := false
 
 	for _, userToken := range userTokens {
+		// get the last scraped date from sync history
+		history, err := queries.GetUserEmailSyncHistory(ctx, userToken.UserID)
+		if err != nil {
+			log.Printf("error getting user sync history: %v", err)
+			hasError = true
+			continue
+		}
+
 		auth := []byte(userToken.Token.RawMessage)
 
 		gmailSrv, err := mail.NewGmailService(ctx, creds, auth)
@@ -101,12 +110,19 @@ func collectExamples(w http.ResponseWriter, r *http.Request) {
 			// Make Request to Fetch New Emails from Previous History ID
 			// get next set of messages
 			// if this is the first notification, trigger a one-time sync
-			messages, pageToken, err = GetSRCEmails(gmailSrv, gmailUser, nil, pageToken)
+			var startDate time.Time
+			// valid is true if time is non-null
+			if history.ExamplesCollectedAt.Valid {
+				startDate = history.ExamplesCollectedAt.Time
+			}
+			// start
+			messages, pageToken, err = GetSRCEmails(gmailSrv, gmailUser, startDate, pageToken)
 
 			// for now, abort on error
 			if err != nil {
 				log.Printf("error fetching emails: %v", err)
 				hasError = true
+				break
 			}
 
 			// forward each message
@@ -118,12 +134,33 @@ func collectExamples(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					log.Printf("error sending message: %v", err)
 					hasError = true
+					continue
 				}
 			}
 
 			if pageToken == "" {
 				break
 			}
+		}
+
+		// save today as the last sync time
+		// TODO
+		// Add examples_collected_at to GetSRCEmails call
+		// Run supabase migration
+		// Review logic
+		// done
+		err = queries.UpsertUserEmailSyncHistory(ctx, client.UpsertUserEmailSyncHistoryParams{
+			UserID:    userToken.UserID,
+			HistoryID: history.HistoryID,
+			ExamplesCollectedAt: sql.NullTime{
+				Time: time.Now(),
+			},
+		})
+
+		if err != nil {
+			log.Printf("error upserting user sync history: %v", err)
+			hasError = true
+			continue
 		}
 	}
 
