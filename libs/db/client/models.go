@@ -17,10 +17,11 @@ type AuthUser struct {
 }
 
 type UserEmailSyncHistory struct {
-	UserID    uuid.UUID    `json:"user_id"`
-	HistoryID int64        `json:"history_id"`
-	CreatedAt sql.NullTime `json:"created_at"`
-	UpdatedAt sql.NullTime `json:"updated_at"`
+	UserID              uuid.UUID    `json:"user_id"`
+	HistoryID           int64        `json:"history_id"`
+	ExamplesCollectedAt sql.NullTime `json:"examples_collected_at"`
+	CreatedAt           sql.NullTime `json:"created_at"`
+	UpdatedAt           sql.NullTime `json:"updated_at"`
 }
 
 type UserOauthToken struct {
