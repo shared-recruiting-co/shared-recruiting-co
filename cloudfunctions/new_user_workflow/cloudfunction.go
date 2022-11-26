@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	provider                     = "google"
+	provider = "google"
 )
 
 func init() {
@@ -32,6 +32,15 @@ func jsonFromEnv(env string) ([]byte, error) {
 	decoded, err := base64.URLEncoding.DecodeString(encoded)
 
 	return decoded, err
+}
+
+func contains[T comparable](list []T, item T) bool {
+	for _, element := range list {
+		if element == item {
+			return true
+		}
+	}
+	return false
 }
 
 // newUserWorkflow
@@ -205,7 +214,12 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
+			// filter out empty messages
 			if message.Payload == nil {
+				continue
+			}
+			// filter messages that were sent by the current user
+			if contains(message.LabelIds, "SENT") {
 				continue
 			}
 			text, err := mail.MessageToString(message)

@@ -58,6 +58,15 @@ func jsonFromEnv(env string) ([]byte, error) {
 	return decoded, err
 }
 
+func contains[T comparable](list []T, item T) bool {
+	for _, element := range list {
+		if element == item {
+			return true
+		}
+	}
+	return false
+}
+
 // emailPushNotificationHandler consumes a CloudEvent message and extracts the Pub/Sub message.
 func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	var msg MessagePublishedData
@@ -181,9 +190,20 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 				return fmt.Errorf("error getting message: %v", err)
 			}
 
+			// filter out empty messages
 			if message.Payload == nil {
 				continue
 			}
+
+			// filter messages that were sent by the current user
+			if contains(message.LabelIds, "SENT") {
+				continue
+			}
+			// filter messages that already have the @SRC job opportunity label
+			if contains(message.LabelIds, srcJobOpportunityLabel.Id) {
+				continue
+			}
+
 			text, err := mail.MessageToString(message)
 			examples[message.Id] = text
 		}
