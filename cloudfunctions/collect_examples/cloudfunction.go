@@ -151,7 +151,8 @@ func collectExamples(w http.ResponseWriter, r *http.Request) {
 			UserID:    userToken.UserID,
 			HistoryID: history.HistoryID,
 			ExamplesCollectedAt: sql.NullTime{
-				Time: time.Now(),
+				Time:  time.Now(),
+				Valid: true,
 			},
 		})
 
