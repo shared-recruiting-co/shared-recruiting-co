@@ -33,8 +33,8 @@
 	<h1
 		class="font-display mx-auto max-w-4xl text-5xl font-medium tracking-tight text-slate-900 sm:text-7xl"
 	>
-		Hate recruiting emails? <br />
-		<span class="text-blue-600">So do we.</span>
+		Tired of recruiting emails? <br />
+		<span class="text-blue-600">So are we.</span>
 	</h1>
 	<p class="mx-auto mt-6 max-w-2xl text-lg tracking-tight text-slate-700">
 		The Shared Recruiting Co (SRC) is an AI recruiting assistant that lives in your inbox. SRC keeps
