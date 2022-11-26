@@ -2,10 +2,6 @@
 	import { page } from '$app/stores';
 	import { supabaseClient } from '$lib/supabase/client';
 
-	const handleLogout = async () => {
-		await supabaseClient.auth.signOut();
-	};
-
 	const handleLogin = async () => {
 		try {
 			const { error } = await supabaseClient.auth.signInWithOAuth({
