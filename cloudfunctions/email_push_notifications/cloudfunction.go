@@ -162,7 +162,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		if prevSyncHistory.HistoryID == 0 {
 			messages, pageToken, err = GetEmailsSinceLastYear(gmailSrv, gmailUser, pageToken)
 		} else {
-			messages, pageToken, err = GetNewEmailsSince(gmailSrv, gmailUser, uint64(prevSyncHistory.HistoryID), "INBOX", pageToken)
+			messages, pageToken, err = GetNewEmailsSince(gmailSrv, gmailUser, uint64(prevSyncHistory.HistoryID), "UNREAD", pageToken)
 		}
 
 		// for now, abort on error

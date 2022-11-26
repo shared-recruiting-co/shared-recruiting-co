@@ -9,7 +9,7 @@ import (
 
 const maxResults = 250
 const historyTypeMessageAdded = "messageAdded"
-const defaultLabelID = "INBOX"
+const defaultLabelID = "UNREAD"
 
 func GetNewEmailsSince(srv *gmail.Service, userID string, historyID uint64, labelID string, pageToken string) ([]*gmail.Message, string, error) {
 	if labelID == "" {
