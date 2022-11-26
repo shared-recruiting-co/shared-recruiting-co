@@ -158,12 +158,15 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 	// Create SRC Labels
 	srcLabel, err := mail.GetOrCreateSRCLabel(gmailSrv, gmailUser)
 	if err != nil {
-		return fmt.Errorf("error getting or creating the SRC label: %v", err)
+		log.Printf("error getting or creating the SRC label: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 	srcJobOpportunityLabel, err := mail.GetOrCreateSRCJobOpportunityLabel(gmailSrv, gmailUser)
 	if err != nil {
-		return fmt.Errorf("error getting or creating the SRC job opportunity label: %v", err)
-	}
+		log.Printf("error getting or creating the SRC job opportunity label: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	// Create recruiting detector client
