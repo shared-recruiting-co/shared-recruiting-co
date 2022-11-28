@@ -65,7 +65,7 @@
 		>
 	</div>
 	<p
-		class="mx-auto mt-14 flex max-w-2xl flex-row items-center text-sm tracking-tight text-slate-700"
+		class="mx-auto mt-14 flex max-w-2xl flex-row justify-center items-center text-sm tracking-tight text-slate-700"
 	>
 		<sup>*</sup>SRC is currently in an invite only beta.
 		{#if !$page.data.session}
