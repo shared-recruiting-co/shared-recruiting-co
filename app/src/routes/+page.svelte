@@ -64,11 +64,18 @@
 			<span class="ml-3">Read the Code</span></a
 		>
 	</div>
-	<p class="mx-auto mt-10 max-w-2xl text-sm tracking-tight text-slate-700">
+	<p
+		class="mx-auto mt-14 flex max-w-2xl flex-row items-center text-sm tracking-tight text-slate-700"
+	>
 		<sup>*</sup>SRC is currently in an invite only beta.
 		{#if !$page.data.session}
-			If you have an account, <button class="text-blue-600 underline" on:click={handleLogin}
-				>login here.</button
+			<!-- Comply with Google branding requirements -->
+			<!-- https://developers.google.com/identity/branding-guidelines#top_of_page -->
+			If you have an account, then
+			<button
+				class="ml-2 flex items-center rounded-full px-2 py-2 font-[Roboto] text-slate-500 shadow"
+				on:click={handleLogin}
+				><img src="google.svg" alt="Google logo" class="mr-3" />Sign in with Google</button
 			>
 		{/if}
 	</p>

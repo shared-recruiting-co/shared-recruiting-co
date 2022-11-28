@@ -1,4 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Miriam+Libre:wght@400;700&display=swap');
+/* import Roboto medium font for Google branding  */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap');
 
 @tailwind base;
 @tailwind components;
