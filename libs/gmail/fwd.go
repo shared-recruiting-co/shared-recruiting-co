@@ -3,6 +3,7 @@ package gmail
 import (
 	"encoding/base64"
 	"fmt"
+	"strings"
 
 	"google.golang.org/api/gmail/v1"
 )
@@ -20,9 +21,11 @@ type ForwardMessage struct {
 }
 
 // GetParentHeader returns the value of the header with the given name from the parent message.
+// It ignores casing when looking at headers.
 func (m ForwardMessage) GetParentHeader(name string) string {
+	name = strings.ToLower(name)
 	for _, h := range m.Parent.Payload.Headers {
-		if h.Name == name {
+		if strings.ToLower(h.Name) == name {
 			return h.Value
 		}
 	}
