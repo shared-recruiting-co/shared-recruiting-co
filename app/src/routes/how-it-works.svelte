@@ -16,7 +16,7 @@
 	<h2 class="text-secondary my-12 max-w-3xl text-center text-4xl font-bold sm:my-16 sm:text-5xl">
 		The SRC Process
 	</h2>
-	<div class="flex max-w-xl flex-col space-y-8 md:space-y-16">
+	<div class="flex max-w-xl flex-col px-2 space-y-8 md:space-y-16">
 		<div class="flex flex-row items-center space-x-4 md:space-x-6 md:space-y-0">
 			<div
 				class="flex h-12 w-12 flex-col items-center justify-center rounded-full bg-blue-400 p-5 text-center text-xl font-bold text-white"
