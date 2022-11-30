@@ -2,6 +2,11 @@
 	import { page } from '$app/stores';
 	import { supabaseClient } from '$lib/supabase/client';
 
+	import HowItWorks from './how-it-works.svelte';
+	import ProductFeatures from './product-features.svelte';
+	import Testimonials from './testimonials.svelte';
+	import FAQs from './faqs.svelte';
+
 	const handleLogin = async () => {
 		try {
 			const { error } = await supabaseClient.auth.signInWithOAuth({
@@ -25,12 +30,15 @@
 	};
 </script>
 
-<div class="mx-auto max-w-7xl px-4 pt-20 pb-16 text-center sm:px-6 lg:px-8 lg:pt-32">
+<div
+	id="hero"
+	class="mx-auto min-h-screen max-w-7xl px-4 pt-20 pb-16 text-center sm:px-6 lg:px-8 lg:pt-32"
+>
 	<h1
 		class="font-display mx-auto max-w-4xl text-5xl font-medium tracking-tight text-slate-900 sm:text-7xl"
 	>
 		Tired of recruiting emails? <br />
-		<span class="text-blue-600">So are we.</span>
+		<span class="font-medium text-blue-600">So are we.</span>
 	</h1>
 	<p class="mx-auto mt-6 max-w-2xl text-lg tracking-tight text-slate-700">
 		The Shared Recruiting Co (SRC) is an AI recruiting assistant that lives in your inbox. SRC keeps
@@ -65,7 +73,7 @@
 		>
 	</div>
 	<p
-		class="mx-auto mt-14 flex max-w-2xl flex-row justify-center items-center text-sm tracking-tight text-slate-700"
+		class="mx-auto mt-14 flex max-w-2xl flex-col items-center justify-center text-sm tracking-tight text-slate-700 md:flex-row"
 	>
 		<sup>*</sup>SRC is currently in an invite only beta.
 		{#if !$page.data.session}
@@ -73,10 +81,16 @@
 			<!-- https://developers.google.com/identity/branding-guidelines#top_of_page -->
 			If you have an account, then
 			<button
-				class="ml-2 flex items-center rounded-full px-2 py-2 font-[Roboto] text-slate-500 shadow"
+				class="ml-2 flex items-center rounded-full px-2 py-2 text-slate-500 shadow"
 				on:click={handleLogin}
 				><img src="google.svg" alt="Google logo" class="mr-3" />Sign in with Google</button
 			>
 		{/if}
 	</p>
 </div>
+
+<ProductFeatures />
+<HowItWorks />
+<Testimonials />
+
+<FAQs />
