@@ -75,8 +75,8 @@
 	<p
 		class="mx-auto mt-14 flex max-w-2xl flex-col items-center justify-center text-sm tracking-tight text-slate-700 md:flex-row"
 	>
-		<sup>*</sup>SRC is currently in an invite only beta.
-		{#if !$page.data.session}
+		<span><sup>*</sup>SRC is currently in an invite only beta.
+		</span>		{#if !$page.data.session}
 			<!-- Comply with Google branding requirements -->
 			<!-- https://developers.google.com/identity/branding-guidelines#top_of_page -->
 			If you have an account, then
