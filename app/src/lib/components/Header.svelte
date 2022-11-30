@@ -15,7 +15,7 @@
 		<a href="/" class="text-xl text-slate-900 sm:text-2xl md:min-w-[150px]">Shared Recruiting Co.</a
 		>
 	</div>
-	<div class="md:space-x-4">
+	<div class="hidden md:flex md:space-x-4">
 		<a href="/#product" class="font-medium text-slate-500 hover:text-slate-900">Product</a>
 		<a href="/#process" class="font-medium text-slate-500 hover:text-slate-900">Process</a>
 		<a href="#faqs" class="font-medium text-slate-500 hover:text-slate-900">FAQs</a>
