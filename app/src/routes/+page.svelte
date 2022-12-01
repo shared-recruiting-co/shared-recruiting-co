@@ -41,7 +41,7 @@
 		<span class="font-medium text-blue-600">So are we.</span>
 	</h1>
 	<p class="mx-auto mt-6 max-w-2xl text-lg tracking-tight text-slate-700">
-		The Shared Recruiting Co (SRC) is an AI recruiting assistant that lives in your inbox. SRC keeps
+		The Shared Recruiting Co. (SRC) is an AI recruiting assistant that lives in your inbox. SRC keeps
 		your inbox clean when you aren’t looking for jobs and supercharges your job search once you are.
 	</p>
 	<div class="mt-10 flex justify-center gap-x-6">
@@ -75,11 +75,11 @@
 	<p
 		class="mx-auto mt-14 flex max-w-2xl flex-col items-center justify-center text-sm tracking-tight text-slate-700 md:flex-row"
 	>
-		<span><sup>*</sup>SRC is currently in an invite only beta. </span>
+		<span><sup>*</sup>SRC is currently in an invite only beta.</span>
 		{#if !$page.data.session}
 			<!-- Comply with Google branding requirements -->
 			<!-- https://developers.google.com/identity/branding-guidelines#top_of_page -->
-			If you have an account, then
+			&NonBreakingSpace;If you have an account, then
 			<button
 				class="ml-2 flex items-center rounded-full px-2 py-2 text-slate-500 shadow"
 				on:click={handleLogin}
