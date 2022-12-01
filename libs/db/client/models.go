@@ -28,6 +28,7 @@ type UserOauthToken struct {
 	UserID    uuid.UUID             `json:"user_id"`
 	Provider  string                `json:"provider"`
 	Token     pqtype.NullRawMessage `json:"token"`
+	IsValid   bool                  `json:"is_valid"`
 	CreatedAt sql.NullTime          `json:"created_at"`
 	UpdatedAt sql.NullTime          `json:"updated_at"`
 }
