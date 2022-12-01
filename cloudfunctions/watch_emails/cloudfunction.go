@@ -3,12 +3,14 @@ package cloudfunctions
 import (
 	"database/sql"
 	"encoding/base64"
+	"errors"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	_ "github.com/lib/pq"
+	"golang.org/x/oauth2"
 
 	"google.golang.org/api/gmail/v1"
 
@@ -58,10 +60,9 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 	// v0 -> no pagination, no go routines
 	// 2. Spawn a goroutine for each user to watch their emails
 	// 3. Wait for all goroutines to finish
-	// 4. Mark success/failure in DB
 
 	// 1. Fetch auth tokens for all user
-	userTokens, err := queries.ListOAuthTokensByProvider(ctx, provider)
+	userTokens, err := queries.ListValidOAuthTokensByProvider(ctx, provider)
 	if err != nil {
 		log.Printf("error getting user tokens: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -92,6 +93,23 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			log.Printf("error watching: %v", err)
+			// check for oauth token expiration or revocation
+			oauth2Err := &oauth2.RetrieveError{}
+			if errors.As(err, &oauth2Err) {
+				log.Printf("error oauth error: %v", oauth2Err)
+				// update the user's oauth token
+				err = queries.UpsertUserOAuthToken(ctx, client.UpsertUserOAuthTokenParams{
+					UserID:   userToken.UserID,
+					Provider: provider,
+					Token:    userToken.Token,
+					IsValid:  false,
+				})
+				if err != nil {
+					log.Printf("error updating user oauth token: %v", err)
+				} else {
+					log.Printf("marked user oauth token as invalid")
+				}
+			}
 			hasError = true
 			continue
 		}

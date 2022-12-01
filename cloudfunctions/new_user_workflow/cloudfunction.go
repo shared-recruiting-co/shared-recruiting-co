@@ -3,6 +3,7 @@ package cloudfunctions
 import (
 	"database/sql"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
+	"golang.org/x/oauth2"
 
 	"google.golang.org/api/gmail/v1"
 
@@ -167,10 +169,29 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 	// Create SRC Labels
 	srcLabel, err := mail.GetOrCreateSRCLabel(gmailSrv, gmailUser)
 	if err != nil {
+		// first request, so check if the error is an oauth error
+		// if so, update the database
+		oauth2Err := &oauth2.RetrieveError{}
+		if errors.As(err, &oauth2Err) {
+			log.Printf("error oauth error: %v", oauth2Err)
+			// update the user's oauth token
+			err = queries.UpsertUserOAuthToken(ctx, client.UpsertUserOAuthTokenParams{
+				UserID:   userToken.UserID,
+				Provider: provider,
+				Token:    userToken.Token,
+				IsValid:  false,
+			})
+			if err != nil {
+				log.Printf("error updating user oauth token: %v", err)
+			} else {
+				log.Printf("marked user oauth token as invalid")
+			}
+		}
 		log.Printf("error getting or creating the SRC label: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
 	srcJobOpportunityLabel, err := mail.GetOrCreateSRCJobOpportunityLabel(gmailSrv, gmailUser)
 	if err != nil {
 		log.Printf("error getting or creating the SRC job opportunity label: %v", err)

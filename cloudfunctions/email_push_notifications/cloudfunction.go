@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
 	_ "github.com/lib/pq"
+	"golang.org/x/oauth2"
 
 	"google.golang.org/api/gmail/v1"
 
@@ -138,6 +140,12 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		return fmt.Errorf("error getting user oauth token: %v", err)
 	}
 
+	// stop early if user token is marked invalid
+	if !userToken.IsValid {
+		log.Printf("user token is not valid: %s", email)
+		return nil
+	}
+
 	// 5. Create Gmail Service
 	auth := []byte(userToken.Token.RawMessage)
 	gmailSrv, err := mail.NewGmailService(ctx, creds, auth)
@@ -146,6 +154,24 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	// 6. Get or Create SRC Label
 	srcLabel, err := mail.GetOrCreateSRCLabel(gmailSrv, gmailUser)
 	if err != nil {
+		// first request, so check if the error is an oauth error
+		// if so, update the database
+		oauth2Err := &oauth2.RetrieveError{}
+		if errors.As(err, &oauth2Err) {
+			log.Printf("error oauth error: %v", oauth2Err)
+			// update the user's oauth token
+			err = queries.UpsertUserOAuthToken(ctx, client.UpsertUserOAuthTokenParams{
+				UserID:   userToken.UserID,
+				Provider: provider,
+				Token:    userToken.Token,
+				IsValid:  false,
+			})
+			if err != nil {
+				log.Printf("error updating user oauth token: %v", err)
+			} else {
+				log.Printf("marked user oauth token as invalid")
+			}
+		}
 		return fmt.Errorf("error getting or creating the SRC label: %v", err)
 	}
 	srcJobOpportunityLabel, err := mail.GetOrCreateSRCJobOpportunityLabel(gmailSrv, gmailUser)
