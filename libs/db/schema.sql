@@ -15,6 +15,7 @@ create table public.user_oauth_token (
     user_id uuid references auth.users(id) not null,
     provider text not null,
     token jsonb,
+    is_valid boolean not null default true,
     created_at timestamp with time zone default now(),
     updated_at timestamp with time zone default now(),
 
