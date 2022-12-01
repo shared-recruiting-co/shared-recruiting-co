@@ -1,3 +1,19 @@
+<script lang="ts">
+	let data = [{
+		title: 'Detect & Archive',
+		description: 'SRC detects any inbound job opportunities. Each job opportunity is labeled, replied to, and archived for future reference.'
+	}, {
+		title: 'Summarize & Standardize',
+		description: 'SRC does the heavy lifting of summarizing all your job opportunities into a single, standardize format. '
+	},
+	{
+		title: 'Review & Engage',
+		description: 'SRC does the heavy lifting of summarizing all your job opportunities into a single, standardize format. '
+	}
+
+	]
+
+</script>
 <section id="process" class="mx-auto flex min-h-screen flex-col items-center py-20 text-slate-900">
 	<svg
 		xmlns="http://www.w3.org/2000/svg"
@@ -17,47 +33,20 @@
 		The SRC Process
 	</h2>
 	<div class="flex max-w-xl flex-col px-2 space-y-8 md:space-y-16">
+		{#each data as item, index}
 		<div class="flex flex-row items-center space-x-4 md:space-x-6 md:space-y-0">
 			<div
 				class="flex h-12 w-12 flex-col items-center justify-center rounded-full bg-blue-400 p-5 text-center text-xl font-bold text-white"
 			>
-				1
+				{index + 1}
 			</div>
 			<div class="flex flex-col">
-				<div class="text-xl font-semibold">Detect & Archive</div>
-				<div class="text-lg">
-					SRC detects any inbound job opportunities. Each job opportunity is labeled, replied to,
-					and archived for future reference.
+				<div class="text-xl font-semibold">{item.title}</div>
+				<div class="text-base md:text-lg">
+					{item.description}
 				</div>
 			</div>
 		</div>
-		<div class="flex flex-row items-center space-x-4 md:space-x-6 md:space-y-0">
-			<div
-				class="flex h-12 w-12 flex-col items-center justify-center rounded-full bg-blue-400 p-5 text-center text-xl font-bold text-white"
-			>
-				2
-			</div>
-			<div class="flex flex-col">
-				<div class="text-xl font-semibold">Summarize & Standardize</div>
-				<div class="text-lg">
-					SRC does the heavy lifting of summarizing all your job opportunities into a single,
-					standardize format.
-				</div>
-			</div>
-		</div>
-		<div class="flex flex-row items-center space-x-4 md:space-x-6 md:space-y-0">
-			<div
-				class="flex h-12 w-12 flex-col items-center justify-center rounded-full bg-blue-400 p-5 text-center text-xl font-bold text-white"
-			>
-				3
-			</div>
-			<div class="flex flex-col">
-				<div class="text-xl font-semibold">Review & Engage</div>
-				<div class="text-lg">
-					Once you're ready for something new, or just want to see what's out there, review your
-					standarized job opportunities and engage with the companies that interest you.
-				</div>
-			</div>
-		</div>
+		{/each}
 	</div>
 </section>
