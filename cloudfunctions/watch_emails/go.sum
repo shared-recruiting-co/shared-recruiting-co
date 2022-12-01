@@ -196,10 +196,10 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=
 github.com/rogpeppe/fastuuid v1.2.0/go.mod h1:jVj6XXZzXRy/MSR5jhDC/2q6DgLz+nrA6LYCDYWNEvQ=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
-github.com/shared-recruiting-co/shared-recruiting-co/libs/db v0.0.0-20221126153314-94a164dafff0 h1:TaIUcKQTClyEVmY4R0MLH8fRa3+jNwru6dq60jojxf0=
-github.com/shared-recruiting-co/shared-recruiting-co/libs/db v0.0.0-20221126153314-94a164dafff0/go.mod h1:+W1BjGqkcbDzIQwX7MD0X7RQP926THQ0BuaGzdI6be4=
-github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20221126153314-94a164dafff0 h1:AgyfS/SKsRi8V/kipFkVSR7dVcGFtFl2mXO5WDwLLEU=
-github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20221126153314-94a164dafff0/go.mod h1:6320Y1SFN8jcJWnpOHENqTiHaZk/k8swnlaTSRG3EbY=
+github.com/shared-recruiting-co/shared-recruiting-co/libs/db v0.0.0-20221130231817-b7b59e2c1f64 h1:/PJMUdlTFF3t0w5V5y2yJeu5jJqCJtW+0GLGYD/fX0E=
+github.com/shared-recruiting-co/shared-recruiting-co/libs/db v0.0.0-20221130231817-b7b59e2c1f64/go.mod h1:+W1BjGqkcbDzIQwX7MD0X7RQP926THQ0BuaGzdI6be4=
+github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20221130231817-b7b59e2c1f64 h1:nLqgFX/kJ5nkw6TyV0Gg1zncOGXsAlRtn4fA/ZO6RcA=
+github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20221130231817-b7b59e2c1f64/go.mod h1:6320Y1SFN8jcJWnpOHENqTiHaZk/k8swnlaTSRG3EbY=
 github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
 github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf h1:pvbZ0lM0XWPBqUKqFU8cmavspvIl9nulOYwdy6IFRRo=
 github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf/go.mod h1:RJID2RhlZKId02nZ62WenDCkgHFerpIOmW0iT7GKmXM=
