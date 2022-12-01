@@ -6,8 +6,8 @@ require (
 	github.com/GoogleCloudPlatform/functions-framework-go v1.6.1
 	github.com/cloudevents/sdk-go/v2 v2.12.0
 	github.com/lib/pq v1.10.7
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/db v0.0.0-20221130231817-b7b59e2c1f64
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20221130231817-b7b59e2c1f64
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/db v0.0.0-20221201161356-a790ef9aec91
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20221201160910-eec7340f8138
 	google.golang.org/api v0.103.0
 )
 
