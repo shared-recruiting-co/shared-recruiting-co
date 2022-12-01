@@ -13,7 +13,6 @@ import (
 
 var scopes = []string{
 	gmail.GmailModifyScope,
-	gmail.GmailLabelsScope,
 }
 
 func NewGmailService(ctx context.Context, creds []byte, auth []byte) (*gmail.Service, error) {
