@@ -10,6 +10,7 @@ import (
 	"database/sql"
 
 	"github.com/google/uuid"
+	"github.com/tabbed/pqtype"
 )
 
 const getUserByEmail = `-- name: GetUserByEmail :one
@@ -56,6 +57,7 @@ select
     user_id,
     provider,
     token,
+    is_valid,
     created_at,
     updated_at
 from public.user_oauth_token
@@ -74,6 +76,7 @@ func (q *Queries) GetUserOAuthToken(ctx context.Context, arg GetUserOAuthTokenPa
 		&i.UserID,
 		&i.Provider,
 		&i.Token,
+		&i.IsValid,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -85,6 +88,7 @@ select
     user_id,
     provider,
     token,
+    is_valid,
     created_at,
     updated_at
 from public.user_oauth_token
@@ -104,6 +108,49 @@ func (q *Queries) ListOAuthTokensByProvider(ctx context.Context, provider string
 			&i.UserID,
 			&i.Provider,
 			&i.Token,
+			&i.IsValid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listValidOAuthTokensByProvider = `-- name: ListValidOAuthTokensByProvider :many
+select
+    user_id,
+    provider,
+    token,
+    is_valid,
+    created_at,
+    updated_at
+from public.user_oauth_token
+where provider = $1 and is_valid = true
+`
+
+func (q *Queries) ListValidOAuthTokensByProvider(ctx context.Context, provider string) ([]UserOauthToken, error) {
+	rows, err := q.query(ctx, q.listValidOAuthTokensByProviderStmt, listValidOAuthTokensByProvider, provider)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserOauthToken
+	for rows.Next() {
+		var i UserOauthToken
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Provider,
+			&i.Token,
+			&i.IsValid,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -123,9 +170,9 @@ func (q *Queries) ListOAuthTokensByProvider(ctx context.Context, provider string
 const upsertUserEmailSyncHistory = `-- name: UpsertUserEmailSyncHistory :exec
 insert into public.user_email_sync_history(user_id, history_id, examples_collected_at)
 values ($1, $2, $3)
-on conflict (user_id) do 
-update set 
-    history_id = excluded.history_id, 
+on conflict (user_id) 
+do update set 
+    history_id = excluded.history_id,
     examples_collected_at = excluded.examples_collected_at
 `
 
@@ -153,5 +200,31 @@ type UpsertUserEmailSyncHistoryIDParams struct {
 
 func (q *Queries) UpsertUserEmailSyncHistoryID(ctx context.Context, arg UpsertUserEmailSyncHistoryIDParams) error {
 	_, err := q.exec(ctx, q.upsertUserEmailSyncHistoryIDStmt, upsertUserEmailSyncHistoryID, arg.UserID, arg.HistoryID)
+	return err
+}
+
+const upsertUserOAuthToken = `-- name: UpsertUserOAuthToken :exec
+insert into public.user_oauth_token (user_id, provider, token, is_valid)
+values ($1, $2, $3, $4)
+on conflict (user_id, provider) 
+do update set
+    token = excluded.token,
+    is_valid = excluded.is_valid
+`
+
+type UpsertUserOAuthTokenParams struct {
+	UserID   uuid.UUID             `json:"user_id"`
+	Provider string                `json:"provider"`
+	Token    pqtype.NullRawMessage `json:"token"`
+	IsValid  bool                  `json:"is_valid"`
+}
+
+func (q *Queries) UpsertUserOAuthToken(ctx context.Context, arg UpsertUserOAuthTokenParams) error {
+	_, err := q.exec(ctx, q.upsertUserOAuthTokenStmt, upsertUserOAuthToken,
+		arg.UserID,
+		arg.Provider,
+		arg.Token,
+		arg.IsValid,
+	)
 	return err
 }

@@ -64,7 +64,7 @@ func collectExamples(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 1. Fetch auth tokens for all user
-	userTokens, err := queries.ListOAuthTokensByProvider(ctx, provider)
+	userTokens, err := queries.ListValidOAuthTokensByProvider(ctx, provider)
 	if err != nil {
 		log.Printf("error getting user tokens: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
