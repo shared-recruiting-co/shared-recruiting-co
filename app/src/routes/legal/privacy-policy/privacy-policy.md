@@ -39,7 +39,7 @@ We use the Gmail modify scope to read new and historic emails, so that we can id
 
 SRC uses the _@SRC_ label and sublabels to manage your recruiting inbound. We use the Gmail modify scope to create, read, and modify SRC managed labels.
 
-Our processing of any information received from Google APIs adheres to the [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy), including the “Limited Use” requirements contained in that policy.
+SRC's use, transfer, and processing of any information received from Google APIs adheres to the [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy), including the “Limited Use” requirements contained in that policy.
 
 ## Cookies and tracking technologies
 
