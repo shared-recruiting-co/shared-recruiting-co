@@ -18,7 +18,7 @@
 					// Once the app is approved by Google, we can remove the prompt: 'consent' option, so the user only has to consent once
 					queryParams: { access_type: 'offline', prompt: 'consent' },
 					scopes:
-						'https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.labels'
+						'https://www.googleapis.com/auth/gmail.modify'
 				}
 			});
 			if (error) throw error;
