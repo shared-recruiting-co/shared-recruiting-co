@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
@@ -172,9 +173,11 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		return fmt.Errorf("error getting user email sync history: %v", err)
 	}
 
-	err = queries.UpsertUserEmailSyncHistoryID(ctx, client.UpsertUserEmailSyncHistoryIDParams{
-		UserID:    user.ID,
-		HistoryID: int64(historyID),
+	err = queries.UpsertUserEmailSyncHistory(ctx, client.UpsertUserEmailSyncHistoryParams{
+		UserID:              user.ID,
+		HistoryID:           int64(historyID),
+		SyncedAt:            sql.NullTime{Time: time.Now(), Valid: true},
+		ExamplesCollectedAt: prevSyncHistory.ExamplesCollectedAt,
 	})
 	if err != nil {
 		return fmt.Errorf("error upserting email sync history: %v", err)
@@ -182,9 +185,11 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 	// on any errors after this, we want to reset the history ID to the previous one
 	revertSynctHistory := func() {
-		err = queries.UpsertUserEmailSyncHistoryID(ctx, client.UpsertUserEmailSyncHistoryIDParams{
-			UserID:    user.ID,
-			HistoryID: int64(prevSyncHistory.HistoryID),
+		err = queries.UpsertUserEmailSyncHistory(ctx, client.UpsertUserEmailSyncHistoryParams{
+			UserID:              user.ID,
+			HistoryID:           prevSyncHistory.HistoryID,
+			SyncedAt:            prevSyncHistory.SyncedAt,
+			ExamplesCollectedAt: prevSyncHistory.ExamplesCollectedAt,
 		})
 		if err != nil {
 			log.Printf("error reverting email sync history: %v", err)

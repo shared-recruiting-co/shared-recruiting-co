@@ -150,6 +150,7 @@ func collectExamples(w http.ResponseWriter, r *http.Request) {
 		err = queries.UpsertUserEmailSyncHistory(ctx, client.UpsertUserEmailSyncHistoryParams{
 			UserID:    userToken.UserID,
 			HistoryID: history.HistoryID,
+			SyncedAt:  history.SyncedAt,
 			ExamplesCollectedAt: sql.NullTime{
 				Time:  time.Now(),
 				Valid: true,
