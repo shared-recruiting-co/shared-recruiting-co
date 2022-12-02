@@ -26,7 +26,7 @@ func syncNewEmails(
 		// 7. Make Request to Fetch New Emails from Previous History ID
 		// get next set of messages
 		// if this is the first notification, trigger a one-time sync
-		messages, pageToken, err = GetNewEmailsSince(gmailSrv, gmailUser, historyID, "UNREAD", pageToken)
+		messages, pageToken, err = getNewEmailsSince(gmailSrv, gmailUser, historyID, "UNREAD", pageToken)
 
 		// for now, abort on error
 		if err != nil {
