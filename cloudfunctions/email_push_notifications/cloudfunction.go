@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
@@ -16,6 +17,7 @@ import (
 	"golang.org/x/oauth2"
 
 	"google.golang.org/api/gmail/v1"
+	"google.golang.org/api/googleapi"
 
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/db/client"
 	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
@@ -202,6 +204,17 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 		// for now, abort on error
 		if err != nil {
+			// check if it's a googleapi error
+			gErr := &googleapi.Error{}
+			if errors.As(err, &gErr) {
+				// if it's an oauth error, mark the user's token as invalid
+				if gErr.Code == http.StatusNotFound {
+					// TODO: Handle
+					// We want to query since the last successful sync (history.UpdatedAt)
+					return fmt.Errorf("error fetching emails: expired history id: %v", gErr)
+				}
+			}
+
 			return fmt.Errorf("error fetching emails: %v", err)
 		}
 
