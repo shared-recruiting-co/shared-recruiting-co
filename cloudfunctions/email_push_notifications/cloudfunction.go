@@ -167,8 +167,9 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	// 5. Make Request to get previous history and proactively save new history (If anything goes wrong, then we reset the history ID to the previous one)
 	// Make Request to Fetch Previous History ID
 	prevSyncHistory, err := queries.GetUserEmailSyncHistory(ctx, user.ID)
+	// We should always have synced at least once before this fist notification
 	if err == sql.ErrNoRows {
-		log.Printf("no email history found for email: %s", email)
+		return fmt.Errorf("error getting user email sync history: user has no sync history")
 	} else if err != nil {
 		return fmt.Errorf("error getting user email sync history: %v", err)
 	}
