@@ -21,9 +21,9 @@
 	});
 </script>
 
-<body class="flex h-full flex-col text-slate-900">
+<body class="min-h-screen flex flex-col text-slate-900">
 	<Header />
-	<main>
+	<main class="flex-1">
 		<slot />
 	</main>
 	<Footer />
