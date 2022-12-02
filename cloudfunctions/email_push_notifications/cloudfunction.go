@@ -8,16 +8,12 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
 	_ "github.com/lib/pq"
 	"golang.org/x/oauth2"
-
-	"google.golang.org/api/gmail/v1"
-	"google.golang.org/api/googleapi"
 
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/db/client"
 	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
@@ -140,7 +136,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	gmailUser := "me"
 
 	// 4. Get or Create SRC Labels
-	srcLabel, err := mail.GetOrCreateSRCLabel(gmailSrv, gmailUser)
+	_, err = mail.GetOrCreateSRCLabel(gmailSrv, gmailUser)
 	if err != nil {
 		// first request, so check if the error is an oauth error
 		// if so, update the database
@@ -191,7 +187,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 			HistoryID: int64(prevSyncHistory.HistoryID),
 		})
 		if err != nil {
-			return fmt.Errorf("error reverting email sync history: %v", err)
+			log.Printf("error reverting email sync history: %v", err)
 		}
 	}
 
@@ -211,116 +207,11 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		ApiKey:  os.Getenv("CLASSIFIER_API_KEY"),
 	})
 
-	var messages []*gmail.Message
-	pageToken := ""
-
-	// batch process messages to reduce memory usage
-	for {
-
-		// 7. Make Request to Fetch New Emails from Previous History ID
-		// get next set of messages
-		// if this is the first notification, trigger a one-time sync
-		if prevSyncHistory.HistoryID == 0 {
-			messages, pageToken, err = GetEmailsSinceLastYear(gmailSrv, gmailUser, pageToken)
-		} else {
-			messages, pageToken, err = GetNewEmailsSince(gmailSrv, gmailUser, uint64(prevSyncHistory.HistoryID), "UNREAD", pageToken)
-		}
-
-		// for now, abort on error
-		if err != nil {
-			// check if it's a googleapi error
-			gErr := &googleapi.Error{}
-			if errors.As(err, &gErr) {
-				// if it's an oauth error, mark the user's token as invalid
-				if gErr.Code == http.StatusNotFound {
-					// TODO: Handle
-					// We want to query since the last successful sync (history.UpdatedAt)
-					revertSynctHistory()
-					return fmt.Errorf("error fetching emails: expired history id: %v", gErr)
-				}
-			}
-
-			revertSynctHistory()
-			return fmt.Errorf("error fetching emails: %v", err)
-		}
-
-		// process messages
-		examples := map[string]string{}
-		for _, message := range messages {
-			// payload isn't included in the list endpoint responses
-			message, err := gmailSrv.Users.Messages.Get(gmailUser, message.Id).Do()
-
-			// for now, abort on error
-			if err != nil {
-				revertSynctHistory()
-				return fmt.Errorf("error getting message: %v", err)
-			}
-
-			// filter out empty messages
-			if message.Payload == nil {
-				continue
-			}
-
-			// filter messages that were sent by the current user
-			if contains(message.LabelIds, "SENT") {
-				continue
-			}
-			// filter messages that already have the @SRC job opportunity label
-			if contains(message.LabelIds, srcJobOpportunityLabel.Id) {
-				continue
-			}
-
-			text, err := mail.MessageToString(message)
-			examples[message.Id] = text
-		}
-
-		log.Printf("number of emails to classify: %d", len(examples))
-
-		if len(examples) == 0 {
-			break
-		}
-
-		// 8. Batch predict on new emails
-		results, err := classifier.PredictBatch(examples)
-		if err != nil {
-			revertSynctHistory()
-			return fmt.Errorf("error predicting on examples: %v", err)
-		}
-
-		// 9. Get IDs of new recruiting emails
-		recruitingEmailIDs := []string{}
-		for id, result := range results {
-			if !result {
-				continue
-			}
-			recruitingEmailIDs = append(recruitingEmailIDs, id)
-		}
-
-		log.Printf("number of recruiting emails: %d", len(recruitingEmailIDs))
-
-		// 10. Take action on recruiting emails
-		if len(recruitingEmailIDs) > 0 {
-			err = gmailSrv.Users.Messages.BatchModify(gmailUser, &gmail.BatchModifyMessagesRequest{
-				Ids: recruitingEmailIDs,
-				// Add SRC Label
-				AddLabelIds: []string{srcLabel.Id, srcJobOpportunityLabel.Id},
-				// In future,
-				// - mark as read
-				// - archive
-				// - create response
-				// RemoveLabelIds: []string{"UNREAD"},
-			}).Do()
-
-			// for now, abort on error
-			if err != nil {
-				revertSynctHistory()
-				return fmt.Errorf("error modifying recruiting emails: %v", err)
-			}
-		}
-
-		if pageToken == "" {
-			break
-		}
+	// 7. Sync new emails
+	err = syncNewEmails(gmailSrv, gmailUser, classifier, uint64(prevSyncHistory.HistoryID), srcJobOpportunityLabel.Id)
+	if err != nil {
+		revertSynctHistory()
+		return fmt.Errorf("error processing messages: %v", err)
 	}
 
 	log.Printf("done.")
