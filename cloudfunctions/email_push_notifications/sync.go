@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/shared-recruiting-co/shared-recruiting-co/libs/db/client"
 	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/googleapi"
@@ -15,30 +16,38 @@ func syncNewEmails(
 	gmailSrv *gmail.Service,
 	gmailUser string,
 	classifier Classifier,
-	historyID uint64,
+	syncHistory client.UserEmailSyncHistory,
 	jobLabelID string,
 ) error {
-	var messages []*gmail.Message
 	var err error
 	pageToken := ""
+	var messages []*gmail.Message
+	historyIDExpired := false
 
 	for {
-		// 7. Make Request to Fetch New Emails from Previous History ID
+		// Make request to fetch new emails from previous history id or last sync date
 		// get next set of messages
-		// if this is the first notification, trigger a one-time sync
-		messages, pageToken, err = getNewEmailsSince(gmailSrv, gmailUser, historyID, "UNREAD", pageToken)
+		if historyIDExpired {
+			// if history ID has expired (over 7 days old), sync to last sync date
+			messages, pageToken, err = getNewEmailsSinceDate(gmailSrv, gmailUser, syncHistory.SyncedAt.Time, "UNREAD", pageToken)
+		} else {
+			messages, pageToken, err = getNewEmailsSinceHistoryID(gmailSrv, gmailUser, uint64(syncHistory.HistoryID), "UNREAD", pageToken)
+		}
 
 		// for now, abort on error
 		if err != nil {
-			// check if it's a googleapi error
+			// check for a history not found error
 			gErr := &googleapi.Error{}
-			if errors.As(err, &gErr) {
-				// if it's an oauth error, mark the user's token as invalid
-				if gErr.Code == http.StatusNotFound {
-					// TODO: Handle
-					// We want to query since the last successful sync (history.UpdatedAt)
-					return fmt.Errorf("error fetching emails: expired history id: %v", gErr)
+			if errors.As(err, &gErr); !historyIDExpired && gErr.Code == http.StatusNotFound {
+				log.Printf("expired history id: %v", gErr)
+				// make sure the sync at date is set
+				if !syncHistory.SyncedAt.Valid {
+					return fmt.Errorf("history id expired, but user has never synced before")
 				}
+				log.Printf("syncing from %s", syncHistory.SyncedAt.Time.Format("2006/01/02"))
+				// set flag and continue iterating
+				historyIDExpired = true
+				continue
 			}
 			return fmt.Errorf("error fetching emails: %v", err)
 		}
