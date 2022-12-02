@@ -5,8 +5,8 @@ go 1.19
 require (
 	github.com/GoogleCloudPlatform/functions-framework-go v1.6.1
 	github.com/lib/pq v1.10.7
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/db v0.0.0-20221201161356-a790ef9aec91
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20221201160910-eec7340f8138
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/db v0.0.0-20221202155459-d9dae03dc8b8
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20221202155459-d9dae03dc8b8
 	google.golang.org/api v0.103.0
 )
 
