@@ -199,6 +199,32 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Watch for changes in unread messages
+	topic := os.Getenv("PUBSUB_TOPIC")
+	resp, err := gmailSrv.Users.Watch(gmailUser, &gmail.WatchRequest{
+		LabelIds:  []string{"UNREAD"},
+		TopicName: topic,
+	}).Do()
+
+	if err != nil {
+		log.Printf("error watching for unread messages: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("watch response: %v", resp)
+
+	err = queries.UpsertUserEmailSyncHistoryID(ctx, client.UpsertUserEmailSyncHistoryIDParams{
+		UserID:    userID,
+		HistoryID: int64(resp.HistoryId),
+	})
+
+	if err != nil {
+		log.Printf("error upserting user email sync history: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	// Create recruiting detector client
 	classifier := NewClassifierClient(ctx, ClassifierClientArgs{
 		BaseURL: os.Getenv("CLASSIFIER_URL"),
@@ -296,32 +322,6 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 		if pageToken == "" {
 			break
 		}
-	}
-
-	// Watch for changes in unread messages
-	topic := os.Getenv("PUBSUB_TOPIC")
-	resp, err := gmailSrv.Users.Watch(gmailUser, &gmail.WatchRequest{
-		LabelIds:  []string{"UNREAD"},
-		TopicName: topic,
-	}).Do()
-
-	if err != nil {
-		log.Printf("error watching for unread messages: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	log.Printf("watch response: %v", resp)
-
-	err = queries.UpsertUserEmailSyncHistoryID(ctx, client.UpsertUserEmailSyncHistoryIDParams{
-		UserID:    userID,
-		HistoryID: int64(resp.HistoryId),
-	})
-
-	if err != nil {
-		log.Printf("error upserting user email sync history: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
 	}
 
 	log.Printf("done.")
