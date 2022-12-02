@@ -78,13 +78,13 @@ func syncNewEmails(
 			break
 		}
 
-		// 8. Batch predict on new emails
+		// Batch predict on new emails
 		results, err := classifier.PredictBatch(examples)
 		if err != nil {
 			return fmt.Errorf("error predicting on examples: %v", err)
 		}
 
-		// 9. Get IDs of new recruiting emails
+		// Get IDs of new recruiting emails
 		recruitingEmailIDs := []string{}
 		for id, result := range results {
 			if !result {
@@ -95,7 +95,7 @@ func syncNewEmails(
 
 		log.Printf("number of recruiting emails: %d", len(recruitingEmailIDs))
 
-		// 10. Take action on recruiting emails
+		// Take action on recruiting emails
 		if len(recruitingEmailIDs) > 0 {
 			err = gmailSrv.Users.Messages.BatchModify(gmailUser, &gmail.BatchModifyMessagesRequest{
 				Ids: recruitingEmailIDs,
