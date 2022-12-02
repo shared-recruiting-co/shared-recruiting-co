@@ -116,24 +116,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		return fmt.Errorf("error getting user from email: %v", err)
 	}
 
-	// 2. Make Request to Fetch Previous History ID
-	prevSyncHistory, err := queries.GetUserEmailSyncHistory(ctx, user.ID)
-	if err == sql.ErrNoRows {
-		log.Printf("no email history found for email: %s", email)
-	} else if err != nil {
-		return fmt.Errorf("error getting user email sync history: %v", err)
-	}
-
-	// 3. Make Request to proactively save new history (If anything goes wrong, then we reset the history ID to the previous one)
-	err = queries.UpsertUserEmailSyncHistoryID(ctx, client.UpsertUserEmailSyncHistoryIDParams{
-		UserID:    user.ID,
-		HistoryID: int64(historyID),
-	})
-	if err != nil {
-		return fmt.Errorf("error upserting email sync history: %v", err)
-	}
-
-	// 4. Get User' OAuth Token
+	// 2. Get User' OAuth Token
 	userToken, err := queries.GetUserOAuthToken(ctx, client.GetUserOAuthTokenParams{
 		UserID:   user.ID,
 		Provider: provider,
@@ -148,12 +131,15 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		return nil
 	}
 
-	// 5. Create Gmail Service
+	// 3. Create Gmail Service
 	auth := []byte(userToken.Token.RawMessage)
 	gmailSrv, err := mail.NewGmailService(ctx, creds, auth)
+	if err != nil {
+		return fmt.Errorf("error creating gmail service: %v", err)
+	}
 	gmailUser := "me"
 
-	// 6. Get or Create SRC Label
+	// 4. Get or Create SRC Labels
 	srcLabel, err := mail.GetOrCreateSRCLabel(gmailSrv, gmailUser)
 	if err != nil {
 		// first request, so check if the error is an oauth error
@@ -181,7 +167,45 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		return fmt.Errorf("error getting or creating the SRC job opportunity label: %v", err)
 	}
 
-	// 7. Create recruiting detector client
+	// 5. Make Request to get previous history and proactively save new history (If anything goes wrong, then we reset the history ID to the previous one)
+	// Make Request to Fetch Previous History ID
+	prevSyncHistory, err := queries.GetUserEmailSyncHistory(ctx, user.ID)
+	if err == sql.ErrNoRows {
+		log.Printf("no email history found for email: %s", email)
+	} else if err != nil {
+		return fmt.Errorf("error getting user email sync history: %v", err)
+	}
+
+	err = queries.UpsertUserEmailSyncHistoryID(ctx, client.UpsertUserEmailSyncHistoryIDParams{
+		UserID:    user.ID,
+		HistoryID: int64(historyID),
+	})
+	if err != nil {
+		return fmt.Errorf("error upserting email sync history: %v", err)
+	}
+
+	// on any errors after this, we want to reset the history ID to the previous one
+	revertSynctHistory := func() {
+		err = queries.UpsertUserEmailSyncHistoryID(ctx, client.UpsertUserEmailSyncHistoryIDParams{
+			UserID:    user.ID,
+			HistoryID: int64(prevSyncHistory.HistoryID),
+		})
+		if err != nil {
+			return fmt.Errorf("error reverting email sync history: %v", err)
+		}
+	}
+
+	// revert sync history if we hit an unexpected error past this point
+	// Note: deferred functions are called in LIFO order, so this will be called before the defer db.Close()
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("panic occurred:", err)
+			log.Println("reverting sync history")
+			revertSynctHistory()
+		}
+	}()
+
+	// 6. Create recruiting detector client
 	classifier := NewClassifierClient(ctx, ClassifierClientArgs{
 		BaseURL: os.Getenv("CLASSIFIER_URL"),
 		ApiKey:  os.Getenv("CLASSIFIER_API_KEY"),
@@ -193,7 +217,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	// batch process messages to reduce memory usage
 	for {
 
-		// 8. Make Request to Fetch New Emails from Previous History ID
+		// 7. Make Request to Fetch New Emails from Previous History ID
 		// get next set of messages
 		// if this is the first notification, trigger a one-time sync
 		if prevSyncHistory.HistoryID == 0 {
@@ -211,10 +235,12 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 				if gErr.Code == http.StatusNotFound {
 					// TODO: Handle
 					// We want to query since the last successful sync (history.UpdatedAt)
+					revertSynctHistory()
 					return fmt.Errorf("error fetching emails: expired history id: %v", gErr)
 				}
 			}
 
+			revertSynctHistory()
 			return fmt.Errorf("error fetching emails: %v", err)
 		}
 
@@ -226,6 +252,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 			// for now, abort on error
 			if err != nil {
+				revertSynctHistory()
 				return fmt.Errorf("error getting message: %v", err)
 			}
 
@@ -253,13 +280,14 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 			break
 		}
 
-		// 9. Batch predict on new emails
+		// 8. Batch predict on new emails
 		results, err := classifier.PredictBatch(examples)
 		if err != nil {
+			revertSynctHistory()
 			return fmt.Errorf("error predicting on examples: %v", err)
 		}
 
-		// 10. Get IDs of new recruiting emails
+		// 9. Get IDs of new recruiting emails
 		recruitingEmailIDs := []string{}
 		for id, result := range results {
 			if !result {
@@ -270,7 +298,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 		log.Printf("number of recruiting emails: %d", len(recruitingEmailIDs))
 
-		// 11. Take action on recruiting emails
+		// 10. Take action on recruiting emails
 		if len(recruitingEmailIDs) > 0 {
 			err = gmailSrv.Users.Messages.BatchModify(gmailUser, &gmail.BatchModifyMessagesRequest{
 				Ids: recruitingEmailIDs,
@@ -285,6 +313,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 			// for now, abort on error
 			if err != nil {
+				revertSynctHistory()
 				return fmt.Errorf("error modifying recruiting emails: %v", err)
 			}
 		}
