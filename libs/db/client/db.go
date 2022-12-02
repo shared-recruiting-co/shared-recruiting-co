@@ -42,9 +42,6 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.upsertUserEmailSyncHistoryStmt, err = db.PrepareContext(ctx, upsertUserEmailSyncHistory); err != nil {
 		return nil, fmt.Errorf("error preparing query UpsertUserEmailSyncHistory: %w", err)
 	}
-	if q.upsertUserEmailSyncHistoryIDStmt, err = db.PrepareContext(ctx, upsertUserEmailSyncHistoryID); err != nil {
-		return nil, fmt.Errorf("error preparing query UpsertUserEmailSyncHistoryID: %w", err)
-	}
 	if q.upsertUserOAuthTokenStmt, err = db.PrepareContext(ctx, upsertUserOAuthToken); err != nil {
 		return nil, fmt.Errorf("error preparing query UpsertUserOAuthToken: %w", err)
 	}
@@ -81,11 +78,6 @@ func (q *Queries) Close() error {
 	if q.upsertUserEmailSyncHistoryStmt != nil {
 		if cerr := q.upsertUserEmailSyncHistoryStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing upsertUserEmailSyncHistoryStmt: %w", cerr)
-		}
-	}
-	if q.upsertUserEmailSyncHistoryIDStmt != nil {
-		if cerr := q.upsertUserEmailSyncHistoryIDStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing upsertUserEmailSyncHistoryIDStmt: %w", cerr)
 		}
 	}
 	if q.upsertUserOAuthTokenStmt != nil {
@@ -138,7 +130,6 @@ type Queries struct {
 	listOAuthTokensByProviderStmt      *sql.Stmt
 	listValidOAuthTokensByProviderStmt *sql.Stmt
 	upsertUserEmailSyncHistoryStmt     *sql.Stmt
-	upsertUserEmailSyncHistoryIDStmt   *sql.Stmt
 	upsertUserOAuthTokenStmt           *sql.Stmt
 }
 
@@ -152,7 +143,6 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		listOAuthTokensByProviderStmt:      q.listOAuthTokensByProviderStmt,
 		listValidOAuthTokensByProviderStmt: q.listValidOAuthTokensByProviderStmt,
 		upsertUserEmailSyncHistoryStmt:     q.upsertUserEmailSyncHistoryStmt,
-		upsertUserEmailSyncHistoryIDStmt:   q.upsertUserEmailSyncHistoryIDStmt,
 		upsertUserOAuthTokenStmt:           q.upsertUserOAuthTokenStmt,
 	}
 }

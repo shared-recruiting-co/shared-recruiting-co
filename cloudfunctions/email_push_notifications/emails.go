@@ -12,7 +12,7 @@ const maxResults = 250
 const historyTypeMessageAdded = "messageAdded"
 const defaultLabelID = "UNREAD"
 
-func GetNewEmailsSince(srv *gmail.Service, userID string, historyID uint64, labelID string, pageToken string) ([]*gmail.Message, string, error) {
+func getNewEmailsSinceHistoryID(srv *gmail.Service, userID string, historyID uint64, labelID string, pageToken string) ([]*gmail.Message, string, error) {
 	if labelID == "" {
 		labelID = defaultLabelID
 	}
@@ -41,15 +41,24 @@ func GetNewEmailsSince(srv *gmail.Service, userID string, historyID uint64, labe
 	return messages, r.NextPageToken, nil
 }
 
-// GetEmailsSinceLastYear syncs all emails from the previous year to today.
-// It returns the messages fetched, the next page token, and an error.
-// Use the next page token to fetch the rest of the emails
-func GetEmailsSinceLastYear(srv *gmail.Service, userID, pageToken string) ([]*gmail.Message, string, error) {
-	// get the date from one year ago, even archived messages (ignore deleted)
-	oneYearAgo := time.Now().AddDate(-1, 0, 0).Format("2006/01/02")
-	q := fmt.Sprintf("-label:sent -label:%s after:%s", mail.SRC_JobOpportunityLabel, oneYearAgo)
+func getNewEmailsSinceDate(srv *gmail.Service, userID string, date time.Time, labelID string, pageToken string) ([]*gmail.Message, string, error) {
+	if labelID == "" {
+		labelID = defaultLabelID
+	}
 
-	m, err := srv.Users.Messages.List(userID).Q(q).PageToken(pageToken).MaxResults(maxResults).Do()
+	q := fmt.Sprintf("-label:%s after:%s", mail.SRC_JobOpportunityLabel, date.Format("2006/01/02"))
 
-	return m.Messages, m.NextPageToken, err
+	r, err := srv.Users.Messages.
+		List(userID).
+		LabelIds(labelID).
+		PageToken(pageToken).
+		Q(q).
+		MaxResults(maxResults).
+		Do()
+
+	if err != nil {
+		return nil, "", err
+	}
+
+	return r.Messages, r.NextPageToken, nil
 }
