@@ -93,13 +93,6 @@ func collectExamples(w http.ResponseWriter, r *http.Request) {
 		}
 		gmailUser := "me"
 
-		srcLabel, err := mail.GetOrCreateSRCLabel(gmailSrv, gmailUser)
-		if err != nil {
-			log.Printf("error getting or creating the SRC label: %v", err)
-			hasError = true
-			continue
-		}
-
 		// Create recruiting detector client
 		var messages []*gmail.Message
 		pageToken := ""
@@ -117,7 +110,7 @@ func collectExamples(w http.ResponseWriter, r *http.Request) {
 				startDate = history.ExamplesCollectedAt.Time
 			}
 			// start
-			messages, pageToken, err = GetSRCEmails(gmailSrv, gmailUser, srcLabel.Id, startDate, pageToken)
+			messages, pageToken, err = getSRCEmails(gmailSrv, gmailUser, startDate, pageToken)
 
 			// for now, abort on error
 			if err != nil {
