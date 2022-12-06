@@ -18,10 +18,21 @@
 	<div class="hidden md:flex md:space-x-4">
 		<a href="/#product" class="font-medium text-slate-500 hover:text-slate-900">Product</a>
 		<a href="/#process" class="font-medium text-slate-500 hover:text-slate-900">Process</a>
-		<a href="#faqs" class="font-medium text-slate-500 hover:text-slate-900">FAQs</a>
+		<a href="/#faqs" class="font-medium text-slate-500 hover:text-slate-900">FAQs</a>
 	</div>
 
 	<div class="flex w-96 items-center justify-end space-x-4">
+		{#if $page.data.session}
+			<button
+				class="group inline-flex items-center justify-center rounded-full bg-slate-900 py-2 px-4 text-sm font-semibold text-white hover:bg-slate-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300"
+				on:click={handleLogout}>Log Out</button
+			>
+		{:else}
+			<a
+				class="group inline-flex items-center justify-center rounded-full bg-slate-900 py-2 px-4 text-sm font-semibold text-white hover:bg-slate-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300"
+				href="/login">Log In</a
+			>
+		{/if}
 		<a
 			href="https://github.com/shared-recruiting-co/shared-recruiting-co"
 			target="_blank"
@@ -35,11 +46,5 @@
 				/>
 			</svg>
 		</a>
-		{#if $page.data.session}
-			<button
-				class="group inline-flex items-center justify-center rounded-full bg-slate-900 py-2 px-4 text-sm font-semibold text-white hover:bg-slate-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300"
-				on:click={handleLogout}>Log Out</button
-			>
-		{/if}
 	</div>
 </header>
