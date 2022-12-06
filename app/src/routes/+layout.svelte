@@ -21,7 +21,7 @@
 	});
 </script>
 
-<body class="min-h-screen flex flex-col text-slate-900">
+<body class="flex min-h-screen flex-col text-slate-900">
 	<Header />
 	<main class="flex-1">
 		<slot />
