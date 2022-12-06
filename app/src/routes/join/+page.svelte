@@ -44,6 +44,9 @@
 		<div class="text-center">
 			<h1 class="text-2xl font-bold">You're on the waitlist!</h1>
 			<p class="mt-4">We'll email you once you are off the list.</p>
+			<div class="mt-8">
+				<a href="/" class="underline hover:text-slate-700">Go home &rarr;</a>
+			</div>
 		</div>
 	{:else}
 		<h1 class="text-4xl">Request an Invite</h1>
