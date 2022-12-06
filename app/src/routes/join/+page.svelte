@@ -1,22 +1,47 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import { enhance } from '$app/forms';
 
-	const email = 'devin@sharedrecruiting.co';
-	// $page.user.user_metadata.name.split(" ")[0]
-	let firstName = 'Devin';
-	let lastName = 'Stein';
+	const user = $page.data?.session?.user;
+	const email = user?.email;
+	const names = user?.user_metadata?.name?.split(' ');
+
+	let firstName = names?.length ? names[0] : '';
+	let lastName = names?.length ? names[names.length - 1] : '';
 	let linkedin = '';
 	let referrer = '';
 
-	// form validation
-	// Show login button if not logged in
-	// handle user already on the waitlist (if they are, show a message) (if they are off, do something else)
+	export let form: null | {
+		errors: Record<string, string>;
+	};
+	$: console.log('form', form);
+
+	let formError: (field: string) => string | null;
+	$: {
+		formError = (field: string): string | null => {
+			if (!form || !form.errors) return null;
+
+			return (form.errors[field] as string) || null;
+		};
+	}
+
+	// next steps
+	// 0. Button redesign on homepage
+	// 1. schema
+	// 2. form submission & validation
+	// 3. Redirect to profile creation page if off waitlist/has account
+	// 4. Create profile page
+	// Confirm first name and last name
+	// Verify the granted access to gmail
+	// 5. Profile page (edit profile, pause/start email assistant)
+	// (Future) sync page
+	// (Future) connect LinkedIn
 	//
-	// What happens when someone is off the waitlist?
-	// Click to active account (we need a lock to prevent people from clicking it multiple times)
+	//
+	//
 </script>
 
-<div class="mx-auto my-20 max-w-2xl rounded-md bg-blue-50 p-12">
+<div class="mx-auto my-12 max-w-2xl rounded-md bg-blue-50 p-12">
 	<h1 class="text-4xl">Request Invite</h1>
 	<div class="my-6">
 		<p>Almost there! SRC is currently invite only.</p>
@@ -50,6 +75,9 @@
 					placeholder="Devin"
 				/>
 			</div>
+			{#if formError('firstName')}
+				<p class="mt-1 text-xs text-rose-500">{formError('firstName')}</p>
+			{/if}
 		</div>
 		<div>
 			<label for="lastName" class="block text-sm font-medium text-slate-700">Last Name</label>
@@ -64,6 +92,9 @@
 					placeholder="Stein"
 				/>
 			</div>
+			{#if formError('lastName')}
+				<p class="mt-1 text-xs text-rose-500">{formError('lastName')}</p>
+			{/if}
 		</div>
 		<div>
 			<label for="linkedin" class="block text-sm font-medium text-slate-700">LinkedIn Profile</label
@@ -79,6 +110,9 @@
 					placeholder="https://www.linkedin.com/in/devin-stein-087148107/"
 				/>
 			</div>
+			{#if formError('linkedin')}
+				<p class="mt-1 text-xs text-rose-500">{formError('linkedin')}</p>
+			{/if}
 		</div>
 		<div>
 			<label for="referrer" class="block text-sm font-medium text-slate-700"
@@ -95,6 +129,9 @@
 					placeholder="A little bird told me"
 				/>
 			</div>
+			{#if formError('referrer')}
+				<p class="mt-1 text-xs text-rose-500">{formError('referrer')}</p>
+			{/if}
 		</div>
 		<div>
 			<div class="flex justify-between">
