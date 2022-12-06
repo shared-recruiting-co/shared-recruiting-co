@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { PageData } from './$types';
 	import { page } from '$app/stores';
 	import { enhance } from '$app/forms';
 
@@ -17,8 +16,6 @@
 		errors: Record<string, string>;
 	};
 
-	export let data: PageData;
-
 	let formError: (field: string) => string | null;
 	$: {
 		formError = (field: string): string | null => {
@@ -29,7 +26,7 @@
 	}
 
 	// next steps
-	// 3. Redirect to profile creation page if off waitlist/has account
+	// 3. login callback
 	// 4. Create profile page
 	// Confirm first name and last name
 	// Verify the granted access to gmail
@@ -40,7 +37,7 @@
 </script>
 
 <div class="mx-4 my-12 max-w-2xl rounded-md bg-blue-100 p-12 sm:mx-auto">
-	{#if data?.success || form?.success}
+	{#if $page.data?.success || form?.success}
 		<div class="text-center">
 			<h1 class="text-2xl font-bold">You're on the waitlist!</h1>
 			<p class="mt-4">We'll email you once you are off the list.</p>

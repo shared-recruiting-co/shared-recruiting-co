@@ -27,7 +27,7 @@ export const load: PageLoad<Data> = async (event) => {
 		if (waitlist.can_create_account) {
 			throw redirect(303, '/account/profile');
 		}
-		// if they can cannot, show them the success state
+		// if they cannot, show them the success state
 		return {
 			success: true
 		};
