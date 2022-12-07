@@ -40,7 +40,7 @@
 	{#if $page.data?.success || form?.success}
 		<div class="text-center">
 			<h1 class="text-2xl font-bold">You're on the waitlist!</h1>
-			<p class="mt-4">We'll email you once you are off the list.</p>
+			<p class="mt-4">We'll email you once you are able to create your account.</p>
 			<div class="mt-8">
 				<a href="/" class="underline hover:text-slate-700">Go home &rarr;</a>
 			</div>
