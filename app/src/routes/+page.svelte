@@ -22,36 +22,20 @@
 	</p>
 	<div class="mt-10 flex justify-center gap-x-6">
 		<a
-			class="group inline-flex items-center justify-center rounded-full bg-slate-900 py-2 px-4 text-sm font-semibold text-white hover:bg-slate-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300"
+			class="group inline-flex items-center justify-center rounded-md bg-blue-600 py-2 px-4 font-semibold text-sm text-white shadow-lg hover:bg-blue-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900 active:bg-blue-800 active:text-slate-300"
 			href="/login">Request an Invite</a
 		>
 		<a
-			class="group inline-flex items-center justify-center rounded-full py-2 px-4 text-sm text-slate-700 ring-1 ring-slate-200 hover:text-slate-900 hover:ring-slate-300 focus:outline-none focus-visible:outline-blue-600 focus-visible:ring-slate-300 active:bg-slate-100 active:text-slate-600"
-			href="/#product"
+			class="group inline-flex items-center justify-center rounded-md bg-white border border-slate-900 py-2 px-4 text-sm text-slate-900 shadow-lg hover:bg-slate-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300 hover:border-slate-700 active:border-slate-800"
+			href="/#product">Learn More</a
 		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke-width="1.5"
-				stroke="currentColor"
-				class="h-6 w-6"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"
-				/>
-			</svg>
-			<span class="ml-3">Learn More</span>
-		</a>
 	</div>
 	<p
 		class="mx-auto mt-14 flex max-w-2xl flex-col items-center justify-center text-sm tracking-tight text-slate-700 md:flex-row"
 	>
 		<span
 			><sup>*</sup>SRC is currently in an invite only beta. If you already have an account,
-			<a href="/login" class="underline">sign in</a></span
+			<a href="/login" class="underline">log in</a></span
 		>
 	</p>
 </div>
