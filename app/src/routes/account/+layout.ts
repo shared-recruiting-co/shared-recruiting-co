@@ -5,6 +5,7 @@ import { redirect } from '@sveltejs/kit';
 
 export const load: PageLoad = async (event) => {
 	const { session, supabaseClient } = await getSupabase(event);
+	const { route } = event;
 
 	// require user to be logged in
 	if (!session) {
@@ -24,5 +25,8 @@ export const load: PageLoad = async (event) => {
 	}
 
 	// send to profile creation page
-	throw redirect(303, '/account/profile');
+	if (route.id !== '/account/profile') {
+		throw redirect(303, '/account/profile');
+	}
+	return {}
 };
