@@ -24,6 +24,7 @@ export const load: PageLoad = async (event) => {
 			profile: {
 				firstName: profile.first_name,
 				lastName: profile.last_name,
+				email: session.user.email,
 			}
 		};
 	}
