@@ -6,6 +6,8 @@ import { GOOGLE_CLIENT_SECRET } from '$env/static/private';
 import { getSupabase } from '@supabase/auth-helpers-sveltekit';
 
 import { supabaseClient as adminSupabaseClient } from '$lib/supabase/client.server';
+import { exchangeCodeForTokens  } from '$lib/server/google/oauth';
+import { watch  } from '$lib/server/google/gmail';
 
 const GMAIL_MODIFY_SCOPE = 'https://www.googleapis.com/auth/gmail.modify';
 
@@ -33,7 +35,7 @@ export const POST: RequestHandler = async (event) => {
 	const { session, supabaseClient } = await getSupabase(event);
 	if (!session) throw error(401, 'unauthorized');
 
-  const { request, fetch } = event;
+  const { request } = event;
 	const { headers } = request;
 
 	console.log('headers', headers);
@@ -46,13 +48,7 @@ export const POST: RequestHandler = async (event) => {
 	
 	// https://developers.google.com/identity/protocols/oauth2/web-server#httprest_3
 	// exchange code for access and refresh token
-  const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/x-www-form-urlencoded'
-		},
-		body: `code=${code}&client_id=${PUBLIC_GOOGLE_CLIENT_ID}&client_secret=${GOOGLE_CLIENT_SECRET}&redirect_uri=${PUBLIC_GOOGLE_REDIRECT_URI}&grant_type=authorization_code`
-	});
+  const tokenResponse = await exchangeCodeForTokens(code.toString());
 
 	// what about redirects?
 	if (tokenResponse.status !== 200) {
@@ -127,9 +123,11 @@ export const POST: RequestHandler = async (event) => {
 	}
 
 	// watch for new emails
-	// for existing users, trigger sync to latest date? what do we do?
-	//
-	// POST https://gmail.googleapis.com/gmail/v1/users/{userId}/watch?access_token=access_token
- 
-  return new Response(json)
+	console.log('subscribing to gmail notifications...');
+	const watchResponse = await watch(access_token);
+	if (watchResponse.status !== 200) {
+		throw error(500, 'failed to subscribe to gmail notifications');
+	}
+
+  return new Response("success")
 };
