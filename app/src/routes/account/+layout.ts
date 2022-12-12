@@ -2,7 +2,6 @@ import type { PageLoad } from './$types';
 import { getSupabase } from '@supabase/auth-helpers-sveltekit';
 import { redirect } from '@sveltejs/kit';
 
-
 export const load: PageLoad = async (event) => {
 	const { session, supabaseClient } = await getSupabase(event);
 	const { route } = event;
@@ -12,10 +11,21 @@ export const load: PageLoad = async (event) => {
 		throw redirect(303, '/login');
 	}
 
+	const isAccountCreationPage = route.id === '/account/profile/create';
+
 	// if user has a profile, we are good
 	const { data: profile } = await supabaseClient.from('user_profile').select('*').maybeSingle();
 	if (profile) {
-		return {}
+		if (isAccountCreationPage) {
+			throw redirect(303, '/account/profile');
+		}
+
+		return {
+			profile: {
+				firstName: profile.first_name,
+				lastName: profile.last_name,
+			}
+		};
 	}
 
 	// if the are aren't on the waitlist or can't create an account, redirect to the waitlist page
@@ -25,8 +35,9 @@ export const load: PageLoad = async (event) => {
 	}
 
 	// send to profile creation page
-	if (route.id !== '/account/profile') {
-		throw redirect(303, '/account/profile');
+	if (!isAccountCreationPage) {
+		throw redirect(303, '/account/profile/create');
 	}
-	return {}
+
+	return {};
 };
