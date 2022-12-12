@@ -7,6 +7,7 @@
 	};
 </script>
 
+
 <header
 	class="sticky top-0 z-50 flex flex-row flex-nowrap items-center justify-between space-x-4 bg-white px-4  py-4 text-lg sm:text-xl"
 >
@@ -15,12 +16,13 @@
 		<a href="/" class="text-xl text-slate-900 sm:text-2xl md:min-w-[150px]">Shared Recruiting Co.</a
 		>
 	</div>
+	{#if !$page.route.id?.startsWith("/account")}
 	<div class="hidden md:flex md:space-x-4">
 		<a href="/#product" class="font-medium text-slate-500 hover:text-slate-900">Product</a>
 		<a href="/#process" class="font-medium text-slate-500 hover:text-slate-900">Process</a>
 		<a href="/#faqs" class="font-medium text-slate-500 hover:text-slate-900">FAQs</a>
 	</div>
-
+	{/if}
 	<div class="flex w-96 items-center justify-end space-x-4">
 		{#if $page.data.session}
 			<button class="text-base hover:underline active:underline sm:text-lg" on:click={handleLogout}
