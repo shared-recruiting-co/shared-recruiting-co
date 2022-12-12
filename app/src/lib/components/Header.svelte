@@ -13,7 +13,9 @@
 >
 	<div class="flex w-96 flex-row items-center space-x-4">
 		<img src="/logo.svg" alt="Shared Recruiting Co" class="h-6 md:h-10" />
-		<a href="/" class="text-xl text-slate-900 sm:text-2xl md:min-w-[150px]">Shared Recruiting Co.</a
+		<a href="/" class="hidden sm:block text-xl text-slate-900 sm:text-2xl md:min-w-[150px]">Shared Recruiting Co.</a
+		>
+		<a href="/" class="sm:hidden text-xl text-slate-900 sm:text-2xl md:min-w-[150px]">SRC</a
 		>
 	</div>
 	{#if !$page.route.id?.startsWith("/account")}
