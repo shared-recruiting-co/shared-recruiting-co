@@ -33,13 +33,16 @@
 	// 5. Profile page (edit profile, pause/start email assistant)
 	// (Future) sync page
 	// (Future) connect LinkedIn
-	// 0. Button redesign on homepage
 </script>
 
 <div class="mx-4 my-12 max-w-2xl rounded-md bg-blue-100 p-12 sm:mx-auto">
 	{#if $page.data?.success || form?.success}
 		<div class="text-center">
-			<h1 class="text-2xl font-bold">You're on the waitlist!</h1>
+			{#if firstName}
+				<h1 class="text-2xl font-bold">{firstName}, you're on the waitlist!</h1>
+			{:else}
+				<h1 class="text-2xl font-bold">You're on the waitlist!</h1>
+			{/if}
 			<p class="mt-4">We'll email you once you are able to create your account.</p>
 			<div class="mt-8">
 				<a href="/" class="underline hover:text-slate-700">Go home &rarr;</a>
