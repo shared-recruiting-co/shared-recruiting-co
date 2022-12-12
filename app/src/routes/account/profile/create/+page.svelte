@@ -1,8 +1,19 @@
 <script lang="ts" context="module">
-	// on mount
 	import { browser } from '$app/environment';
 	import { PUBLIC_GOOGLE_CLIENT_ID } from '$env/static/public';
 
+	// TODOs
+	// 
+	// Refactor Connect button to be a component
+	// Validate on mobile!! Use redirect flow if necessary
+	// Create separate layouts for (marketing) and (account) pages 
+	// Create account header
+	// Create account sidebar
+	// Design & create account page 
+	// Trigger welcome email 
+	// Update cloud functions logic (sync to date OR sync to history id)
+	// Update watch cloud function to use filter action
+	// Watch/Stop endpoints
 	type OAuth2CallbackResponse = {
 		code: string;
 		authuser: string;
@@ -28,8 +39,8 @@
 				const xhr = new XMLHttpRequest();
 				xhr.open('POST', '/account/profile/connect', true);
 				xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-				// Set custom header for CRSF
 				xhr.setRequestHeader('X-Requested-With', 'XmlHttpRequest');
+				xhr.withCredentials = true;
 				xhr.onload = function () {
 					// check for error status
 					if (xhr.status === 200) {
@@ -51,27 +62,6 @@
 
 		client.requestCode();
 	};
-</script>
-
-<script lang="ts">
-	// TODOs
-	// Clean up this file
-	// Create an callback endpoint that
-	// - verifies the user is the same
-	// - Confirm the X-Requested-With: XmlHttpRequest header is set for popup mode.
-	// - fetches access token and refresh token
-	// - saves to db
-	// - triggers a sync if first time
-	// - subscribes to notifications
-	// - validate on mobile!!
-	// https://developers.google.com/identity/protocols/oauth2/web-server#httprest_3
-
-	// Account Header
-	// Client ID env var
-	// load script from public folder with promise
-	// https://stackoverflow.com/questions/59629947/how-do-i-load-an-external-js-library-in-svelte-sapper
-
-	// check if in browser
 </script>
 
 <div class="mx-4 my-8 flex flex-row items-center justify-center sm:mx-auto sm:my-16">

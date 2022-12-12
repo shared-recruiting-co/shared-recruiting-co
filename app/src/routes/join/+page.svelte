@@ -24,15 +24,6 @@
 			return (form.errors[field] as string) || null;
 		};
 	}
-
-	// next steps
-	// 3. login callback
-	// 4. Create profile page
-	// Confirm first name and last name
-	// Verify the granted access to gmail
-	// 5. Profile page (edit profile, pause/start email assistant)
-	// (Future) sync page
-	// (Future) connect LinkedIn
 </script>
 
 <div class="mx-4 my-12 max-w-2xl rounded-md bg-blue-100 p-12 sm:mx-auto">
