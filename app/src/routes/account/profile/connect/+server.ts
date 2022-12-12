@@ -1,8 +1,6 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-import { PUBLIC_GOOGLE_CLIENT_ID, PUBLIC_GOOGLE_REDIRECT_URI } from '$env/static/public';
-import { GOOGLE_CLIENT_SECRET } from '$env/static/private';
 import { getSupabase } from '@supabase/auth-helpers-sveltekit';
 
 import { supabaseClient as adminSupabaseClient } from '$lib/supabase/client.server';
@@ -22,23 +20,15 @@ const parseJWTPayload = (token: string): Record<string,string> | null=> {
 	}
 }
 
- 
 export const POST: RequestHandler = async (event) => {
-	// Create an callback endpoint that
-	// - Confirm the X-Requested-With: XmlHttpRequest header is set for popup mode.
-	// - Confirm CSRF token is valid.
-	// - triggers a sync if first time
-	// - subscribes to notifications
-	// - validate on mobile!!
-	// https://developers.google.com/identity/protocols/oauth2/web-server#httprest_3
-
 	const { session, supabaseClient } = await getSupabase(event);
 	if (!session) throw error(401, 'unauthorized');
 
   const { request } = event;
 	const { headers } = request;
 
-	console.log('headers', headers);
+	const  xRequestedWith = headers.get('x-requested-with') || '';
+	if (xRequestedWith !== 'XmlHttpRequest') throw error(400, 'invalid request');
 
 	const form = await request.formData();
 	const code = form.get('code');
