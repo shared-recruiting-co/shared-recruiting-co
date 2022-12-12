@@ -6,6 +6,7 @@ import { getSupabase } from '@supabase/auth-helpers-sveltekit';
 import { supabaseClient as adminSupabaseClient } from '$lib/supabase/client.server';
 import { exchangeCodeForTokens  } from '$lib/server/google/oauth';
 import { watch  } from '$lib/server/google/gmail';
+import type {Session, SupabaseClient} from '@supabase/supabase-js';
 
 const GMAIL_MODIFY_SCOPE = 'https://www.googleapis.com/auth/gmail.modify';
 
@@ -20,28 +21,23 @@ const parseJWTPayload = (token: string): Record<string,string> | null=> {
 	}
 }
 
-export const POST: RequestHandler = async (event) => {
-	const { session, supabaseClient } = await getSupabase(event);
-	if (!session) throw error(401, 'unauthorized');
-
-  const { request } = event;
-	const { headers } = request;
-
-	const  xRequestedWith = headers.get('x-requested-with') || '';
-	if (xRequestedWith !== 'XmlHttpRequest') throw error(400, 'invalid request');
-
-	const form = await request.formData();
-	const code = form.get('code');
-	if (!code) {
-		throw error(400, 'missing code parameter');
-	}
-	
+const connectEmail = async ({
+	code,
+	session,
+	supabaseClient,
+}: {
+ code: string;
+ session: Session;
+ supabaseClient: SupabaseClient;
+}) => {
 	// https://developers.google.com/identity/protocols/oauth2/web-server#httprest_3
 	// exchange code for access and refresh token
-  const tokenResponse = await exchangeCodeForTokens(code.toString());
+  const tokenResponse = await exchangeCodeForTokens(code);
 
 	// what about redirects?
 	if (tokenResponse.status !== 200) {
+		const err = await tokenResponse.json();
+		console.error(err);
 		throw error(400, 'failed to exchange code for access token');
 	}
 
@@ -118,6 +114,41 @@ export const POST: RequestHandler = async (event) => {
 	if (watchResponse.status !== 200) {
 		throw error(500, 'failed to subscribe to gmail notifications');
 	}
+}
+
+export const POST: RequestHandler = async (event) => {
+	const { session, supabaseClient } = await getSupabase(event);
+	if (!session) throw error(401, 'unauthorized');
+
+  const { request } = event;
+	const { headers } = request;
+
+	const  xRequestedWith = headers.get('x-requested-with') || '';
+	if (xRequestedWith !== 'XmlHttpRequest') throw error(400, 'invalid request');
+
+	const form = await request.formData();
+	const code = form.get('code');
+	if (!code) {
+		throw error(400, 'missing code parameter');
+	}
+	
+	await connectEmail({ code: code.toString(), session, supabaseClient });
+
+  return new Response("success")
+};
+
+export const GET: RequestHandler = async (event) => {
+	const { session, supabaseClient } = await getSupabase(event);
+	if (!session) throw error(401, 'unauthorized');
+
+  const {  url } = event;
+
+	const code = url.searchParams.get('code');
+	if (!code) {
+		throw error(400, 'missing code parameter');
+	}
+	
+	await connectEmail({ code, session, supabaseClient });
 
   return new Response("success")
 };

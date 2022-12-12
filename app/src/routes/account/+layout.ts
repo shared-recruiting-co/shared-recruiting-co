@@ -11,7 +11,7 @@ export const load: PageLoad = async (event) => {
 		throw redirect(303, '/login');
 	}
 
-	const isAccountCreationPage = route.id === '/account/profile/create';
+	const isAccountCreationPage = route.id === '/account/profile/create' || route.id === '/account/profile/connect';
 
 	// if user has a profile, we are good
 	const { data: profile } = await supabaseClient.from('user_profile').select('*').maybeSingle();
