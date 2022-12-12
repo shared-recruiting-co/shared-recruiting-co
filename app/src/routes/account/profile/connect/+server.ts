@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-import { PUBLIC_GOOGLE_CLIENT_ID } from '$env/static/public';
+import { PUBLIC_GOOGLE_CLIENT_ID, PUBLIC_GOOGLE_REDIRECT_URI } from '$env/static/public';
 import { GOOGLE_CLIENT_SECRET } from '$env/static/private';
 import { getSupabase } from '@supabase/auth-helpers-sveltekit';
 
@@ -51,7 +51,7 @@ export const POST: RequestHandler = async (event) => {
 		headers: {
 			'Content-Type': 'application/x-www-form-urlencoded'
 		},
-		body: `code=${code}&client_id=${PUBLIC_GOOGLE_CLIENT_ID}&client_secret=${GOOGLE_CLIENT_SECRET}&redirect_uri=${encodeURIComponent("http://localhost:5173")}&grant_type=authorization_code`
+		body: `code=${code}&client_id=${PUBLIC_GOOGLE_CLIENT_ID}&client_secret=${GOOGLE_CLIENT_SECRET}&redirect_uri=${PUBLIC_GOOGLE_REDIRECT_URI}&grant_type=authorization_code`
 	});
 
 	// what about redirects?
