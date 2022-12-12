@@ -9,8 +9,6 @@ export const exchangeCodeForTokens = async (code: string) => {
 	data.append('redirect_uri', PUBLIC_GOOGLE_REDIRECT_URI);
 	data.append('grant_type', 'authorization_code');
 
-	console.log(data.toString())
-
   return await fetch('https://oauth2.googleapis.com/token', {
 		method: 'POST',
 		headers: {
