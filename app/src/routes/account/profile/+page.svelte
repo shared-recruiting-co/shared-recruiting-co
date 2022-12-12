@@ -1,23 +1,5 @@
 <script lang="ts">
-	// import page
   import { page } from '$app/stores';
-	// TODOs
-	// Create an callback endpoint that
-	// - verifies the user is the same
-	// - Confirm the X-Requested-With: XmlHttpRequest header is set for popup mode.
-	// - fetches access token and refresh token
-	// - saves to db
-	// - triggers a sync if first time
-	// - subscribes to notifications
-	// - validate on mobile!!
-	// https://developers.google.com/identity/protocols/oauth2/web-server#httprest_3
-
-	// Account Header
-	// load script from public folder with promise
-	// https://stackoverflow.com/questions/59629947/how-do-i-load-an-external-js-library-in-svelte-sapper
-
-	// check if in browser
-	$: console.log('page', $page.data);
 </script>
 
 <div class="my-12 lg:grid lg:grid-cols-12 lg:gap-x-5">
