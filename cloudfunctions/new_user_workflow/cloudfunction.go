@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	jwt "github.com/golang-jwt/jwt/v4"
@@ -214,9 +215,12 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("watch response: %v", resp)
 
-	err = queries.UpsertUserEmailSyncHistoryID(ctx, client.UpsertUserEmailSyncHistoryIDParams{
+	err = queries.UpsertUserEmailSyncHistory(ctx, client.UpsertUserEmailSyncHistoryParams{
 		UserID:    userID,
 		HistoryID: int64(resp.HistoryId),
+		SyncedAt:  sql.NullTime{Time: time.Now(), Valid: true},
+		// set to null (valid = false)
+		ExamplesCollectedAt: sql.NullTime{Time: time.Now(), Valid: false},
 	})
 
 	if err != nil {

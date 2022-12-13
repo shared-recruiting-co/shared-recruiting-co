@@ -7,8 +7,9 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/google/uuid v1.3.0
 	github.com/lib/pq v1.10.7
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/db v0.0.0-20221201161356-a790ef9aec91
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20221201160910-eec7340f8138
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/db v0.0.0-20221202155459-d9dae03dc8b8
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20221202155459-d9dae03dc8b8
+	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783
 	google.golang.org/api v0.103.0
 )
 
@@ -33,7 +34,6 @@ require (
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.10.0 // indirect
 	golang.org/x/net v0.0.0-20221014081412-f15817d10f9b // indirect
-	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect
 	golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
