@@ -9,6 +9,7 @@
 	// TODOs
 	//
 	// Validate on mobile!! Use redirect flow if necessary
+	// Add 'interest in job opportunities' dropdown to waitlist
 	// Trigger welcome email!
 	// Update cloud functions logic (sync to date OR sync to history id)
 	// Change label color to #4986e7
