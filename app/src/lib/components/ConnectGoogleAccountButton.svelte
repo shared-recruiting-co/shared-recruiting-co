@@ -25,7 +25,7 @@
 
 	const codeCallback = (response: OAuth2CallbackResponse) => {
 				const xhr = new XMLHttpRequest();
-				xhr.open('POST', '/account/profile/connect', true);
+				xhr.open('POST', '/api/account/gmail/connect', true);
 				xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 				xhr.setRequestHeader('X-Requested-With', 'XmlHttpRequest');
 				// Set custom header for CRSF
