@@ -8,6 +8,7 @@
 	};
 	// TODOs
 	//
+	// Update first and last name on profile page
 	// Validate on mobile!! Use redirect flow if necessary
 	// Trigger welcome email!
 	// Update cloud functions logic (sync to date OR sync to history id)
@@ -93,7 +94,7 @@
 			<p>Once connected, SRC will trigger a one-time historic sync to label your existing inbound job opportunities. Aftewards, SRC will automatically detect and label new job opportunities as soon as they hit your inbox.</p>
 		<div>
 			<p class="mb-2">Use the button below to connect your account</p>
-			<ConnectGoogleAccountButton email={$page.data.profile.email} onConnect={onConnect} />
+			<ConnectGoogleAccountButton onConnect={onConnect} />
 		</div>
 		<p class="text-sm">
 			You can read more about how we use and protect your data in our <a

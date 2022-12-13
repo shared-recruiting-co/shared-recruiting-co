@@ -5,15 +5,8 @@
 		PUBLIC_GOOGLE_REDIRECT_URI,
 	} from '$env/static/public';
 
-	type OAuth2CallbackResponse = {
-		code: string;
-		authuser: string;
-		prompt: string;
-		scope: string;
-	} 
-
 	// props
-	export let email: string;
+	// export let email: string;
 	export let onConnect: () => void;
 
 	let loaded = Boolean(browser && window.google);
@@ -23,7 +16,7 @@
 		loaded = true;
 	}
 
-	const codeCallback = (response: OAuth2CallbackResponse) => {
+	const codeCallback = (response: google.accounts.oauth2.CodeResponse) => {
 				const xhr = new XMLHttpRequest();
 				xhr.open('POST', '/api/account/gmail/connect', true);
 				xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -44,7 +37,7 @@
 					// log error
 					console.log("onerror",err)
 				};
-				xhr.send(`code=${response.code}&authuser=${response.authuser}&prompt=${response.prompt}&scope=${response.scope}`);
+				xhr.send(`code=${response.code}&scope=${response.scope}`);
 			}
 
 	const connectAccount = () => {
@@ -60,11 +53,8 @@
 			redirect_uri: 'postmessage',
 			// ux_mode: 'redirect',
 			// redirect_uri: PUBLIC_GOOGLE_REDIRECT_URI, access_type: 'offline',
-			login_hint: email,
-			auto_select: true,
-			approval_prompt: 'auto',
-			include_granted_scopes: true,
-			immediate: true,
+			// TODO: You can only use hint if the app is verified (disable in development) 
+			// hint: email,
 			error_callback: (err: unknown) => {
 				if (!err) return;
 				// ignore popup closed errors
