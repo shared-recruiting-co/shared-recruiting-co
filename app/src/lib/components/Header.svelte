@@ -26,12 +26,8 @@
 	{/if}
 	<div class="flex w-96 items-center justify-end space-x-4">
 		{#if $page.data.session}
-			<a href="/account/profile" class="hidden md:block">
-				<img
-					src="{$page.data.session.user?.user_metadata.avatar_url}"
-					alt="{$page.data.session.user?.user_metadata.full_name}"
-					class="w-8 h-8 rounded-full"
-				/>
+			<a href="/account/profile" class="text-base hover:underline active:underline sm:text-lg">
+				Account
 			</a>
 			<button class="text-base hover:underline active:underline sm:text-lg" on:click={handleLogout}
 				>Log Out</button
