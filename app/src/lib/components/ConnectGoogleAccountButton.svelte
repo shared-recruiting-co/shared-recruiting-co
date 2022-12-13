@@ -2,6 +2,7 @@
 	import { browser } from '$app/environment';
 	import { 
 		PUBLIC_GOOGLE_CLIENT_ID, 
+		PUBLIC_GOOGLE_REDIRECT_URI,
 	} from '$env/static/public';
 
 	type OAuth2CallbackResponse = {
@@ -10,6 +11,8 @@
 		prompt: string;
 		scope: string;
 	} 
+
+	export let email: string;
 
 	let loaded = Boolean(browser && window.google);
 	let error: string;
@@ -23,6 +26,7 @@
 				xhr.open('POST', '/account/profile/connect', true);
 				xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 				xhr.setRequestHeader('X-Requested-With', 'XmlHttpRequest');
+				// Set custom header for CRSF
 				xhr.withCredentials = true;
 				xhr.onload = function () {
 					// check for error status
@@ -32,8 +36,8 @@
 						// TODO: redirect
 						// TODO: show cool success message
 					} else {
-						console.log('error');
-						// log error
+						const body = JSON.parse(xhr.responseText);
+						error = body.message;
 					}
 				};
 				xhr.onerror = function (err) {
@@ -50,16 +54,20 @@
 			client_id: PUBLIC_GOOGLE_CLIENT_ID,
 			scope: 'https://www.googleapis.com/auth/gmail.modify',
 			// TODO: On mobile, default to redirect
+			ux_mode: 'popup',
+			redirect_uri: 'postmessage',
 			// ux_mode: 'redirect',
-			// redirect_uri: PUBLIC_GOOGLE_REDIRECT_URI,
-			access_type: 'offline',
+			// redirect_uri: PUBLIC_GOOGLE_REDIRECT_URI, access_type: 'offline',
+			login_hint: email,
 			auto_select: true,
 			approval_prompt: 'auto',
 			include_granted_scopes: true,
 			immediate: true,
-			error_callback: (err) => {
-				// type === 'popup_closed' display appropriate error
-				error = err.message;
+			error_callback: (err: unknown) => {
+				if (!err) return;
+				// ignore popup closed errors
+				if (err?.type === 'popup_closed') return;
+				error = err?.message;
 			},
 			callback: codeCallback
 		});
@@ -70,12 +78,12 @@
 
 <button
 	disabled={!loaded}
-	class="flex items-center rounded-md bg-white px-3 py-2 text-slate-500 shadow hover:bg-slate-50 disabled:cursor-wait"
+	class="flex items-center rounded-md bg-[#1a73e8] pl-0.5 py-0.5 pr-3 text-white shadow hover:bg-[#5a94ee] disabled:cursor-wait"
 	on:click|preventDefault={connectAccount}
-	><img src="/google.svg" alt="Google logo" class="mr-3" />Connect Account</button
+	><img src="/google.svg" alt="Google logo" class="mr-3 p-2 bg-white rounded-l-md" />Continue with Google</button
 >
 {#if error}
-	<p class="mt-1 text-rose-500 text-sm">{error}</p>
+	<p class="mt-2 text-rose-500 text-sm">{error}</p>
 {/if}
 <svelte:head>
 	<script src="/scripts/gsi.js" on:load={onLoad} async defer></script>

@@ -11,7 +11,8 @@ export const load: PageLoad = async (event) => {
 		throw redirect(303, '/login');
 	}
 
-	const isAccountCreationPage = route.id === '/account/profile/create' || route.id === '/account/profile/connect';
+	const isAccountCreationPage =
+		route.id === '/account/profile/create' || route.id === '/account/profile/connect';
 
 	// if user has a profile, we are good
 	const { data: profile } = await supabaseClient.from('user_profile').select('*').maybeSingle();
@@ -24,7 +25,7 @@ export const load: PageLoad = async (event) => {
 			profile: {
 				firstName: profile.first_name,
 				lastName: profile.last_name,
-				email: session.user.email,
+				email: session.user.email
 			}
 		};
 	}
@@ -38,6 +39,16 @@ export const load: PageLoad = async (event) => {
 	// send to profile creation page
 	if (!isAccountCreationPage) {
 		throw redirect(303, '/account/profile/create');
+	}
+
+	if (waitlist.can_create_account) {
+		return {
+			profile: {
+				firstName: waitlist.first_name,
+				lastName: waitlist.last_name,
+				email: session.user.email
+			}
+		};
 	}
 
 	return {};

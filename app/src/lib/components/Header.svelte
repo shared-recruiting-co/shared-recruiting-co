@@ -7,23 +7,22 @@
 	};
 </script>
 
-
 <header
 	class="sticky top-0 z-50 flex flex-row flex-nowrap items-center justify-between space-x-4 bg-white px-4  py-4 text-lg sm:text-xl"
 >
 	<div class="flex w-96 flex-row items-center space-x-4">
 		<img src="/logo.svg" alt="Shared Recruiting Co" class="h-6 md:h-10" />
-		<a href="/" class="hidden sm:block text-xl text-slate-900 sm:text-2xl md:min-w-[150px]">Shared Recruiting Co.</a
+		<a href="/" class="hidden text-xl text-slate-900 sm:block sm:text-2xl md:min-w-[150px]"
+			>Shared Recruiting Co.</a
 		>
-		<a href="/" class="sm:hidden text-xl text-slate-900 sm:text-2xl md:min-w-[150px]">SRC</a
-		>
+		<a href="/" class="text-xl text-slate-900 sm:hidden sm:text-2xl md:min-w-[150px]">SRC</a>
 	</div>
-	{#if !$page.route.id?.startsWith("/account")}
-	<div class="hidden md:flex md:space-x-4">
-		<a href="/#product" class="font-medium text-slate-500 hover:text-slate-900">Product</a>
-		<a href="/#process" class="font-medium text-slate-500 hover:text-slate-900">Process</a>
-		<a href="/#faqs" class="font-medium text-slate-500 hover:text-slate-900">FAQs</a>
-	</div>
+	{#if !$page.route.id?.startsWith('/account')}
+		<div class="hidden md:flex md:space-x-4">
+			<a href="/#product" class="font-medium text-slate-500 hover:text-slate-900">Product</a>
+			<a href="/#process" class="font-medium text-slate-500 hover:text-slate-900">Process</a>
+			<a href="/#faqs" class="font-medium text-slate-500 hover:text-slate-900">FAQs</a>
+		</div>
 	{/if}
 	<div class="flex w-96 items-center justify-end space-x-4">
 		{#if $page.data.session}

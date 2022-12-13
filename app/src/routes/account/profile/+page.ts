@@ -14,7 +14,10 @@ export const load: PageLoad<Data> = async (event) => {
 		throw redirect(303, '/login');
 	}
 
-	const { data: emailSyncHistory } = await supabaseClient.from("user_email_sync_history").select("last_synced_at").maybeSingle();
+	const { data: emailSyncHistory } = await supabaseClient
+		.from('user_email_sync_history')
+		.select('last_synced_at')
+		.maybeSingle();
 
 	// TODO: Check and return the status of the user oauth token
 
