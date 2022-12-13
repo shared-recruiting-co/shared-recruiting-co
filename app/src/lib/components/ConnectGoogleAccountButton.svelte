@@ -82,7 +82,7 @@
 	disabled={!loaded}
 	class="flex items-center rounded-md bg-[#1a73e8] pl-0.5 py-0.5 pr-3 text-white shadow hover:bg-[#5a94ee] disabled:cursor-wait"
 	on:click|preventDefault={connectAccount}
-	><img src="/google.svg" alt="Google logo" class="mr-3 p-2 bg-white rounded-l-md" />Continue with Google</button
+	><img src="/google.svg" alt="Google logo" class="mr-3 p-2 bg-white rounded-l-md" />Connect with Google</button
 >
 {#if error}
 	<p class="mt-2 text-rose-500 text-sm">{error}</p>
