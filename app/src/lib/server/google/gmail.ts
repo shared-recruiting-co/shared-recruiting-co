@@ -1,5 +1,7 @@
-import { NEW_EMAIL_PUB_SUB_TOPIC } from '$env/static/private';
+import { NEW_EMAIL_PUBSUB_TOPIC } from '$env/static/private';
 
+// TODO: Always return success for non-prod envs
+//
 // watch for new emails
 export const watch = async (accessToken: string) =>
 	await fetch('https://gmail.googleapis.com/gmail/v1/users/me/watch', {
@@ -12,7 +14,7 @@ export const watch = async (accessToken: string) =>
 			// TODO: Parameterize once we have use cases for multiple topics or labels
 			labelIds: ['UNREAD'],
 			labelFilterAction: 'include',
-			topicName: NEW_EMAIL_PUB_SUB_TOPIC
+			topicName: NEW_EMAIL_PUBSUB_TOPIC
 		})
 	});
 
