@@ -21,24 +21,32 @@ const parseJWTPayload = (token: string): Record<string,string> | null=> {
 	}
 }
 
+// TODO: Redirect with error message if in redirect flow
 const connectEmail = async ({
+	method,
 	code,
 	session,
 	supabaseClient,
 }: {
+method: 'GET' | 'POST';
  code: string;
  session: Session;
  supabaseClient: SupabaseClient;
 }) => {
 	// https://developers.google.com/identity/protocols/oauth2/web-server#httprest_3
 	// exchange code for access and refresh token
-  const tokenResponse = await exchangeCodeForTokens(code);
+  const tokenResponse = await exchangeCodeForTokens(code, method);
 
 	// what about redirects?
 	if (tokenResponse.status !== 200) {
-		const err = await tokenResponse.json();
-		console.error(err);
-		throw error(400, 'failed to exchange code for access token');
+		try {
+			const err = await tokenResponse.json();
+			console.error(err);
+		} catch {
+			console.error("invalid response from google");
+		}
+		// log error message for debugging and return user facing error
+		throw error(400, "Failed to connect email. Please try again.");
 	}
 
 	// get json 
@@ -46,19 +54,23 @@ const connectEmail = async ({
 
 	// validate scope
 	if (!scope.includes(GMAIL_MODIFY_SCOPE)) {
-		throw error(400, `user did not grant ${GMAIL_MODIFY_SCOPE} scope`);
+		// log error message for debugging and return user facing error
+		console.log(`user did not grant ${GMAIL_MODIFY_SCOPE} scope`);
+		throw error(400, "Missing required scope. Please check all boxes on the consent screen.");
 	}
 
 	// parse id token to get user id
 	const idTokenPayload = parseJWTPayload(id_token);
 	if (!idTokenPayload) {
-		throw error(400, 'invalid id token');
+		console.log("invalid id token");
+		throw error(400, "Something went wrong. Please try again.");
 	}
 
 	// verify emails match
 	const { email } = idTokenPayload;
 	if (email !== session.user.email) {
-		throw error(400, 'authorized user does not match session user');
+		console.log("authorized user does not match session user");
+		throw error(400, `You must connect with the same email as your SRC account. Please connect with ${session.user.email}`);
 	}
 
 	// check if user has an account 
@@ -69,10 +81,12 @@ const connectEmail = async ({
 		// make sure the user is allowed to create one
 		const { data: waitlist } = await supabaseClient.from('waitlist').select('*').maybeSingle();
 		if (!waitlist) {
-			throw error(401, `user ${session.user.email} is not on the waitlist`);
+			console.log('user is not on waitlist');
+			throw error(401, `${session.user.email} is not on the waitlist`);
 		}
 		if (!waitlist.can_create_account) {
-			throw error(401, `user ${session.user.email} is not allowed to create an account yet`);
+			console.log( `user ${session.user.email} is not allowed to create an account yet`);
+			throw error(401, `${session.user.email} is not allowed to create an account yet`);
 		}
 		// create a profile for them
 		const { error: createError } = await adminSupabaseClient.from('user_profile').insert({
@@ -83,8 +97,8 @@ const connectEmail = async ({
 		})
 
 		if (createError) {
-			console.error(createError);
-			throw error(500, 'failed to create user profile');
+			console.error("failed to create profile: ", createError);
+			throw error(500, 'Failed to create your account. Please try again. If this problem persists, please team@sharedrecruiting.co.');
 		}
 	}
 
@@ -104,15 +118,16 @@ const connectEmail = async ({
 	});
 
 	if (tokenSaveError) {
-		console.error(tokenSaveError);
-		throw error(500, 'failed to save user oauth token');
+		console.error("failed to save oauth tokens:", tokenSaveError);
+		throw error(500, 'Failed to sync your account. Please try again. If this problem persists, reach out to team@sharedrecruiting.co.');
 	}
 
 	// watch for new emails
 	console.log('subscribing to gmail notifications...');
 	const watchResponse = await watch(access_token);
 	if (watchResponse.status !== 200) {
-		throw error(500, 'failed to subscribe to gmail notifications');
+		console.log('failed to subscribe to gmail notifications');
+		throw error(500, 'Failed to sync your account. Please try again. If this problem persists, reach out to team@sharedrecruiting.co.');
 	}
 }
 
@@ -132,7 +147,7 @@ export const POST: RequestHandler = async (event) => {
 		throw error(400, 'missing code parameter');
 	}
 	
-	await connectEmail({ code: code.toString(), session, supabaseClient });
+	await connectEmail({ method: "POST", code: code.toString(), session, supabaseClient });
 
   return new Response("success")
 };
@@ -148,7 +163,7 @@ export const GET: RequestHandler = async (event) => {
 		throw error(400, 'missing code parameter');
 	}
 	
-	await connectEmail({ code, session, supabaseClient });
+	await connectEmail({ method: "GET", code, session, supabaseClient });
 
   return new Response("success")
 };
