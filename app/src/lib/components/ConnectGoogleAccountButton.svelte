@@ -12,7 +12,9 @@
 		scope: string;
 	} 
 
+	// props
 	export let email: string;
+	export let onConnect: () => void;
 
 	let loaded = Boolean(browser && window.google);
 	let error: string;
@@ -32,9 +34,7 @@
 					// check for error status
 					if (xhr.status === 200) {
 						// success
-						console.log('success');
-						// TODO: redirect
-						// TODO: show cool success message
+						onConnect();
 					} else {
 						const body = JSON.parse(xhr.responseText);
 						error = body.message;
@@ -49,6 +49,8 @@
 
 	const connectAccount = () => {
 		if (!loaded) return;
+		// reset error
+		error = "";
 
 		const client = window.google.accounts.oauth2.initCodeClient({
 			client_id: PUBLIC_GOOGLE_CLIENT_ID,

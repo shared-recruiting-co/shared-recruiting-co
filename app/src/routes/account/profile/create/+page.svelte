@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
 	import ConnectGoogleAccountButton from '$lib/components/ConnectGoogleAccountButton.svelte';
+
+	const onConnect = () => {
+		goto('/account/profile');
+	};
 	// TODOs
 	//
 	// Validate on mobile!! Use redirect flow if necessary
@@ -99,7 +104,7 @@
 			>.
 		</p>
 		<div>
-			<ConnectGoogleAccountButton email={$page.data.profile.email} />
+			<ConnectGoogleAccountButton email={$page.data.profile.email} onConnect={onConnect} />
 		</div>
 	</div>
 </div>
