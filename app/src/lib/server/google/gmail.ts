@@ -1,10 +1,13 @@
+import {  dev, } from '$app/environment';
 import { NEW_EMAIL_PUBSUB_TOPIC } from '$env/static/private';
 
-// TODO: Always return success for non-prod envs
-//
+// Until we have a better local development and testing story,
+// We will always return true for dev
+const success = new Response('success');
+
 // watch for new emails
 export const watch = async (accessToken: string) =>
-	await fetch('https://gmail.googleapis.com/gmail/v1/users/me/watch', {
+	dev ? success : await fetch('https://gmail.googleapis.com/gmail/v1/users/me/watch', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -20,7 +23,7 @@ export const watch = async (accessToken: string) =>
 
 // stop watching for new emails
 export const stop = async (accessToken: string) =>
-	await fetch('https://gmail.googleapis.com/gmail/v1/users/me/stop', {
+	dev ? success : await fetch('https://gmail.googleapis.com/gmail/v1/users/me/stop', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
