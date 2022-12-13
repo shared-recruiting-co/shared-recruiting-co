@@ -25,8 +25,6 @@ export const POST: RequestHandler = async (event) => {
 
 	// stop watching for new emails
 	const stopResponse = await stop(accessToken);
-
-	// TODO: Mark access token invalid
 	if (stopResponse.status !== 200) throw error(500, 'failed to unsubscribe to gmail notifications');
 
   return new Response("success")
