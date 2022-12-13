@@ -8,7 +8,6 @@
 	};
 	// TODOs
 	//
-	// Update first and last name on profile page
 	// Validate on mobile!! Use redirect flow if necessary
 	// Trigger welcome email!
 	// Update cloud functions logic (sync to date OR sync to history id)
@@ -20,7 +19,6 @@
 	// Create account header
 	// Create account sidebar
 	// Design & create account page
-	// Watch/Stop endpoints
 	// Active Toggle on settings page
 </script>
 
