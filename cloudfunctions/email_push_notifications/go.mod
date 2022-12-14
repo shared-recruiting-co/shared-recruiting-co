@@ -7,7 +7,7 @@ require (
 	github.com/cloudevents/sdk-go/v2 v2.12.0
 	github.com/lib/pq v1.10.7
 	github.com/shared-recruiting-co/shared-recruiting-co/libs/db v0.0.0-20221214174824-e1d189a720da
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20221214174824-e1d189a720da
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20221214184245-5114df4dffc8
 	golang.org/x/oauth2 v0.3.0
 	google.golang.org/api v0.104.0
 )
