@@ -8,7 +8,6 @@
 	};
 	// TODOs
 	//
-	// Validate on mobile!! Use redirect flow if necessary
 	// Add 'interest in job opportunities' dropdown to waitlist
 	// Trigger welcome email!
 
