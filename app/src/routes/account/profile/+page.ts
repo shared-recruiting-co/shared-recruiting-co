@@ -16,12 +16,12 @@ export const load: PageLoad<Data> = async (event) => {
 
 	const { data: emailSyncHistory } = await supabaseClient
 		.from('user_email_sync_history')
-		.select('last_synced_at')
+		.select('synced_at')
 		.maybeSingle();
 
 	// TODO: Check and return the status of the user oauth token
 
 	return {
-		lastSyncedAt: emailSyncHistory?.last_synced_at
+		lastSyncedAt: emailSyncHistory?.synced_at as string | undefined
 	};
 };

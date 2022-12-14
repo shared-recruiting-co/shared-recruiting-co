@@ -90,7 +90,7 @@
 		<p>
 			Once connected, SRC will trigger a one-time historic sync to label your existing inbound job
 			opportunities. Aftewards, SRC will automatically detect and label new job opportunities as
-			soon as they hit your inbox.
+			soon as they hit your inbox!
 		</p>
 		<div>
 			<p class="mb-2">Use the button below to connect your account</p>
