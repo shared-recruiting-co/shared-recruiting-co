@@ -2,6 +2,8 @@
 	import { page } from '$app/stores';
 	import { enhance } from '$app/forms';
 
+	import { confetti } from '@neoconfetti/svelte'
+
 	const user = $page.data?.session?.user;
 	const email = user?.email;
 	const names = user?.user_metadata?.name?.split(' ');
@@ -28,6 +30,7 @@
 
 <div class="mx-4 my-12 max-w-2xl rounded-md bg-blue-100 p-12 sm:mx-auto">
 	{#if $page.data?.success || form?.success}
+		<div class="text-center mx-auto" use:confetti={{ force: 0.8, stageHeight: 350, stageWidth: 450, duration: 2000 }} />
 		<div class="text-center">
 			{#if firstName}
 				<h1 class="text-2xl font-bold">{firstName}, you're on the waitlist!</h1>
