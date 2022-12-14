@@ -33,7 +33,7 @@ func jsonFromEnv(env string) ([]byte, error) {
 
 func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 	log.Println("received watch trigger")
-	creds, err := jsonFromEnv("GOOGLE_APPLICATION_CREDENTIALS")
+	creds, err := jsonFromEnv("GOOGLE_OAUTH2_CREDENTIALS")
 	if err != nil {
 		log.Printf("error getting credentials: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)

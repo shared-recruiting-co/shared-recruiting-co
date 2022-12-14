@@ -36,7 +36,7 @@ func jsonFromEnv(env string) ([]byte, error) {
 // In the future, we can do this in realtime whenever a email is labeled with @SRC, but for now we'll just do it ad-hoc in batch
 func collectExamples(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	creds, err := jsonFromEnv("GOOGLE_APPLICATION_CREDENTIALS")
+	creds, err := jsonFromEnv("GOOGLE_OAUTH2_CREDENTIALS")
 	if err != nil {
 		log.Printf("error fetching google app credentials: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)

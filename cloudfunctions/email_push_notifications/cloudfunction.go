@@ -87,7 +87,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	email := emailPushNotification.Email
 	historyID := emailPushNotification.HistoryID
 
-	creds, err := jsonFromEnv("GOOGLE_APPLICATION_CREDENTIALS")
+	creds, err := jsonFromEnv("GOOGLE_OAUTH2_CREDENTIALS")
 	if err != nil {
 		return fmt.Errorf("error fetching google app credentials: %v", err)
 	}

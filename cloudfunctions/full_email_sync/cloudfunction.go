@@ -65,7 +65,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("full email sync request")
 
-	creds, err := jsonFromEnv("GOOGLE_APPLICATION_CREDENTIALS")
+	creds, err := jsonFromEnv("GOOGLE_OAUTH2_CREDENTIALS")
 	if err != nil {
 		log.Printf("error fetching google app credentials: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
