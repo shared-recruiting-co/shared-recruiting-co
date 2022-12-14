@@ -34,21 +34,24 @@ type Classifier interface {
 }
 
 type ClassifierClient struct {
-	ctx     context.Context
-	baseURL string
-	apiKey  string
+	ctx       context.Context
+	baseURL   string
+	apiKey    string
+	authToken string
 }
 
 type ClassifierClientArgs struct {
-	BaseURL string
-	ApiKey  string
+	BaseURL   string
+	ApiKey    string
+	AuthToken string
 }
 
 func NewClassifierClient(ctx context.Context, args ClassifierClientArgs) *ClassifierClient {
 	return &ClassifierClient{
-		ctx:     ctx,
-		baseURL: args.BaseURL,
-		apiKey:  args.ApiKey,
+		ctx:       ctx,
+		baseURL:   args.BaseURL,
+		apiKey:    args.ApiKey,
+		authToken: args.AuthToken,
 	}
 }
 
@@ -84,7 +87,12 @@ func (c *ClassifierClient) doRequest(method string, path string, req interface{}
 		return err
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.Header.Set("X-Api-Key", c.apiKey)
+	if c.apiKey != "" {
+		httpReq.Header.Set("X-API-Key", c.apiKey)
+	}
+	if c.authToken != "" {
+		httpReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.authToken))
+	}
 	httpResp, err := http.DefaultClient.Do(httpReq)
 
 	if err != nil {

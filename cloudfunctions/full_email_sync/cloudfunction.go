@@ -3,20 +3,20 @@ package cloudfunctions
 import (
 	"database/sql"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
-	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
-	jwt "github.com/golang-jwt/jwt/v4"
-	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 	"golang.org/x/oauth2"
 
 	"google.golang.org/api/gmail/v1"
+	"google.golang.org/api/idtoken"
 
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/db/client"
 	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
@@ -27,7 +27,7 @@ const (
 )
 
 func init() {
-	functions.HTTP("NewUserWorkflow", newUserWorkflow)
+	functions.HTTP("FullEmailSync", fullEmailSync)
 }
 
 func jsonFromEnv(env string) ([]byte, error) {
@@ -37,85 +37,35 @@ func jsonFromEnv(env string) ([]byte, error) {
 	return decoded, err
 }
 
-func contains[T comparable](list []T, item T) bool {
-	for _, element := range list {
-		if element == item {
-			return true
-		}
-	}
-	return false
+type FullEmailSyncRequest struct {
+	Email     string    `json:"email"`
+	StartDate time.Time `json:"start_date"`
 }
 
-// newUserWorkflow
-func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
+// fullEmailSync is triggers a sync up to the specified date for the given email
+func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	// get the authorization header from the request
-	authHeader := r.Header.Get("Authorization")
-	// if the authorization header is empty, return an error
-	if authHeader == "" {
-		log.Printf("missing authorization header")
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-	// get the token from the authorization header
-	tokenRaw := authHeader[len("Bearer "):]
-	// get secret
-	jwtSecret := os.Getenv("JWT_SECRET")
-	if jwtSecret == "" {
-		log.Printf("missing JWT_SECRET env var")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 
-	token, err := jwt.Parse(tokenRaw, func(token *jwt.Token) (interface{}, error) {
-		// Don't forget to validate the alg is what you expect:
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(jwtSecret), nil
-	})
-
+	// Get the request body
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Printf("error parsing jwt token: %v", err)
-		w.WriteHeader(http.StatusUnauthorized)
+		log.Printf("Error reading request body: %v", err)
+		http.Error(w, "Error reading request body", http.StatusInternalServerError)
 		return
 	}
-
-	if !token.Valid {
-		log.Printf("invalid jwt token")
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-
-	// if the token is invalid, return an error
-	if !ok {
-		log.Print("error getting jwt claims")
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	// get the user id from the subject of the token
-	sub := claims["sub"].(string)
-
-	// if the user id is empty, return an error
-	if sub == "" {
-		log.Printf("user id (sub) is empty")
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-	email := claims["email"].(string)
-	log.Printf("running workflow for user %s / %s", email, sub)
-
-	userID, err := uuid.Parse(sub)
+	var data FullEmailSyncRequest
+	err = json.Unmarshal(body, &data)
 	if err != nil {
-		log.Printf("error parsing user id into uuid: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Printf("Error unmarshalling request body: %v", err)
+		http.Error(w, "Error unmarshalling request body", http.StatusInternalServerError)
 		return
 	}
+	email := data.Email
+	startDate := data.StartDate
 
-	creds, err := jsonFromEnv("GOOGLE_APPLICATION_CREDENTIALS")
+	log.Println("full email sync request")
+
+	creds, err := jsonFromEnv("GOOGLE_OAUTH2_CREDENTIALS")
 	if err != nil {
 		log.Printf("error fetching google app credentials: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -142,20 +92,19 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// check if we've already synced the user
-	history, _ := queries.GetUserEmailSyncHistory(ctx, userID)
-	if history.HistoryID != 0 {
-		log.Printf("user already synced")
-		w.WriteHeader(http.StatusOK)
+	// 1. Get User from email address
+	user, err := queries.GetUserByEmail(ctx, email)
+	if err != nil {
+		log.Printf("error getting user by email: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// Get User' OAuth Token
 	userToken, err := queries.GetUserOAuthToken(ctx, client.GetUserOAuthTokenParams{
-		UserID:   userID,
+		UserID:   user.ID,
 		Provider: provider,
 	})
-
 	if err != nil {
 		log.Printf("error getting user oauth token: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -168,7 +117,7 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 	gmailUser := "me"
 
 	// Create SRC Labels
-	srcLabel, err := mail.GetOrCreateSRCLabel(gmailSrv, gmailUser)
+	_, err = mail.GetOrCreateSRCLabel(gmailSrv, gmailUser)
 	if err != nil {
 		// first request, so check if the error is an oauth error
 		// if so, update the database
@@ -200,39 +149,24 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Watch for changes in unread messages
-	topic := os.Getenv("PUBSUB_TOPIC")
-	resp, err := gmailSrv.Users.Watch(gmailUser, &gmail.WatchRequest{
-		LabelIds:  []string{"UNREAD"},
-		TopicName: topic,
-	}).Do()
-
-	if err != nil {
-		log.Printf("error watching for unread messages: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	log.Printf("watch response: %v", resp)
-
-	err = queries.UpsertUserEmailSyncHistory(ctx, client.UpsertUserEmailSyncHistoryParams{
-		UserID:    userID,
-		HistoryID: int64(resp.HistoryId),
-		SyncedAt:  sql.NullTime{Time: time.Now(), Valid: true},
-		// set to null (valid = false)
-		ExamplesCollectedAt: sql.NullTime{Time: time.Now(), Valid: false},
-	})
-
-	if err != nil {
-		log.Printf("error upserting user email sync history: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
 	// Create recruiting detector client
+	classifierBaseURL := os.Getenv("CLASSIFIER_URL")
+	idTokenSource, err := idtoken.NewTokenSource(ctx, classifierBaseURL)
+	if err != nil {
+		log.Printf("error creating id token source: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	idToken, err := idTokenSource.Token()
+	if err != nil {
+		log.Printf("error getting id token: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	classifier := NewClassifierClient(ctx, ClassifierClientArgs{
-		BaseURL: os.Getenv("CLASSIFIER_URL"),
-		ApiKey:  os.Getenv("CLASSIFIER_API_KEY"),
+		BaseURL:   classifierBaseURL,
+		AuthToken: idToken.AccessToken,
 	})
 
 	var messages []*gmail.Message
@@ -240,10 +174,9 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 
 	// batch process messages to reduce memory usage
 	for {
-		// Make Request to Fetch New Emails from Previous History ID
 		// get next set of messages
 		// if this is the first notification, trigger a one-time sync
-		messages, pageToken, err = GetEmailsSinceLastYear(gmailSrv, gmailUser, pageToken)
+		messages, pageToken, err = getEmailsSinceDate(gmailSrv, gmailUser, startDate, pageToken)
 
 		// for now, abort on error
 		if err != nil {
@@ -267,10 +200,6 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 
 			// filter out empty messages
 			if message.Payload == nil {
-				continue
-			}
-			// filter messages that were sent by the current user
-			if contains(message.LabelIds, "SENT") {
 				continue
 			}
 			text, err := mail.MessageToString(message)
@@ -306,8 +235,8 @@ func newUserWorkflow(w http.ResponseWriter, r *http.Request) {
 		if len(recruitingEmailIDs) > 0 {
 			err = gmailSrv.Users.Messages.BatchModify(gmailUser, &gmail.BatchModifyMessagesRequest{
 				Ids: recruitingEmailIDs,
-				// Add SRC Label
-				AddLabelIds: []string{srcLabel.Id, srcJobOpportunityLabel.Id},
+				// Add SRC Job Label
+				AddLabelIds: []string{srcJobOpportunityLabel.Id},
 				// In future,
 				// - mark as read
 				// - archive

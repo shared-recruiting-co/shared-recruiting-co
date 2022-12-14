@@ -14,6 +14,7 @@ import (
 func TestClassifierClientPredict(t *testing.T) {
 	ctx := context.Background()
 	apiKey := "test"
+	authToken := "xxx.yyy.zzz"
 	path := "/predict"
 	input := "input"
 	want := true
@@ -27,6 +28,10 @@ func TestClassifierClientPredict(t *testing.T) {
 		}
 		if r.Header.Get("X-API-KEY") != apiKey {
 			t.Errorf("got %v, want %v", r.Header.Get("X-API-KEY"), apiKey)
+		}
+		wantAuth := fmt.Sprintf("Bearer %s", authToken)
+		if r.Header.Get("Authorization") != wantAuth {
+			t.Errorf("got %v, want %v", r.Header.Get("Authorization"), wantAuth)
 		}
 		var body PredictRequest
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
@@ -44,8 +49,9 @@ func TestClassifierClientPredict(t *testing.T) {
 	}))
 
 	client := NewClassifierClient(ctx, ClassifierClientArgs{
-		BaseURL: ts.URL,
-		ApiKey:  apiKey,
+		BaseURL:   ts.URL,
+		ApiKey:    apiKey,
+		AuthToken: authToken,
 	})
 
 	got, err := client.Predict(input)
@@ -61,6 +67,7 @@ func TestClassifierClientPredict(t *testing.T) {
 func TestClassifierClientPredictBatch(t *testing.T) {
 	ctx := context.Background()
 	apiKey := "test"
+	authToken := "xxx.yyy.zzz"
 	path := "/predict/batch"
 	inputs := map[string]string{
 		"input1": "input1",
@@ -81,6 +88,10 @@ func TestClassifierClientPredictBatch(t *testing.T) {
 		if r.Header.Get("X-API-KEY") != apiKey {
 			t.Errorf("got %v, want %v", r.Header.Get("X-API-KEY"), apiKey)
 		}
+		wantAuth := fmt.Sprintf("Bearer %s", authToken)
+		if r.Header.Get("Authorization") != wantAuth {
+			t.Errorf("got %v, want %v", r.Header.Get("Authorization"), wantAuth)
+		}
 		var body PredictBatchRequest
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			t.Errorf("failed to decode request body: %v", err)
@@ -99,8 +110,9 @@ func TestClassifierClientPredictBatch(t *testing.T) {
 	}))
 
 	client := NewClassifierClient(ctx, ClassifierClientArgs{
-		BaseURL: ts.URL,
-		ApiKey:  apiKey,
+		BaseURL:   ts.URL,
+		ApiKey:    apiKey,
+		AuthToken: authToken,
 	})
 
 	got, err := client.PredictBatch(inputs)

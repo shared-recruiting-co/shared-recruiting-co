@@ -11,8 +11,8 @@
 	// Validate on mobile!! Use redirect flow if necessary
 	// Add 'interest in job opportunities' dropdown to waitlist
 	// Trigger welcome email!
-	// Update cloud functions logic (sync to date OR sync to history id)
-	// Change label color to #4986e7
+	// Change label color to @SRC #4986e7 and white
+	// Change label color to @SRC/Job Opportunity #c9daf8 (background) and #1c4587 (text)
 	// Update watch cloud function to use filter action
 
 	// Design

@@ -1,18 +1,66 @@
 package cloudfunctions
 
 import (
+	"bytes"
+	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/db/client"
 	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/googleapi"
+	"google.golang.org/api/idtoken"
 )
 
+type FullEmailSyncRequest struct {
+	Email     string    `json:"email"`
+	StartDate time.Time `json:"start_date"`
+}
+
+// triggerBackgroundfFullEmailSync triggers a background function to sync all emails since a given date
+// Note: The service account must be a principal with invoker permission on the full sync service
+func triggerBackgroundfFullEmailSync(ctx context.Context, email string, startDate time.Time) error {
+	triggerURL := os.Getenv("TRIGGER_FULL_SYNC_URL")
+	if triggerURL == "" {
+		return errors.New("TRIGGER_FULL_SYNC_URL is not set")
+	}
+	httpClient, err := idtoken.NewClient(ctx, triggerURL)
+	if err != nil {
+		return err
+	}
+
+	// trigger full sync
+	body := FullEmailSyncRequest{
+		Email:     email,
+		StartDate: startDate,
+	}
+	bodyBytes, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+	// fire and forget
+	// trigger in go routine, so that the function can return and the cloudfunction can be scaled down
+	// the proper way to do this is to use pubsub for automatic retries, but this is a quick and dirty solution
+	go func() {
+		log.Printf("trigger full sync for %s from %s", email, startDate.Format("2006/01/02"))
+		_, err = httpClient.Post(triggerURL, "application/json", ioutil.NopCloser(bytes.NewReader(bodyBytes)))
+		if err != nil {
+			log.Printf("failed to trigger full sync: %v", err)
+		}
+	}()
+
+	return nil
+}
+
 func syncNewEmails(
+	email string,
 	gmailSrv *gmail.Service,
 	gmailUser string,
 	classifier Classifier,
@@ -28,8 +76,13 @@ func syncNewEmails(
 		// Make request to fetch new emails from previous history id or last sync date
 		// get next set of messages
 		if historyIDExpired {
-			// if history ID has expired (over 7 days old), sync to last sync date
-			messages, pageToken, err = getNewEmailsSinceDate(gmailSrv, gmailUser, syncHistory.SyncedAt.Time, "UNREAD", pageToken)
+			// if history id is expired, trigger async full sync to last sync date
+			err = triggerBackgroundfFullEmailSync(context.Background(), email, syncHistory.SyncedAt.Time)
+			if err != nil {
+				return fmt.Errorf("error triggering full sync: %v", err)
+			}
+			// done!
+			return nil
 		} else {
 			messages, pageToken, err = getNewEmailsSinceHistoryID(gmailSrv, gmailUser, uint64(syncHistory.HistoryID), "UNREAD", pageToken)
 		}
