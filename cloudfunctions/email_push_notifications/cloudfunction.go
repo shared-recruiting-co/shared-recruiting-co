@@ -166,7 +166,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	}
 
 	// Create recruiting detector client
-	classifierBaseURL := os.Getenv("CLASSIFIER_BASE_URL")
+	classifierBaseURL := os.Getenv("CLASSIFIER_URL")
 	idTokenSource, err := idtoken.NewTokenSource(ctx, classifierBaseURL)
 	if err != nil {
 		return fmt.Errorf("error creating id token source: %v", err)
@@ -178,7 +178,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	}
 
 	classifier := NewClassifierClient(ctx, ClassifierClientArgs{
-		BaseURL:   os.Getenv("CLASSIFIER_URL"),
+		BaseURL:   classifierBaseURL,
 		AuthToken: idToken.AccessToken,
 	})
 
