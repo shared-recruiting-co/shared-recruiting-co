@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { PUBLIC_GOOGLE_CLIENT_ID, PUBLIC_GOOGLE_REDIRECT_URI } from '$env/static/public';
+	import { PUBLIC_GOOGLE_CLIENT_ID } from '$env/static/public';
 
 	// props
-	// export let email: string;
+	export let email: string | undefined;
 	export let onConnect: () => void;
 
 	let loaded = Boolean(browser && window.google);
@@ -45,13 +45,10 @@
 		const client = window.google.accounts.oauth2.initCodeClient({
 			client_id: PUBLIC_GOOGLE_CLIENT_ID,
 			scope: 'https://www.googleapis.com/auth/gmail.modify',
-			// TODO: On mobile, default to redirect
+			// google does magic redirection for us on mobile
 			ux_mode: 'popup',
 			redirect_uri: 'postmessage',
-			// ux_mode: 'redirect',
-			// redirect_uri: PUBLIC_GOOGLE_REDIRECT_URI, access_type: 'offline',
-			// TODO: You can only use hint if the app is verified (disable in development)
-			// hint: email,
+			hint: email,
 			error_callback: (err: unknown) => {
 				if (!err) return;
 				// ignore popup closed errors

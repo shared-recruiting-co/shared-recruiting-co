@@ -94,7 +94,7 @@
 		</p>
 		<div>
 			<p class="mb-2">Use the button below to connect your account</p>
-			<ConnectGoogleAccountButton {onConnect} />
+			<ConnectGoogleAccountButton {onConnect} email={$page.data.session?.user?.email}/>
 		</div>
 		<p class="text-sm">
 			You can read more about how we use and protect your data in our <a
