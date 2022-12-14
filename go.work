@@ -5,6 +5,7 @@ use (
 	./cloudfunctions/watch_emails
 	./cloudfunctions/new_user_workflow
 	./cloudfunctions/collect_examples
+	./cloudfunctions/full_email_sync
 	./libs/db
 	./libs/gmail
 )
