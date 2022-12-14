@@ -64,3 +64,55 @@ alter table public.user_email_sync_history enable row level security;
 create policy "Users can view their own email sync history"
   on public.user_email_sync_history for select
   using ( auth.uid() = user_id );
+
+-- waitlist table
+create table public.waitlist (
+    user_id uuid references auth.users(id) not null,
+    -- duplicate email for convenience
+    email text not null,
+    first_name text not null,
+    last_name text not null,
+    linkedin_url text not null,
+    responses jsonb not null default '{}'::jsonb,
+    can_create_account boolean not null default false,
+    created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now(),
+
+    primary key (user_id)
+);
+
+create trigger handle_updated_at_waitlist before update on public.waitlist
+  for each row execute procedure moddatetime (updated_at);
+
+-- enable RLS so users can't modify they waitlist entry
+alter table public.waitlist enable row level security;
+
+create policy "Users can view their own waitlist entry"
+  on public.waitlist for select
+  using ( auth.uid() = user_id );
+
+-- user_profile table
+create table public.user_profile (
+    user_id uuid references auth.users(id) not null,
+    -- duplicate email for convenience
+    email text not null,
+    first_name text not null,
+    last_name text not null,
+    created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now(),
+
+    primary key (user_id)
+);
+
+create trigger handle_updated_at_profile before update on public.user_profile
+  for each row execute procedure moddatetime (updated_at);
+
+alter table public.user_profile enable row level security;
+
+create policy "Users can view their own profile"
+  on public.user_profile for select
+  using ( auth.uid() = user_id );
+
+create policy "Users can update their own profile"
+  on public.user_profile for update
+  using ( auth.uid() = user_id );

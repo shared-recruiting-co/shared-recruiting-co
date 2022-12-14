@@ -18,6 +18,10 @@ jobs:
           # version of CLI to use...consider switching to latest
           version: 1.12.1
 
+      - name: "Install app dependencies"
+        working-directory: ./app
+        run: npm install
+
       - name: "Start Supabase local development setup"
         working-directory: ./app
         run: supabase start
