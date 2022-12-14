@@ -15,7 +15,7 @@ const maxResults = 250
 // Use the next page token to fetch the rest of the emails
 func getEmailsSinceDate(srv *gmail.Service, userID string, date time.Time, pageToken string) ([]*gmail.Message, string, error) {
 	// get all (including archived) emails after the start date, ignore sent emails and emails already processed by SRC
-	q := fmt.Sprintf("-label:sent -label:%s after:%s", mail.SRC_JobOpportunityLabel, date.Format("2006/01/02"))
+	q := fmt.Sprintf("-label:sent -label:%s after:%s", mail.SRCJobOpportunityLabel, date.Format("2006/01/02"))
 
 	r, err := srv.Users.Messages.
 		List(userID).

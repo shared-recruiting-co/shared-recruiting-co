@@ -14,7 +14,7 @@ func getSRCEmails(srv *gmail.Service, userID string, startDate time.Time, pageTo
 	builder := srv.Users.Messages.List(userID).PageToken(pageToken).MaxResults(maxResults)
 
 	// always ignore sent emails
-	q := fmt.Sprintf("-label:sent label:%s", mail.SRC_JobOpportunityLabel)
+	q := fmt.Sprintf("-label:sent label:%s", mail.SRCJobOpportunityLabel)
 	if !startDate.IsZero() {
 		// start the search from the start date
 		q = fmt.Sprintf("%s after:%s", q, startDate.Format("2006/01/02"))
