@@ -43,7 +43,7 @@
 			</div>
 		</div>
 	{:else}
-		<h1 class="text-4xl">Request an Invite</h1>
+		<h1 class="text-2xl sm:text-4xl">Request an Invite</h1>
 		<div class="my-6">
 			<p>Almost there! SRC is currently invite only.</p>
 			<p>Please fill out the form below to get priority on the invite list.</p>
