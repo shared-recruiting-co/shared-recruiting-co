@@ -5,14 +5,22 @@ import (
 )
 
 const (
-	SRC_Label                    = "@SRC"
-	SRC_JobOpportunityLabel      = "@SRC/Job Opportunity"
-	SRC_Color                    = "#ff7537"
-	SRC_JobOpportunityLabelColor = "#16a765"
-	white                        = "#ffffff"
+	SRCLabel               = "@SRC"
+	SRCJobOpportunityLabel = "@SRC/Job Opportunity"
 )
 
-func GetOrCreateLabel(srv *gmail.Service, userID string, labelID string, backgroundColor string, textColor string) (*gmail.Label, error) {
+var (
+	SRCLabelColor = &gmail.LabelColor{
+		BackgroundColor: "#4986e7",
+		TextColor:       "#ffffff",
+	}
+	SRCJobOpportunityLabelColor = &gmail.LabelColor{
+		BackgroundColor: "#c9daf8",
+		TextColor:       "#1c4587",
+	}
+)
+
+func GetOrCreateLabel(srv *gmail.Service, userID string, labelID string, color *gmail.LabelColor) (*gmail.Label, error) {
 	labels, err := srv.Users.Labels.List(userID).Do()
 
 	if err != nil {
@@ -25,10 +33,7 @@ func GetOrCreateLabel(srv *gmail.Service, userID string, labelID string, backgro
 		}
 	}
 
-	label, err := srv.Users.Labels.Create(userID, &gmail.Label{Name: labelID, Color: &gmail.LabelColor{
-		BackgroundColor: backgroundColor,
-		TextColor:       textColor,
-	}}).Do()
+	label, err := srv.Users.Labels.Create(userID, &gmail.Label{Name: labelID, Color: color}).Do()
 
 	if err != nil {
 		return nil, err
@@ -38,9 +43,9 @@ func GetOrCreateLabel(srv *gmail.Service, userID string, labelID string, backgro
 }
 
 func GetOrCreateSRCLabel(srv *gmail.Service, userID string) (*gmail.Label, error) {
-	return GetOrCreateLabel(srv, userID, SRC_Label, SRC_Color, white)
+	return GetOrCreateLabel(srv, userID, SRCLabel, SRCLabelColor)
 }
 
 func GetOrCreateSRCJobOpportunityLabel(srv *gmail.Service, userID string) (*gmail.Label, error) {
-	return GetOrCreateLabel(srv, userID, SRC_JobOpportunityLabel, SRC_JobOpportunityLabelColor, white)
+	return GetOrCreateLabel(srv, userID, SRCJobOpportunityLabel, SRCJobOpportunityLabelColor)
 }

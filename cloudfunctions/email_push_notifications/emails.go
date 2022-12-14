@@ -46,7 +46,7 @@ func getNewEmailsSinceDate(srv *gmail.Service, userID string, date time.Time, la
 		labelID = defaultLabelID
 	}
 
-	q := fmt.Sprintf("-label:%s after:%s", mail.SRC_JobOpportunityLabel, date.Format("2006/01/02"))
+	q := fmt.Sprintf("-label:%s after:%s", mail.SRCJobOpportunityLabel, date.Format("2006/01/02"))
 
 	r, err := srv.Users.Messages.
 		List(userID).
