@@ -26,16 +26,20 @@
 	{/if}
 	<div class="flex w-96 items-center justify-end space-x-4">
 		{#if $page.data.session}
-			<a href="/account/profile" class="text-base hover:underline active:underline sm:text-lg">
+			<a href="/account/profile" class="text-base hover:underline active:underline sm:text-lg" data-sveltekit-preload-data="hover">
 				Account
 			</a>
 			<button class="text-base hover:underline active:underline sm:text-lg" on:click={handleLogout}
 				>Log Out</button
 			>
 		{:else}
-			<a class="text-base hover:underline active:underline hidden sm:text-lg sm:block" href="/login">Log in</a>
+			<a 
+				class="text-base hover:underline active:underline hidden sm:text-lg sm:block"
+				data-sveltekit-preload-data="hover"
+				href="/login">Log in</a>
 			<a
 				class="group inline-flex items-center justify-center rounded-md bg-blue-600 py-2 px-4 text-sm font-semibold text-white shadow-lg hover:bg-blue-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900 active:bg-blue-800 active:text-slate-300"
+				data-sveltekit-preload-data="hover"
 				href="/login">Join</a
 			>
 			<a

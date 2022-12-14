@@ -23,6 +23,7 @@
 	<div class="mt-10 flex justify-center gap-x-6">
 		<a
 			class="group inline-flex items-center justify-center rounded-md bg-slate-900 py-2 px-4 text-sm font-semibold text-white shadow-lg hover:bg-slate-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300"
+			data-sveltekit-preload-data="hover"
 			href="/login">Request an Invite</a
 		>
 		<a
@@ -35,7 +36,7 @@
 	>
 		<span
 			><sup>*</sup>SRC is currently in an invite only beta. If you already have an account,
-			<a href="/login" class="underline">log in</a></span
+			<a data-sveltekit-preload-data="hover" href="/login" class="underline">log in</a></span
 		>
 	</p>
 </div>
