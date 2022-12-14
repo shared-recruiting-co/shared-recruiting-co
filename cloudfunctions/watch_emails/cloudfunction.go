@@ -87,8 +87,9 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 		}
 		// Watch for changes in labelId
 		resp, err := srv.Users.Watch(user, &gmail.WatchRequest{
-			LabelIds:  []string{label},
-			TopicName: topic,
+			LabelIds:          []string{label},
+			LabelFilterAction: "include",
+			TopicName:         topic,
 		}).Do()
 
 		if err != nil {
