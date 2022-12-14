@@ -4,8 +4,8 @@ for pkg in "${pkgs[@]}"
 do
   pushd $pkg
   echo "Updating $(basename $pkg)"
-  go get github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail@main
-  go get github.com/shared-recruiting-co/shared-recruiting-co/libs/db@main
+  go get -u github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail@main
+  go get -u github.com/shared-recruiting-co/shared-recruiting-co/libs/db@main
   go mod tidy
   popd
 done
