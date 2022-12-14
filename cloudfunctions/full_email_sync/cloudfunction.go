@@ -63,7 +63,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 	email := data.Email
 	startDate := data.StartDate
 
-	log.Printf("full email sync request: %s starting at %s", email, startDate.Format("2006/01/02"))
+	log.Println("full email sync request")
 
 	creds, err := jsonFromEnv("GOOGLE_APPLICATION_CREDENTIALS")
 	if err != nil {
@@ -150,7 +150,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create recruiting detector client
-	classifierBaseURL := os.Getenv("CLASSIFIER_BASE_URL")
+	classifierBaseURL := os.Getenv("CLASSIFIER_URL")
 	idTokenSource, err := idtoken.NewTokenSource(ctx, classifierBaseURL)
 	if err != nil {
 		log.Printf("error creating id token source: %v", err)
@@ -165,7 +165,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 	}
 
 	classifier := NewClassifierClient(ctx, ClassifierClientArgs{
-		BaseURL:   os.Getenv("CLASSIFIER_URL"),
+		BaseURL:   classifierBaseURL,
 		AuthToken: idToken.AccessToken,
 	})
 
