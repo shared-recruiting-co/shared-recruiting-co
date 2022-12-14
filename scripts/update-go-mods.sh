@@ -1,4 +1,4 @@
-pkgs=("./cloudfunctions/collect_examples" "./cloudfunctions/email_push_notifications" "./cloudfunctions/new_user_workflow" "./cloudfunctions/watch_emails")
+pkgs=("./cloudfunctions/collect_examples" "./cloudfunctions/email_push_notifications" "./cloudfunctions/full_email_sync" "./cloudfunctions/watch_emails")
 
 for pkg in "${pkgs[@]}"
 do
