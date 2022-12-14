@@ -122,7 +122,8 @@ const connectEmail = async ({
 			id_token,
 			token_type,
 			expiry: expriryFromExpiresIn(expires_in)
-		}
+		},
+		is_valid: true,
 	});
 
 	if (tokenSaveError) {
