@@ -59,6 +59,7 @@ func triggerBackgroundfFullEmailSync(ctx context.Context, email string, startDat
 }
 
 func syncNewEmails(
+	email string,
 	gmailSrv *gmail.Service,
 	gmailUser string,
 	classifier Classifier,
@@ -75,7 +76,7 @@ func syncNewEmails(
 		// get next set of messages
 		if historyIDExpired {
 			// if history id is expired, trigger async full sync to last sync date
-			err = triggerBackgroundfFullEmailSync(context.Background(), "TODO", syncHistory.SyncedAt.Time)
+			err = triggerBackgroundfFullEmailSync(context.Background(), email, syncHistory.SyncedAt.Time)
 			if err != nil {
 				return fmt.Errorf("error triggering full sync: %v", err)
 			}
