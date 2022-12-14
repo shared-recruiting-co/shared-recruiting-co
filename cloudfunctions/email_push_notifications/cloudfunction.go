@@ -164,6 +164,23 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		return fmt.Errorf("error getting or creating the SRC job opportunity label: %v", err)
 	}
 
+	// Create recruiting detector client
+	classifierBaseURL := os.Getenv("CLASSIFIER_BASE_URL")
+	idTokenSource, err := idtoken.NewTokenSource(ctx, classifierBaseURL)
+	if err != nil {
+		return fmt.Errorf("error creating id token source: %v", err)
+	}
+
+	idToken, err := idTokenSource.Token()
+	if err != nil {
+		return fmt.Errorf("error getting id token: %v", err)
+	}
+
+	classifier := NewClassifierClient(ctx, ClassifierClientArgs{
+		BaseURL:   os.Getenv("CLASSIFIER_URL"),
+		AuthToken: idToken.AccessToken,
+	})
+
 	// 5. Make Request to get previous history and proactively save new history (If anything goes wrong, then we reset the history ID to the previous one)
 	// Make Request to Fetch Previous History ID
 	prevSyncHistory, err := queries.GetUserEmailSyncHistory(ctx, user.ID)
@@ -206,12 +223,6 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 			revertSynctHistory()
 		}
 	}()
-
-	// 6. Create recruiting detector client
-	classifier := NewClassifierClient(ctx, ClassifierClientArgs{
-		BaseURL: os.Getenv("CLASSIFIER_URL"),
-		ApiKey:  os.Getenv("CLASSIFIER_API_KEY"),
-	})
 
 	// 7. Sync new emails
 	err = syncNewEmails(gmailSrv, gmailUser, classifier, prevSyncHistory, srcJobOpportunityLabel.Id)
