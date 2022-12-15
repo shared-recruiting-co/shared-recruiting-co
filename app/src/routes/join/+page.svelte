@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { enhance } from '$app/forms';
 
-	import { confetti } from '@neoconfetti/svelte'
+	import { confetti } from '@neoconfetti/svelte';
 
 	const user = $page.data?.session?.user;
 	const email = user?.email;
@@ -30,7 +30,10 @@
 
 <div class="mx-4 my-12 max-w-2xl rounded-md bg-blue-100 p-12 sm:mx-auto">
 	{#if $page.data?.success || form?.success}
-		<div class="text-center mx-auto" use:confetti={{ force: 0.8, stageHeight: 350, stageWidth: 450, duration: 2000 }} />
+		<div
+			class="mx-auto text-center"
+			use:confetti={{ force: 0.8, stageHeight: 350, stageWidth: 450, duration: 2000 }}
+		/>
 		<div class="text-center">
 			{#if firstName}
 				<h1 class="text-2xl font-bold">{firstName}, you're on the waitlist!</h1>
@@ -140,7 +143,7 @@
 					<label for="comment" class="block text-sm font-medium text-slate-700"
 						>Anything else you'd like us to know?</label
 					>
-					<span class="text-sm text-slate-500" id="comment-optional">Optional</span>
+					<span class="text-xs text-slate-500 sm:text-sm" id="comment-optional">Optional</span>
 				</div>
 				<div class="mt-1">
 					<textarea
