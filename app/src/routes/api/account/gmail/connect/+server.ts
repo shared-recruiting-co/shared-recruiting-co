@@ -8,6 +8,8 @@ import { exchangeCodeForTokens } from '$lib/server/google/oauth';
 import { watch } from '$lib/server/google/gmail';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 
+import { sendWelcomeEmail } from './welcome';
+
 const GMAIL_MODIFY_SCOPE = 'https://www.googleapis.com/auth/gmail.modify';
 
 // convert to ms and get iso string
@@ -78,10 +80,13 @@ const connectEmail = async ({
 		);
 	}
 
+	let isNewUser = false;
+
 	// check if user has an account
 	const { data: profile } = await supabaseClient.from('user_profile').select('*').maybeSingle();
 	// if no profile, create one
 	if (!profile) {
+		isNewUser = true;
 		console.log('creating user profile...');
 		// make sure the user is allowed to create one
 		const { data: waitlist } = await supabaseClient.from('waitlist').select('*').maybeSingle();
@@ -123,7 +128,7 @@ const connectEmail = async ({
 			token_type,
 			expiry: expriryFromExpiresIn(expires_in)
 		},
-		is_valid: true,
+		is_valid: true
 	});
 
 	if (tokenSaveError) {
@@ -144,6 +149,12 @@ const connectEmail = async ({
 			'Failed to sync your account. Please try again. If this problem persists, reach out to team@sharedrecruiting.co.'
 		);
 	}
+
+	// send message from founder email to welcome (back) user
+	// to trigger the initial email sync
+	console.log('sending welcome email...');
+	// TODO: Use a real transactional email service (sendgrid/mailgun) instead of this homebrew solution
+	await sendWelcomeEmail(session.user.email, isNewUser);
 };
 
 export const POST: RequestHandler = async (event) => {
