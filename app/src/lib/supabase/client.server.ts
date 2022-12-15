@@ -15,6 +15,7 @@ export const getRefreshedGoogleAccessToken = async (
 	supabaseClient: SupabaseClient
 ): Promise<string> => {
 	// get google refresh token
+	// relies on RLS to only return the refresh token for the current user
 	const { data } = await supabaseClient
 		.from('user_oauth_token')
 		.select('token')
