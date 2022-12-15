@@ -9,7 +9,6 @@
 	// TODOs
 	//
 	// Add 'interest in job opportunities' dropdown to waitlist
-	// Trigger welcome email!
 
 	// Design
 	// Create separate layouts for (marketing) and (account) pages
@@ -93,7 +92,7 @@
 		</p>
 		<div>
 			<p class="mb-2">Use the button below to connect your account</p>
-			<ConnectGoogleAccountButton {onConnect} email={$page.data.session?.user?.email}/>
+			<ConnectGoogleAccountButton {onConnect} email={$page.data.session?.user?.email} />
 		</div>
 		<p class="text-sm">
 			You can read more about how we use and protect your data in our <a

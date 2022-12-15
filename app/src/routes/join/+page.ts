@@ -14,18 +14,12 @@ export const load: PageLoad<Data> = async (event) => {
 		throw redirect(303, '/login');
 	}
 
-	// if user has a profile, redirect to profile page
-	const { data: profile } = await supabaseClient.from('user_profile').select('*').maybeSingle();
-	if (profile) {
-		throw redirect(303, '/account/profile');
-	}
-
 	// if user is already on the waitlist,
 	const { data: waitlist } = await supabaseClient.from('waitlist').select('*').maybeSingle();
 	if (waitlist) {
 		// if they can create an account, send them to the profile page
 		if (waitlist.can_create_account) {
-			throw redirect(303, '/account/profile');
+			throw redirect(303, '/account/profile/create');
 		}
 		// if they cannot, show them the success state
 		return {

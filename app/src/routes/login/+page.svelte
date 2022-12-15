@@ -6,8 +6,7 @@
 			const { error } = await supabaseClient.auth.signInWithOAuth({
 				provider: 'google',
 				options: {
-					redirectTo: `${window.location.origin}/join`
-					// normal sign in without asking for gmail scope consent
+					redirectTo: `${window.location.origin}/account/profile`
 				}
 			});
 			if (error) throw error;

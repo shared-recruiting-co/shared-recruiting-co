@@ -7,16 +7,18 @@ export const load: PageLoad = async (event) => {
 
 	if (!session) return {};
 
-	const { data: profile } = await supabaseClient.from('user_profile').select('*').maybeSingle();
+	const [{ data: profile }, { data: waitlist }] = await Promise.all([
+		supabaseClient.from('user_profile').select('*').maybeSingle(),
+		supabaseClient.from('waitlist').select('*').maybeSingle()
+	]);
 	if (profile) {
 		throw redirect(303, '/account/profile');
 	}
 
 	// if user is already on the waitlist,
-	const { data: waitlist } = await supabaseClient.from('waitlist').select('*').maybeSingle();
 	if (waitlist && waitlist.can_create_account) {
-		// if they can create an account, send them to the profile page
-		throw redirect(303, '/account/profile');
+		// if they can create an account, send them to create one
+		throw redirect(303, '/account/profile/create');
 	}
 
 	// send to waitlist page
