@@ -176,7 +176,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 	for {
 		// get next set of messages
 		// if this is the first notification, trigger a one-time sync
-		messages, pageToken, err = getEmailsSinceDate(gmailSrv, gmailUser, startDate, pageToken)
+		messages, pageToken, err = fetchEmailsSinceDate(gmailSrv, gmailUser, startDate, pageToken)
 
 		// for now, abort on error
 		if err != nil {
