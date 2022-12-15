@@ -7,7 +7,7 @@ const from = `Devin <${founder}>`;
 
 const newUserBody = `Hi 👋,
 
-Welcome to the Shared Recruiting Co. This email triggers an one-time historic sync of your Gmail account. You should see your new @SRC labels in your Gmail account shortly. Moving forward, every time you receive an inbound recruiting email it will automatically labeled and managed by SRC.
+Welcome to the Shared Recruiting Co. This email triggers an one-time historic sync of your Gmail account. You should see your new @SRC labels in your Gmail account shortly. Moving forward, every time you receive email about job opportunities it will automatically be labeled and managed by SRC.
 
 If you have any question or run into issues, just reply to this email. I'm here to help.
 
