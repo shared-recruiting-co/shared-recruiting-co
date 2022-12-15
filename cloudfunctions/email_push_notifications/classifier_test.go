@@ -15,8 +15,12 @@ func TestClassifierClientPredict(t *testing.T) {
 	ctx := context.Background()
 	apiKey := "test"
 	authToken := "xxx.yyy.zzz"
-	path := "/predict"
-	input := "input"
+	path := "/v1/predict"
+	input := &PredictRequest{
+		From:    "from",
+		Subject: "subject",
+		Body:    "body",
+	}
 	want := true
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -26,9 +30,6 @@ func TestClassifierClientPredict(t *testing.T) {
 		if r.URL.Path != path {
 			t.Errorf("got %v, want %v", r.URL.Path, path)
 		}
-		if r.Header.Get("X-API-KEY") != apiKey {
-			t.Errorf("got %v, want %v", r.Header.Get("X-API-KEY"), apiKey)
-		}
 		wantAuth := fmt.Sprintf("Bearer %s", authToken)
 		if r.Header.Get("Authorization") != wantAuth {
 			t.Errorf("got %v, want %v", r.Header.Get("Authorization"), wantAuth)
@@ -37,8 +38,14 @@ func TestClassifierClientPredict(t *testing.T) {
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			t.Errorf("failed to decode request body: %v", err)
 		}
-		if body.Input != input {
-			t.Errorf("got %v, want %v", body.Input, input)
+		if body.From != input.From {
+			t.Errorf("got %v, want %v", body.From, input.From)
+		}
+		if body.Subject != input.Subject {
+			t.Errorf("got %v, want %v", body.Subject, input.Subject)
+		}
+		if body.Body != input.Body {
+			t.Errorf("got %v, want %v", body.Body, input.Body)
 		}
 		resp := PredictResponse{
 			Result: want,
@@ -68,10 +75,18 @@ func TestClassifierClientPredictBatch(t *testing.T) {
 	ctx := context.Background()
 	apiKey := "test"
 	authToken := "xxx.yyy.zzz"
-	path := "/predict/batch"
-	inputs := map[string]string{
-		"input1": "input1",
-		"input2": "input2",
+	path := "/v1/predict/batch"
+	inputs := map[string]*PredictRequest{
+		"input1": &PredictRequest{
+			From:    "1",
+			Subject: "1",
+			Body:    "1",
+		},
+		"input2": &PredictRequest{
+			From:    "2",
+			Subject: "2",
+			Body:    "2",
+		},
 	}
 	want := map[string]bool{
 		"input1": true,
@@ -85,9 +100,6 @@ func TestClassifierClientPredictBatch(t *testing.T) {
 		if r.URL.Path != path {
 			t.Errorf("got %v, want %v", r.URL.Path, path)
 		}
-		if r.Header.Get("X-API-KEY") != apiKey {
-			t.Errorf("got %v, want %v", r.Header.Get("X-API-KEY"), apiKey)
-		}
 		wantAuth := fmt.Sprintf("Bearer %s", authToken)
 		if r.Header.Get("Authorization") != wantAuth {
 			t.Errorf("got %v, want %v", r.Header.Get("Authorization"), wantAuth)
@@ -97,8 +109,14 @@ func TestClassifierClientPredictBatch(t *testing.T) {
 			t.Errorf("failed to decode request body: %v", err)
 		}
 		for k, v := range inputs {
-			if body.Inputs[k] != v {
-				t.Errorf("got %v, want %v", body.Inputs[k], v)
+			if body.Inputs[k].From != v.From {
+				t.Errorf("got %v, want %v", body.Inputs[k].From, v.From)
+			}
+			if body.Inputs[k].Subject != v.Subject {
+				t.Errorf("got %v, want %v", body.Inputs[k].Subject, v.Subject)
+			}
+			if body.Inputs[k].Body != v.Body {
+				t.Errorf("got %v, want %v", body.Inputs[k].Body, v.Body)
 			}
 		}
 		resp := PredictBatchResponse{
@@ -132,7 +150,11 @@ func TestClassifierClientPredictBatch(t *testing.T) {
 func TestClassifierClientNon200(t *testing.T) {
 	ctx := context.Background()
 	apiKey := "test"
-	input := "input"
+	input := &PredictRequest{
+		From:    "from",
+		Subject: "subject",
+		Body:    "body",
+	}
 	want := false
 	status := http.StatusBadRequest
 

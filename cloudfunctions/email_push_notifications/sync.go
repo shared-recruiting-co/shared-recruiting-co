@@ -106,7 +106,7 @@ func syncNewEmails(
 		}
 
 		// process messages
-		examples := map[string]string{}
+		examples := map[string]*PredictRequest{}
 		for _, message := range messages {
 			// payload isn't included in the list endpoint responses
 			message, err := gmailSrv.Users.Messages.Get(gmailUser, message.Id).Do()
@@ -121,8 +121,12 @@ func syncNewEmails(
 				continue
 			}
 
-			text, err := mail.MessageToString(message)
-			examples[message.Id] = text
+			example := &PredictRequest{
+				From:    mail.MessageSender(message),
+				Subject: mail.MessageSubject(message),
+				Body:    mail.MessageBody(message),
+			}
+			examples[message.Id] = example
 		}
 
 		log.Printf("number of emails to classify: %d", len(examples))
