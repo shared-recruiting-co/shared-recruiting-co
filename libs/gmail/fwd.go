@@ -81,8 +81,7 @@ func (m ForwardMessage) References() string {
 func (m ForwardMessage) ParentBody() string {
 	// The "Body:" field will contain the contents of the parent's
 	// "Body:" field (if any)
-	content, _ := getContentFromMessageParts(m.Parent.Payload)
-	return content
+	return MessageBody(m.Parent)
 }
 
 // Raw returns the raw RFC-822 compliant forwarded message.
