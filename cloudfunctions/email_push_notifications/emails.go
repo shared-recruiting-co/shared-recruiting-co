@@ -1,10 +1,6 @@
 package cloudfunctions
 
 import (
-	"fmt"
-	"time"
-
-	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
 	"google.golang.org/api/gmail/v1"
 )
 
@@ -39,26 +35,4 @@ func getNewEmailsSinceHistoryID(srv *gmail.Service, userID string, historyID uin
 	}
 
 	return messages, r.NextPageToken, nil
-}
-
-func getNewEmailsSinceDate(srv *gmail.Service, userID string, date time.Time, labelID string, pageToken string) ([]*gmail.Message, string, error) {
-	if labelID == "" {
-		labelID = defaultLabelID
-	}
-
-	q := fmt.Sprintf("-label:%s after:%s", mail.SRCJobOpportunityLabel, date.Format("2006/01/02"))
-
-	r, err := srv.Users.Messages.
-		List(userID).
-		LabelIds(labelID).
-		PageToken(pageToken).
-		Q(q).
-		MaxResults(maxResults).
-		Do()
-
-	if err != nil {
-		return nil, "", err
-	}
-
-	return r.Messages, r.NextPageToken, nil
 }
