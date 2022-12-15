@@ -11,7 +11,9 @@ import (
 // Consider moving to share library in future
 
 type PredictRequest struct {
-	Input string `json:"input"`
+	From    string `json:"from"`
+	Subject string `json:"subject"`
+	Body    string `json:"body"`
 }
 
 type PredictResponse struct {
@@ -19,7 +21,7 @@ type PredictResponse struct {
 }
 
 type PredictBatchRequest struct {
-	Inputs map[string]string `json:"inputs"`
+	Inputs map[string]*PredictRequest `json:"inputs"`
 }
 
 type PredictBatchResponse struct {
@@ -28,15 +30,14 @@ type PredictBatchResponse struct {
 
 type Classifier interface {
 	// Predict if the input meets the classification
-	Predict(input string) (bool, error)
+	Predict(input *PredictRequest) (bool, error)
 	// Predict if the inputs are spam or not
-	PredictBatch(inputs map[string]string) (map[string]bool, error)
+	PredictBatch(inputs map[string]*PredictRequest) (map[string]bool, error)
 }
 
 type ClassifierClient struct {
 	ctx       context.Context
 	baseURL   string
-	apiKey    string
 	authToken string
 }
 
@@ -50,25 +51,23 @@ func NewClassifierClient(ctx context.Context, args ClassifierClientArgs) *Classi
 	return &ClassifierClient{
 		ctx:       ctx,
 		baseURL:   args.BaseURL,
-		apiKey:    args.ApiKey,
 		authToken: args.AuthToken,
 	}
 }
 
-func (c *ClassifierClient) Predict(input string) (bool, error) {
-	req := &PredictRequest{Input: input}
+func (c *ClassifierClient) Predict(input *PredictRequest) (bool, error) {
 	resp := &PredictResponse{}
-	err := c.doRequest("POST", "/predict", req, resp)
+	err := c.doRequest("POST", "/v1/predict", input, resp)
 	if err != nil {
 		return false, err
 	}
 	return resp.Result, nil
 }
 
-func (c *ClassifierClient) PredictBatch(inputs map[string]string) (map[string]bool, error) {
+func (c *ClassifierClient) PredictBatch(inputs map[string]*PredictRequest) (map[string]bool, error) {
 	req := &PredictBatchRequest{Inputs: inputs}
 	resp := &PredictBatchResponse{}
-	err := c.doRequest("POST", "/predict/batch", req, resp)
+	err := c.doRequest("POST", "/v1/predict/batch", req, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -87,9 +86,6 @@ func (c *ClassifierClient) doRequest(method string, path string, req interface{}
 		return err
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
-	if c.apiKey != "" {
-		httpReq.Header.Set("X-API-Key", c.apiKey)
-	}
 	if c.authToken != "" {
 		httpReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.authToken))
 	}
