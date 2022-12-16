@@ -33,11 +33,8 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getUserProfileByEmailStmt, err = db.PrepareContext(ctx, getUserProfileByEmail); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserProfileByEmail: %w", err)
 	}
-	if q.listOAuthTokensByProviderStmt, err = db.PrepareContext(ctx, listOAuthTokensByProvider); err != nil {
-		return nil, fmt.Errorf("error preparing query ListOAuthTokensByProvider: %w", err)
-	}
-	if q.listValidOAuthTokensByProviderStmt, err = db.PrepareContext(ctx, listValidOAuthTokensByProvider); err != nil {
-		return nil, fmt.Errorf("error preparing query ListValidOAuthTokensByProvider: %w", err)
+	if q.listUserOAuthTokensStmt, err = db.PrepareContext(ctx, listUserOAuthTokens); err != nil {
+		return nil, fmt.Errorf("error preparing query ListUserOAuthTokens: %w", err)
 	}
 	if q.upsertUserEmailSyncHistoryStmt, err = db.PrepareContext(ctx, upsertUserEmailSyncHistory); err != nil {
 		return nil, fmt.Errorf("error preparing query UpsertUserEmailSyncHistory: %w", err)
@@ -65,14 +62,9 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getUserProfileByEmailStmt: %w", cerr)
 		}
 	}
-	if q.listOAuthTokensByProviderStmt != nil {
-		if cerr := q.listOAuthTokensByProviderStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing listOAuthTokensByProviderStmt: %w", cerr)
-		}
-	}
-	if q.listValidOAuthTokensByProviderStmt != nil {
-		if cerr := q.listValidOAuthTokensByProviderStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing listValidOAuthTokensByProviderStmt: %w", cerr)
+	if q.listUserOAuthTokensStmt != nil {
+		if cerr := q.listUserOAuthTokensStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listUserOAuthTokensStmt: %w", cerr)
 		}
 	}
 	if q.upsertUserEmailSyncHistoryStmt != nil {
@@ -122,27 +114,25 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                                 DBTX
-	tx                                 *sql.Tx
-	getUserEmailSyncHistoryStmt        *sql.Stmt
-	getUserOAuthTokenStmt              *sql.Stmt
-	getUserProfileByEmailStmt          *sql.Stmt
-	listOAuthTokensByProviderStmt      *sql.Stmt
-	listValidOAuthTokensByProviderStmt *sql.Stmt
-	upsertUserEmailSyncHistoryStmt     *sql.Stmt
-	upsertUserOAuthTokenStmt           *sql.Stmt
+	db                             DBTX
+	tx                             *sql.Tx
+	getUserEmailSyncHistoryStmt    *sql.Stmt
+	getUserOAuthTokenStmt          *sql.Stmt
+	getUserProfileByEmailStmt      *sql.Stmt
+	listUserOAuthTokensStmt        *sql.Stmt
+	upsertUserEmailSyncHistoryStmt *sql.Stmt
+	upsertUserOAuthTokenStmt       *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                                 tx,
-		tx:                                 tx,
-		getUserEmailSyncHistoryStmt:        q.getUserEmailSyncHistoryStmt,
-		getUserOAuthTokenStmt:              q.getUserOAuthTokenStmt,
-		getUserProfileByEmailStmt:          q.getUserProfileByEmailStmt,
-		listOAuthTokensByProviderStmt:      q.listOAuthTokensByProviderStmt,
-		listValidOAuthTokensByProviderStmt: q.listValidOAuthTokensByProviderStmt,
-		upsertUserEmailSyncHistoryStmt:     q.upsertUserEmailSyncHistoryStmt,
-		upsertUserOAuthTokenStmt:           q.upsertUserOAuthTokenStmt,
+		db:                             tx,
+		tx:                             tx,
+		getUserEmailSyncHistoryStmt:    q.getUserEmailSyncHistoryStmt,
+		getUserOAuthTokenStmt:          q.getUserOAuthTokenStmt,
+		getUserProfileByEmailStmt:      q.getUserProfileByEmailStmt,
+		listUserOAuthTokensStmt:        q.listUserOAuthTokensStmt,
+		upsertUserEmailSyncHistoryStmt: q.upsertUserEmailSyncHistoryStmt,
+		upsertUserOAuthTokenStmt:       q.upsertUserOAuthTokenStmt,
 	}
 }

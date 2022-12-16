@@ -14,8 +14,7 @@ type Querier interface {
 	GetUserEmailSyncHistory(ctx context.Context, userID uuid.UUID) (UserEmailSyncHistory, error)
 	GetUserOAuthToken(ctx context.Context, arg GetUserOAuthTokenParams) (UserOauthToken, error)
 	GetUserProfileByEmail(ctx context.Context, email string) (UserProfile, error)
-	ListOAuthTokensByProvider(ctx context.Context, provider string) ([]UserOauthToken, error)
-	ListValidOAuthTokensByProvider(ctx context.Context, provider string) ([]UserOauthToken, error)
+	ListUserOAuthTokens(ctx context.Context, arg ListUserOAuthTokensParams) ([]UserOauthToken, error)
 	UpsertUserEmailSyncHistory(ctx context.Context, arg UpsertUserEmailSyncHistoryParams) error
 	UpsertUserOAuthToken(ctx context.Context, arg UpsertUserOAuthTokenParams) error
 }

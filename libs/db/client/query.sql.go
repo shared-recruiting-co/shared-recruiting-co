@@ -97,7 +97,7 @@ func (q *Queries) GetUserProfileByEmail(ctx context.Context, email string) (User
 	return i, err
 }
 
-const listOAuthTokensByProvider = `-- name: ListOAuthTokensByProvider :many
+const listUserOAuthTokens = `-- name: ListUserOAuthTokens :many
 select
     user_id,
     provider,
@@ -106,53 +106,16 @@ select
     created_at,
     updated_at
 from public.user_oauth_token
-where provider = $1
+where provider = $1 and is_valid = $2
 `
 
-func (q *Queries) ListOAuthTokensByProvider(ctx context.Context, provider string) ([]UserOauthToken, error) {
-	rows, err := q.query(ctx, q.listOAuthTokensByProviderStmt, listOAuthTokensByProvider, provider)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []UserOauthToken
-	for rows.Next() {
-		var i UserOauthToken
-		if err := rows.Scan(
-			&i.UserID,
-			&i.Provider,
-			&i.Token,
-			&i.IsValid,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+type ListUserOAuthTokensParams struct {
+	Provider string `json:"provider"`
+	IsValid  bool   `json:"is_valid"`
 }
 
-const listValidOAuthTokensByProvider = `-- name: ListValidOAuthTokensByProvider :many
-select
-    user_id,
-    provider,
-    token,
-    is_valid,
-    created_at,
-    updated_at
-from public.user_oauth_token
-where provider = $1 and is_valid = true
-`
-
-func (q *Queries) ListValidOAuthTokensByProvider(ctx context.Context, provider string) ([]UserOauthToken, error) {
-	rows, err := q.query(ctx, q.listValidOAuthTokensByProviderStmt, listValidOAuthTokensByProvider, provider)
+func (q *Queries) ListUserOAuthTokens(ctx context.Context, arg ListUserOAuthTokensParams) ([]UserOauthToken, error) {
+	rows, err := q.query(ctx, q.listUserOAuthTokensStmt, listUserOAuthTokens, arg.Provider, arg.IsValid)
 	if err != nil {
 		return nil, err
 	}
