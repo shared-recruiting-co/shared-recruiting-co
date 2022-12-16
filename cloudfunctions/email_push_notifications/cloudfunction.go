@@ -92,7 +92,6 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	}
 
 	// 0, Create SRC client
-	// Create SRC client
 	apiURL := os.Getenv("SUPABASE_API_URL")
 	apiKey := os.Getenv("SUPABASE_API_KEY")
 	queries := client.NewHTTP(apiURL, apiKey)
