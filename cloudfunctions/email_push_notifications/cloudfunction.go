@@ -131,14 +131,13 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 	// 3. Create Gmail Service
 	auth := []byte(userToken.Token.RawMessage)
-	gmailSrv, err := mail.NewGmailService(ctx, creds, auth)
+	srv, err := mail.NewService(ctx, creds, auth)
 	if err != nil {
 		return fmt.Errorf("error creating gmail service: %v", err)
 	}
-	gmailUser := "me"
 
 	// 4. Get or Create SRC Labels
-	_, err = mail.GetOrCreateSRCLabel(gmailSrv, gmailUser)
+	_, err = srv.GetOrCreateSRCLabel()
 	if err != nil {
 		// first request, so check if the error is an oauth error
 		// if so, update the database
@@ -160,7 +159,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		}
 		return fmt.Errorf("error getting or creating the SRC label: %v", err)
 	}
-	srcJobOpportunityLabel, err := mail.GetOrCreateSRCJobOpportunityLabel(gmailSrv, gmailUser)
+	srcJobOpportunityLabel, err := srv.GetOrCreateSRCJobOpportunityLabel()
 	if err != nil {
 		return fmt.Errorf("error getting or creating the SRC job opportunity label: %v", err)
 	}
@@ -247,7 +246,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	}()
 
 	// 7. Sync new emails
-	err = syncNewEmails(email, gmailSrv, gmailUser, classifier, prevSyncHistory, srcJobOpportunityLabel.Id)
+	err = syncNewEmails(email, srv, classifier, prevSyncHistory, srcJobOpportunityLabel.Id)
 	if err != nil {
 		revertSynctHistory()
 		return fmt.Errorf("error processing messages: %v", err)

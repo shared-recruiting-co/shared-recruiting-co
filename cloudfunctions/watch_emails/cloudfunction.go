@@ -69,7 +69,7 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var srv *gmail.Service
+	var srv *mail.Service
 	user := "me"
 	label := "UNREAD"
 	topic := os.Getenv("PUBSUB_TOPIC")
@@ -79,7 +79,7 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 	for _, userToken := range userTokens {
 		auth := []byte(userToken.Token.RawMessage)
 
-		srv, err = mail.NewGmailService(ctx, creds, auth)
+		srv, err = mail.NewService(ctx, creds, auth)
 		if err != nil {
 			log.Printf("error creating gmail service: %v", err)
 			hasError = true
