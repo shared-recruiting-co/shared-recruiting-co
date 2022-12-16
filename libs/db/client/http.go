@@ -30,8 +30,8 @@ func NewHTTP(url, apiKey string) *HTTPQueries {
 	}
 }
 
-// doRequest performs a request to the PostgREST API.
-func (q *HTTPQueries) doRequest(ctx context.Context, method, path string, body io.Reader) (*http.Response, error) {
+// DoRequest performs a request to the PostgREST API.
+func (q *HTTPQueries) DoRequest(ctx context.Context, method, path string, body io.Reader) (*http.Response, error) {
 	reqPath, err := url.JoinPath(q.URL, path)
 	if err != nil {
 		return nil, fmt.Errorf("error joining path: %w", err)
@@ -75,7 +75,7 @@ func (q *HTTPQueries) GetUserProfileByEmail(ctx context.Context, email string) (
 	path := fmt.Sprintf("%s?%s", basePath, query)
 	var result UserProfile
 
-	resp, err := q.doRequest(ctx, http.MethodGet, path, nil)
+	resp, err := q.DoRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return result, err
 	}
@@ -101,7 +101,7 @@ func (q *HTTPQueries) GetUserEmailSyncHistory(ctx context.Context, userID uuid.U
 	path := fmt.Sprintf("%s?%s", basePath, query)
 	var result UserEmailSyncHistory
 
-	resp, err := q.doRequest(ctx, http.MethodGet, path, nil)
+	resp, err := q.DoRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return result, err
 	}
@@ -127,7 +127,7 @@ func (q *HTTPQueries) GetUserOAuthToken(ctx context.Context, arg GetUserOAuthTok
 	path := fmt.Sprintf("%s?%s", basePath, query)
 	var result UserOauthToken
 
-	resp, err := q.doRequest(ctx, http.MethodGet, path, nil)
+	resp, err := q.DoRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return result, err
 	}
@@ -159,7 +159,7 @@ func (q *HTTPQueries) ListUserOAuthTokens(ctx context.Context, arg ListUserOAuth
 
 	path := fmt.Sprintf("%s?%s", basePath, query)
 
-	resp, err := q.doRequest(ctx, http.MethodGet, path, nil)
+	resp, err := q.DoRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +169,7 @@ func (q *HTTPQueries) ListUserOAuthTokens(ctx context.Context, arg ListUserOAuth
 		return nil, fmt.Errorf("list valid user oauth tokens: %s", resp.Status)
 	}
 
-	var tokens []*UserOauthToken
+	var tokens []UserOauthToken
 	if err := json.NewDecoder(resp.Body).Decode(&tokens); err != nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (q *HTTPQueries) UpsertUserEmailSyncHistory(ctx context.Context, arg Upsert
 		return err
 	}
 
-	resp, err := q.doRequest(ctx, http.MethodPost, path, bytes.NewReader(body))
+	resp, err := q.DoRequest(ctx, http.MethodPost, path, bytes.NewReader(body))
 	if err != nil {
 		return err
 	}
