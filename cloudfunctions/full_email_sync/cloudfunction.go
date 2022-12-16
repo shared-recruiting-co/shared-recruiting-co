@@ -79,7 +79,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 	// 1. Get User from email address
 	user, err := queries.GetUserProfileByEmail(ctx, email)
 	if err != nil {
-		log.Printf("error getting user by email: %v", err)
+		log.Printf("error getting user profile by email: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
