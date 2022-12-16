@@ -109,10 +109,15 @@ func syncNewEmails(
 		for _, message := range messages {
 			// payload isn't included in the list endpoint responses
 			message, err := srv.Users.Messages.Get(srv.UserID, message.Id).Do()
-
-			// for now, abort on error
 			if err != nil {
-				return fmt.Errorf("error getting message: %v", err)
+				gErr := &googleapi.Error{}
+				if errors.As(err, &gErr); gErr.Code == http.StatusNotFound {
+					// message was deleted, skip
+					log.Printf("skipping message %s was deleted", message.Id)
+					continue
+				}
+				// for now, abort on other errors
+				return fmt.Errorf("error getting message %s: %v", message.Id, err)
 			}
 
 			// filter out empty messages
