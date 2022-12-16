@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
-	_ "github.com/lib/pq"
 	"golang.org/x/oauth2"
 
 	"google.golang.org/api/gmail/v1"

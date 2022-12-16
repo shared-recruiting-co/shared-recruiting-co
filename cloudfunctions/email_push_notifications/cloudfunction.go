@@ -13,7 +13,6 @@ import (
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
-	_ "github.com/lib/pq"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/idtoken"
 
@@ -93,30 +92,20 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	}
 
 	// 0, Create SRC client
-	connectionURI := os.Getenv("DATABASE_URL")
-	db, err := sql.Open("postgres", connectionURI)
-	if err != nil {
-		return fmt.Errorf("error connecting to database: %v", err)
-	}
-	defer db.Close()
-	// use a max of 2 connections
-	db.SetMaxOpenConns(2)
-
-	// prepare queries
-	queries, err := client.Prepare(ctx, db)
-	if err != nil {
-		return fmt.Errorf("error preparing db queries: %v", err)
-	}
+	// Create SRC client
+	apiURL := os.Getenv("SUPABASE_API_URL")
+	apiKey := os.Getenv("SUPABASE_API_KEY")
+	queries := client.NewHTTP(apiURL, apiKey)
 
 	// 1. Get User from email address
-	user, err := queries.GetUserByEmail(ctx, email)
+	user, err := queries.GetUserProfileByEmail(ctx, email)
 	if err != nil {
-		return fmt.Errorf("error getting user from email: %v", err)
+		return fmt.Errorf("error getting user profile by email: %v", err)
 	}
 
 	// 2. Get User' OAuth Token
 	userToken, err := queries.GetUserOAuthToken(ctx, client.GetUserOAuthTokenParams{
-		UserID:   user.ID,
+		UserID:   user.UserID,
 		Provider: provider,
 	})
 	if err != nil {
@@ -130,7 +119,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	}
 
 	// 3. Create Gmail Service
-	auth := []byte(userToken.Token.RawMessage)
+	auth := []byte(userToken.Token)
 	srv, err := mail.NewService(ctx, creds, auth)
 	if err != nil {
 		return fmt.Errorf("error creating gmail service: %v", err)
@@ -183,7 +172,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 	// 5. Make Request to get previous history and proactively save new history (If anything goes wrong, then we reset the history ID to the previous one)
 	// Make Request to Fetch Previous History ID
-	prevSyncHistory, err := queries.GetUserEmailSyncHistory(ctx, user.ID)
+	prevSyncHistory, err := queries.GetUserEmailSyncHistory(ctx, user.UserID)
 	// On first notification, trigger a full sync in the background
 	if err == sql.ErrNoRows {
 		log.Printf("no previous sync history found, triggering full sync in background")
@@ -196,9 +185,9 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 		// save the current history ID
 		err = queries.UpsertUserEmailSyncHistory(ctx, client.UpsertUserEmailSyncHistoryParams{
-			UserID:              user.ID,
+			UserID:              user.UserID,
 			HistoryID:           int64(historyID),
-			SyncedAt:            sql.NullTime{Time: time.Now(), Valid: true},
+			SyncedAt:            time.Now(),
 			ExamplesCollectedAt: prevSyncHistory.ExamplesCollectedAt,
 		})
 		if err != nil {
@@ -213,9 +202,9 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	}
 
 	err = queries.UpsertUserEmailSyncHistory(ctx, client.UpsertUserEmailSyncHistoryParams{
-		UserID:              user.ID,
+		UserID:              user.UserID,
 		HistoryID:           int64(historyID),
-		SyncedAt:            sql.NullTime{Time: time.Now(), Valid: true},
+		SyncedAt:            time.Now(),
 		ExamplesCollectedAt: prevSyncHistory.ExamplesCollectedAt,
 	})
 	if err != nil {
@@ -225,7 +214,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	// on any errors after this, we want to reset the history ID to the previous one
 	revertSynctHistory := func() {
 		err := queries.UpsertUserEmailSyncHistory(ctx, client.UpsertUserEmailSyncHistoryParams{
-			UserID:              user.ID,
+			UserID:              user.UserID,
 			HistoryID:           prevSyncHistory.HistoryID,
 			SyncedAt:            prevSyncHistory.SyncedAt,
 			ExamplesCollectedAt: prevSyncHistory.ExamplesCollectedAt,
