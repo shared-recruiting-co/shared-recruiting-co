@@ -3,6 +3,7 @@ package client
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -58,7 +59,8 @@ func (q *HTTPQueries) DoRequest(ctx context.Context, method, path string, body i
 func singleOrError[T any](slice []T) (T, error) {
 	var result T
 	if len(slice) == 0 {
-		return result, fmt.Errorf("no elements in slice")
+		// for now, return same error as database client
+		return result, sql.ErrNoRows
 	}
 
 	if len(slice) > 1 {
