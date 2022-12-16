@@ -22,7 +22,7 @@ const (
 )
 
 func init() {
-	functions.HTTP("CollectExamples", collectExamples)
+	functions.HTTP("CollectNegativeExamples", collectNegativeExamples)
 }
 
 func jsonFromEnv(env string) ([]byte, error) {
@@ -153,6 +153,113 @@ func collectExamples(w http.ResponseWriter, r *http.Request) {
 			log.Printf("error upserting user sync history: %v", err)
 			hasError = true
 			continue
+		}
+	}
+
+	// write error status code for tracking
+	if hasError {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	log.Println("done.")
+}
+
+func collectNegativeExamples(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	creds, err := jsonFromEnv("GOOGLE_OAUTH2_CREDENTIALS")
+	if err != nil {
+		log.Printf("error fetching google app credentials: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// 0, Create SRC client
+	connectionURI := os.Getenv("DATABASE_URL")
+	db, err := sql.Open("postgres", connectionURI)
+	if err != nil {
+		log.Printf("error connecting to database: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+	// use a max of 2 connections
+	db.SetMaxOpenConns(2)
+
+	// prepare queries
+	queries, err := client.Prepare(ctx, db)
+	if err != nil {
+		log.Printf("error preparing db queries: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// 1. Fetch auth tokens for all user
+	hasError := false
+
+	allowEmailList := []string{
+		"devinstein4@gmail.com",
+		"devstein@alumni.upenn.edu",
+		"devstein.crypto@gmail.com",
+		"devin@ycrm.xyz",
+		"devin@sharedrecruiting.co",
+		"devin@picketapi.com",
+	}
+
+	for _, email := range allowEmailList {
+		user, err := queries.GetUserByEmail(ctx, email)
+		if err != nil {
+			log.Printf("error getting user by email: %v", err)
+			hasError = true
+			continue
+		}
+
+		userToken, err := queries.GetUserOAuthToken(ctx, client.GetUserOAuthTokenParams{
+			UserID:   user.ID,
+			Provider: provider,
+		})
+		if err != nil {
+			log.Printf("error getting user token: %v", err)
+			hasError = true
+			continue
+		}
+
+		log.Printf("processing user %s", userToken.UserID)
+		auth := []byte(userToken.Token.RawMessage)
+
+		srv, err := mail.NewService(ctx, creds, auth)
+		if err != nil {
+			log.Printf("error creating gmail service: %v", err)
+			hasError = true
+			continue
+		}
+
+		// Create recruiting detector client
+		var messages []*gmail.Message
+		pageToken := ""
+
+		to := "Examples <examples@sharedrecruiting.co>"
+
+		messages, _, err = fetchNonSRCEmails(srv, time.Time{}, pageToken)
+		// for now, abort on error
+		if err != nil {
+			log.Printf("error fetching emails: %v", err)
+			hasError = true
+			break
+		}
+
+		log.Printf("found %d messages to collect", len(messages))
+
+		// forward each message
+		for _, message := range messages {
+			// payload isn't included in the list endpoint responses
+			_, err := srv.ForwardEmail(message.Id, to)
+
+			// for now, abort on error
+			if err != nil {
+				log.Printf("error sending message: %v", err)
+				hasError = true
+				continue
+			}
 		}
 	}
 

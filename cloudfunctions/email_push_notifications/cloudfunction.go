@@ -224,7 +224,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 	// on any errors after this, we want to reset the history ID to the previous one
 	revertSynctHistory := func() {
-		err = queries.UpsertUserEmailSyncHistory(ctx, client.UpsertUserEmailSyncHistoryParams{
+		err := queries.UpsertUserEmailSyncHistory(ctx, client.UpsertUserEmailSyncHistoryParams{
 			UserID:              user.ID,
 			HistoryID:           prevSyncHistory.HistoryID,
 			SyncedAt:            prevSyncHistory.SyncedAt,
