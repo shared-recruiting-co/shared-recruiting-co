@@ -8,9 +8,10 @@ package client
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"time"
 
 	"github.com/google/uuid"
-	"github.com/tabbed/pqtype"
 )
 
 const getUserByEmail = `-- name: GetUserByEmail :one
@@ -182,7 +183,7 @@ do update set
 type UpsertUserEmailSyncHistoryParams struct {
 	UserID              uuid.UUID    `json:"user_id"`
 	HistoryID           int64        `json:"history_id"`
-	SyncedAt            sql.NullTime `json:"synced_at"`
+	SyncedAt            time.Time    `json:"synced_at"`
 	ExamplesCollectedAt sql.NullTime `json:"examples_collected_at"`
 }
 
@@ -206,10 +207,10 @@ do update set
 `
 
 type UpsertUserOAuthTokenParams struct {
-	UserID   uuid.UUID             `json:"user_id"`
-	Provider string                `json:"provider"`
-	Token    pqtype.NullRawMessage `json:"token"`
-	IsValid  bool                  `json:"is_valid"`
+	UserID   uuid.UUID       `json:"user_id"`
+	Provider string          `json:"provider"`
+	Token    json.RawMessage `json:"token"`
+	IsValid  bool            `json:"is_valid"`
 }
 
 func (q *Queries) UpsertUserOAuthToken(ctx context.Context, arg UpsertUserOAuthTokenParams) error {
