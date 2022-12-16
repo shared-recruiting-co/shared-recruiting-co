@@ -198,6 +198,11 @@ func (q *HTTPQueries) ListUserOAuthTokens(ctx context.Context, arg ListUserOAuth
 		return nil, err
 	}
 
+	if tokens == nil || len(tokens) == 0 {
+		// for now, return same error as database client
+		return nil, sql.ErrNoRows
+	}
+
 	return tokens, nil
 }
 
