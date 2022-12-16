@@ -15,8 +15,8 @@ jobs:
 
       - uses: supabase/setup-cli@v1
         with:
-          # version of CLI to use...consider switching to latest
-          version: 1.12.1
+          # We should always be compatible with the latest Supabase CLI
+          version: latest
 
       - name: "Install app dependencies"
         working-directory: ./app
