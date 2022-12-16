@@ -8,8 +8,6 @@
 	};
 	// TODOs
 	//
-	// Add 'interest in job opportunities' dropdown to waitlist
-
 	// Design
 	// Create separate layouts for (marketing) and (account) pages
 	// Create account header

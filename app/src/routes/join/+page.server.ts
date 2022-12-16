@@ -1,5 +1,5 @@
 import type { Actions, FormData } from './$types';
-import { invalid, redirect } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import { getSupabase } from '@supabase/auth-helpers-sveltekit';
 
 import { supabaseClient } from '$lib/supabase/client.server';
@@ -40,11 +40,12 @@ export const actions: Actions = {
 		const linkedin = getTrimmedFormValue(data, 'linkedin');
 		const referrer = getTrimmedFormValue(data, 'referrer');
 		const comment = getTrimmedFormValue(data, 'comment');
+		const status = getTrimmedFormValue(data, 'status');
 
 		// form validation
 		// Trims whitespace for all fields
 		if (!email) {
-			return invalid(400, {
+			return fail(400, {
 				errors: {
 					email: 'Email is required'
 				}
@@ -52,14 +53,14 @@ export const actions: Actions = {
 		}
 
 		if (!firstName) {
-			return invalid(400, {
+			return fail(400, {
 				errors: {
 					firstName: 'First name is required'
 				}
 			});
 		}
 		if (!lastName) {
-			return invalid(400, {
+			return fail(400, {
 				errors: {
 					lastName: 'Last name is required'
 				}
@@ -68,19 +69,19 @@ export const actions: Actions = {
 
 		// require linkedin && valid URL && url contains linkedin
 		if (!linkedin) {
-			return invalid(400, {
+			return fail(400, {
 				errors: {
 					linkedin: 'LinkedIn Profile is required'
 				}
 			});
 		} else if (!isValidUrl(linkedin)) {
-			return invalid(400, {
+			return fail(400, {
 				errors: {
 					linkedin: 'LinkedIn Profile must be a valid URL'
 				}
 			});
 		} else if (!linkedin.includes('linkedin')) {
-			return invalid(400, {
+			return fail(400, {
 				errors: {
 					linkedin: 'LinkedIn Profile must be a valid LinkedIn Profile URL'
 				}
@@ -89,16 +90,25 @@ export const actions: Actions = {
 
 		// require referrer
 		if (!referrer) {
-			return invalid(400, {
+			return fail(400, {
 				errors: {
 					referrer: 'Referrer is required'
 				}
 			});
 		}
 
+		if (!status) {
+			return fail(400, {
+				errors: {
+					status: 'Please select one of the options'
+				}
+			});
+		}
+
 		const responses = {
 			referrer,
-			comment
+			comment,
+			status
 		};
 
 		// add the user to waitlist
@@ -116,7 +126,7 @@ export const actions: Actions = {
 
 		if (error) {
 			console.error('error adding user to the waitlist', error);
-			return invalid(400, {
+			return fail(400, {
 				errors: {
 					submit: error.message
 				}

@@ -11,6 +11,7 @@ export const load: PageLoad = async (event) => {
 		supabaseClient.from('user_profile').select('*').maybeSingle(),
 		supabaseClient.from('waitlist').select('*').maybeSingle()
 	]);
+
 	if (profile) {
 		throw redirect(303, '/account/profile');
 	}
