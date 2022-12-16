@@ -14,21 +14,6 @@ import (
 	null "gopkg.in/guregu/null.v4"
 )
 
-const getUserByEmail = `-- name: GetUserByEmail :one
-select
-    id,
-    email
-from auth.users
-where email = $1
-`
-
-func (q *Queries) GetUserByEmail(ctx context.Context, email string) (AuthUser, error) {
-	row := q.queryRow(ctx, q.getUserByEmailStmt, getUserByEmail, email)
-	var i AuthUser
-	err := row.Scan(&i.ID, &i.Email)
-	return i, err
-}
-
 const getUserEmailSyncHistory = `-- name: GetUserEmailSyncHistory :one
 select
     user_id,
@@ -80,6 +65,32 @@ func (q *Queries) GetUserOAuthToken(ctx context.Context, arg GetUserOAuthTokenPa
 		&i.Provider,
 		&i.Token,
 		&i.IsValid,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getUserProfileByEmail = `-- name: GetUserProfileByEmail :one
+select
+    user_id,
+    email,
+    first_name,
+    last_name,
+    created_at,
+    updated_at
+from public.user_profile
+where email = $1
+`
+
+func (q *Queries) GetUserProfileByEmail(ctx context.Context, email string) (UserProfile, error) {
+	row := q.queryRow(ctx, q.getUserProfileByEmailStmt, getUserProfileByEmail, email)
+	var i UserProfile
+	err := row.Scan(
+		&i.UserID,
+		&i.Email,
+		&i.FirstName,
+		&i.LastName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

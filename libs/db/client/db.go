@@ -24,14 +24,14 @@ func New(db DBTX) *Queries {
 func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	q := Queries{db: db}
 	var err error
-	if q.getUserByEmailStmt, err = db.PrepareContext(ctx, getUserByEmail); err != nil {
-		return nil, fmt.Errorf("error preparing query GetUserByEmail: %w", err)
-	}
 	if q.getUserEmailSyncHistoryStmt, err = db.PrepareContext(ctx, getUserEmailSyncHistory); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserEmailSyncHistory: %w", err)
 	}
 	if q.getUserOAuthTokenStmt, err = db.PrepareContext(ctx, getUserOAuthToken); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserOAuthToken: %w", err)
+	}
+	if q.getUserProfileByEmailStmt, err = db.PrepareContext(ctx, getUserProfileByEmail); err != nil {
+		return nil, fmt.Errorf("error preparing query GetUserProfileByEmail: %w", err)
 	}
 	if q.listOAuthTokensByProviderStmt, err = db.PrepareContext(ctx, listOAuthTokensByProvider); err != nil {
 		return nil, fmt.Errorf("error preparing query ListOAuthTokensByProvider: %w", err)
@@ -50,11 +50,6 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 
 func (q *Queries) Close() error {
 	var err error
-	if q.getUserByEmailStmt != nil {
-		if cerr := q.getUserByEmailStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing getUserByEmailStmt: %w", cerr)
-		}
-	}
 	if q.getUserEmailSyncHistoryStmt != nil {
 		if cerr := q.getUserEmailSyncHistoryStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getUserEmailSyncHistoryStmt: %w", cerr)
@@ -63,6 +58,11 @@ func (q *Queries) Close() error {
 	if q.getUserOAuthTokenStmt != nil {
 		if cerr := q.getUserOAuthTokenStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getUserOAuthTokenStmt: %w", cerr)
+		}
+	}
+	if q.getUserProfileByEmailStmt != nil {
+		if cerr := q.getUserProfileByEmailStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getUserProfileByEmailStmt: %w", cerr)
 		}
 	}
 	if q.listOAuthTokensByProviderStmt != nil {
@@ -124,9 +124,9 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 type Queries struct {
 	db                                 DBTX
 	tx                                 *sql.Tx
-	getUserByEmailStmt                 *sql.Stmt
 	getUserEmailSyncHistoryStmt        *sql.Stmt
 	getUserOAuthTokenStmt              *sql.Stmt
+	getUserProfileByEmailStmt          *sql.Stmt
 	listOAuthTokensByProviderStmt      *sql.Stmt
 	listValidOAuthTokensByProviderStmt *sql.Stmt
 	upsertUserEmailSyncHistoryStmt     *sql.Stmt
@@ -137,9 +137,9 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
 		db:                                 tx,
 		tx:                                 tx,
-		getUserByEmailStmt:                 q.getUserByEmailStmt,
 		getUserEmailSyncHistoryStmt:        q.getUserEmailSyncHistoryStmt,
 		getUserOAuthTokenStmt:              q.getUserOAuthTokenStmt,
+		getUserProfileByEmailStmt:          q.getUserProfileByEmailStmt,
 		listOAuthTokensByProviderStmt:      q.listOAuthTokensByProviderStmt,
 		listValidOAuthTokensByProviderStmt: q.listValidOAuthTokensByProviderStmt,
 		upsertUserEmailSyncHistoryStmt:     q.upsertUserEmailSyncHistoryStmt,

@@ -1,8 +1,12 @@
--- name: GetUserByEmail :one
+-- name: GetUserProfileByEmail :one
 select
-    id,
-    email
-from auth.users
+    user_id,
+    email,
+    first_name,
+    last_name,
+    created_at,
+    updated_at
+from public.user_profile
 where email = $1;
 
 -- name: ListOAuthTokensByProvider :many

@@ -11,9 +11,9 @@ import (
 )
 
 type Querier interface {
-	GetUserByEmail(ctx context.Context, email string) (AuthUser, error)
 	GetUserEmailSyncHistory(ctx context.Context, userID uuid.UUID) (UserEmailSyncHistory, error)
 	GetUserOAuthToken(ctx context.Context, arg GetUserOAuthTokenParams) (UserOauthToken, error)
+	GetUserProfileByEmail(ctx context.Context, email string) (UserProfile, error)
 	ListOAuthTokensByProvider(ctx context.Context, provider string) ([]UserOauthToken, error)
 	ListValidOAuthTokensByProvider(ctx context.Context, provider string) ([]UserOauthToken, error)
 	UpsertUserEmailSyncHistory(ctx context.Context, arg UpsertUserEmailSyncHistoryParams) error
