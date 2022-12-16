@@ -9,6 +9,7 @@ sql:
         out: "client"
         emit_json_tags: true
         emit_prepared_queries: true
+        emit_interface: true
         overrides:
           # Prefer https://github.com/guregu/null for null types because they implement json.(Un)Marshaler
           - db_type: "text"
