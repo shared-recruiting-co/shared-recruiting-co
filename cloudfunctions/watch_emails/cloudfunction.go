@@ -70,7 +70,7 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 	hasError := false
 
 	for _, userToken := range userTokens {
-		auth := []byte(userToken.Token.RawMessage)
+		auth := []byte(userToken.Token)
 
 		srv, err = mail.NewService(ctx, creds, auth)
 		if err != nil {
