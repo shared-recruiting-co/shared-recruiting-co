@@ -106,18 +106,18 @@ func syncNewEmails(
 
 		// process messages
 		examples := map[string]*PredictRequest{}
-		for _, message := range messages {
+		for _, m := range messages {
 			// payload isn't included in the list endpoint responses
-			message, err := srv.Users.Messages.Get(srv.UserID, message.Id).Do()
+			message, err := srv.Users.Messages.Get(srv.UserID, m.Id).Do()
 			if err != nil {
 				gErr := &googleapi.Error{}
 				if errors.As(err, &gErr); gErr.Code == http.StatusNotFound {
 					// message was deleted, skip
-					log.Printf("skipping message %s was deleted", message.Id)
+					log.Printf("skipping message was deleted", m.Id)
 					continue
 				}
 				// for now, abort on other errors
-				return fmt.Errorf("error getting message %s: %v", message.Id, err)
+				return fmt.Errorf("error getting message %s: %v", m.Id, err)
 			}
 
 			// filter out empty messages
