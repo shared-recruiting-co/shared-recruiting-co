@@ -113,7 +113,7 @@ func syncNewEmails(
 				gErr := &googleapi.Error{}
 				if errors.As(err, &gErr); gErr.Code == http.StatusNotFound {
 					// message was deleted, skip
-					log.Printf("skipping message was deleted", m.Id)
+					log.Printf("skipping message %s was deleted", m.Id)
 					continue
 				}
 				// for now, abort on other errors
