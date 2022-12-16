@@ -85,13 +85,12 @@ func collectExamples(w http.ResponseWriter, r *http.Request) {
 
 		auth := []byte(userToken.Token.RawMessage)
 
-		gmailSrv, err := mail.NewGmailService(ctx, creds, auth)
+		srv, err := mail.NewService(ctx, creds, auth)
 		if err != nil {
 			log.Printf("error creating gmail service: %v", err)
 			hasError = true
 			continue
 		}
-		gmailUser := "me"
 
 		// Create recruiting detector client
 		var messages []*gmail.Message
@@ -110,7 +109,7 @@ func collectExamples(w http.ResponseWriter, r *http.Request) {
 				startDate = history.ExamplesCollectedAt.Time
 			}
 			// start
-			messages, pageToken, err = getSRCEmails(gmailSrv, gmailUser, startDate, pageToken)
+			messages, pageToken, err = fetchSRCEmails(srv, startDate, pageToken)
 
 			// for now, abort on error
 			if err != nil {
@@ -124,7 +123,7 @@ func collectExamples(w http.ResponseWriter, r *http.Request) {
 			// forward each message
 			for _, message := range messages {
 				// payload isn't included in the list endpoint responses
-				_, err := mail.ForwardEmail(gmailSrv, gmailUser, message.Id, to)
+				_, err := srv.ForwardEmail(message.Id, to)
 
 				// for now, abort on error
 				if err != nil {

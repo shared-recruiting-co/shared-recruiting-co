@@ -145,3 +145,7 @@ func (s *Service) ForwardEmail(messageID, to string) (*gmail.Message, error) {
 	// send the message
 	return s.Users.Messages.Send(s.UserID, fwd.Create()).Do()
 }
+
+// Ideas for future
+// GetMessage()
+// Something to help with setting the default query for listing src and non-src messages

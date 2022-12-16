@@ -61,8 +61,7 @@ func triggerBackgroundfFullEmailSync(ctx context.Context, email string, startDat
 
 func syncNewEmails(
 	email string,
-	gmailSrv *gmail.Service,
-	gmailUser string,
+	srv *mail.Service,
 	classifier Classifier,
 	syncHistory client.UserEmailSyncHistory,
 	jobLabelID string,
@@ -84,7 +83,7 @@ func syncNewEmails(
 			// done!
 			return nil
 		} else {
-			messages, pageToken, err = getNewEmailsSinceHistoryID(gmailSrv, gmailUser, uint64(syncHistory.HistoryID), "UNREAD", pageToken)
+			messages, pageToken, err = fetchNewEmailsSinceHistoryID(srv, uint64(syncHistory.HistoryID), "UNREAD", pageToken)
 		}
 
 		// for now, abort on error
@@ -109,7 +108,7 @@ func syncNewEmails(
 		examples := map[string]*PredictRequest{}
 		for _, message := range messages {
 			// payload isn't included in the list endpoint responses
-			message, err := gmailSrv.Users.Messages.Get(gmailUser, message.Id).Do()
+			message, err := srv.Users.Messages.Get(srv.UserID, message.Id).Do()
 
 			// for now, abort on error
 			if err != nil {
@@ -154,7 +153,7 @@ func syncNewEmails(
 
 		// Take action on recruiting emails
 		if len(recruitingEmailIDs) > 0 {
-			err = gmailSrv.Users.Messages.BatchModify(gmailUser, &gmail.BatchModifyMessagesRequest{
+			err = srv.Users.Messages.BatchModify(srv.UserID, &gmail.BatchModifyMessagesRequest{
 				Ids: recruitingEmailIDs,
 				// Add SRC Label
 				AddLabelIds: []string{jobLabelID},

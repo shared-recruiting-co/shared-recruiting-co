@@ -2,19 +2,21 @@ package cloudfunctions
 
 import (
 	"google.golang.org/api/gmail/v1"
+
+	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
 )
 
 const maxResults = 250
 const historyTypeMessageAdded = "messageAdded"
 const defaultLabelID = "UNREAD"
 
-func getNewEmailsSinceHistoryID(srv *gmail.Service, userID string, historyID uint64, labelID string, pageToken string) ([]*gmail.Message, string, error) {
+func fetchNewEmailsSinceHistoryID(srv *mail.Service, historyID uint64, labelID string, pageToken string) ([]*gmail.Message, string, error) {
 	if labelID == "" {
 		labelID = defaultLabelID
 	}
 
 	r, err := srv.Users.History.
-		List(userID).
+		List(srv.UserID).
 		LabelId(labelID).
 		StartHistoryId(historyID).
 		HistoryTypes(historyTypeMessageAdded).

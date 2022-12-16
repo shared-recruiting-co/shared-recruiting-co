@@ -10,8 +10,8 @@ import (
 
 const maxResults = 250
 
-func getSRCEmails(srv *gmail.Service, userID string, startDate time.Time, pageToken string) ([]*gmail.Message, string, error) {
-	builder := srv.Users.Messages.List(userID).PageToken(pageToken).MaxResults(maxResults)
+func fetchSRCEmails(srv *mail.Service, startDate time.Time, pageToken string) ([]*gmail.Message, string, error) {
+	builder := srv.Users.Messages.List(srv.UserID).PageToken(pageToken).MaxResults(maxResults)
 
 	// always ignore sent emails
 	q := fmt.Sprintf("-label:sent label:%s", mail.SRCJobOpportunityLabel)

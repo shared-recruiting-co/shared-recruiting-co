@@ -113,11 +113,10 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 
 	// Create Gmail Service
 	auth := []byte(userToken.Token.RawMessage)
-	gmailSrv, err := mail.NewGmailService(ctx, creds, auth)
-	gmailUser := "me"
+	srv, err := mail.NewService(ctx, creds, auth)
 
 	// Create SRC Labels
-	_, err = mail.GetOrCreateSRCLabel(gmailSrv, gmailUser)
+	_, err = srv.GetOrCreateSRCLabel()
 	if err != nil {
 		// first request, so check if the error is an oauth error
 		// if so, update the database
@@ -142,7 +141,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	srcJobOpportunityLabel, err := mail.GetOrCreateSRCJobOpportunityLabel(gmailSrv, gmailUser)
+	srcJobOpportunityLabel, err := srv.GetOrCreateSRCJobOpportunityLabel()
 	if err != nil {
 		log.Printf("error getting or creating the SRC job opportunity label: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -176,7 +175,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 	for {
 		// get next set of messages
 		// if this is the first notification, trigger a one-time sync
-		messages, pageToken, err = fetchEmailsSinceDate(gmailSrv, gmailUser, startDate, pageToken)
+		messages, pageToken, err = fetchEmailsSinceDate(srv, startDate, pageToken)
 
 		// for now, abort on error
 		if err != nil {
@@ -189,7 +188,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 		examples := map[string]*PredictRequest{}
 		for _, message := range messages {
 			// payload isn't included in the list endpoint responses
-			message, err := gmailSrv.Users.Messages.Get(gmailUser, message.Id).Do()
+			message, err := srv.Users.Messages.Get(srv.UserID, message.Id).Do()
 
 			// for now, abort on error
 			if err != nil {
@@ -237,7 +236,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 
 		// Take action on recruiting emails
 		if len(recruitingEmailIDs) > 0 {
-			err = gmailSrv.Users.Messages.BatchModify(gmailUser, &gmail.BatchModifyMessagesRequest{
+			err = srv.Users.Messages.BatchModify(srv.UserID, &gmail.BatchModifyMessagesRequest{
 				Ids: recruitingEmailIDs,
 				// Add SRC Job Label
 				AddLabelIds: []string{srcJobOpportunityLabel.Id},
