@@ -182,28 +182,28 @@ func (q *HTTPQueries) ListUserOAuthTokens(ctx context.Context, arg ListUserOAuth
 	query = fmt.Sprintf("%s&is_valid=eq.%t", query, arg.IsValid)
 
 	path := fmt.Sprintf("%s?%s", basePath, query)
+	var result []UserOauthToken
 
 	resp, err := q.DoRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
-		return nil, err
+		return result, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("list valid user oauth tokens: %s", resp.Status)
+		return result, fmt.Errorf("list valid user oauth tokens: %s", resp.Status)
 	}
 
-	var tokens []UserOauthToken
-	if err := json.NewDecoder(resp.Body).Decode(&tokens); err != nil {
-		return nil, err
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return result, err
 	}
 
-	if tokens == nil || len(tokens) == 0 {
+	if result == nil || len(result) == 0 {
 		// for now, return same error as database client
-		return nil, sql.ErrNoRows
+		return result, sql.ErrNoRows
 	}
 
-	return tokens, nil
+	return result, nil
 }
 
 // UpsertUserEmailSyncHistory upserts a user's email sync history.
