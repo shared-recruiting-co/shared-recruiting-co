@@ -43,7 +43,7 @@ func (q *HTTPQueries) DoRequest(ctx context.Context, method, path string, body i
 	}
 
 	req.Header.Set("apikey", q.APIKey)
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer % s", q.APIKey))
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", q.APIKey))
 	req.Header.Set("Content-Type", "application/json")
 	// always upsert on POST (aka insert)
 	if method == http.MethodPost {
@@ -144,6 +144,28 @@ func (q *HTTPQueries) GetUserOAuthToken(ctx context.Context, arg GetUserOAuthTok
 
 	result, err = singleOrError(tokens)
 	return result, err
+}
+
+// UpsertUserOAuthToken
+func (q *HTTPQueries) UpsertUserOAuthToken(ctx context.Context, arg UpsertUserOAuthTokenParams) error {
+	basePath := "/user_oauth_token"
+	path := fmt.Sprintf("%s", basePath)
+	body, err := json.Marshal(arg)
+	if err != nil {
+		return err
+	}
+
+	resp, err := q.DoRequest(ctx, http.MethodPost, path, bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("upsert user email sync history: %s", resp.Status)
+	}
+
+	return nil
 }
 
 // ListUserOAuthTokens lists a user oauth tokens.
