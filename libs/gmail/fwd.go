@@ -161,30 +161,3 @@ func (m ForwardMessage) Create() *gmail.Message {
 		ThreadId: m.Parent.ThreadId,
 	}
 }
-
-// ForwardEmail is a good enough implementation of forwarding an email in the same format as the gmail client.
-// It is good enough because it doesn't naively handle HTML mime-type content or when there are multiple parent messages.
-// This is sufficient for our purposes.
-func ForwardEmail(srv *gmail.Service, userID string, messageID, to string) (*gmail.Message, error) {
-	// 1. get the original message
-	parent, err := srv.Users.Messages.Get(userID, messageID).Do()
-	if err != nil {
-		return nil, err
-	}
-
-	// 2. Get the current user's email address
-	profile, err := srv.Users.GetProfile(userID).Do()
-	if err != nil {
-		return nil, err
-	}
-
-	// 3. Create the forwarded message
-	fwd := ForwardMessage{
-		Sender: profile.EmailAddress,
-		To:     to,
-		Parent: parent,
-	}
-
-	// send the message
-	return srv.Users.Messages.Send(userID, fwd.Create()).Do()
-}
