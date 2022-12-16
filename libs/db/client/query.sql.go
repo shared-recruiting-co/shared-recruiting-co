@@ -7,11 +7,11 @@ package client
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
+	null "gopkg.in/guregu/null.v4"
 )
 
 const getUserByEmail = `-- name: GetUserByEmail :one
@@ -181,10 +181,10 @@ do update set
 `
 
 type UpsertUserEmailSyncHistoryParams struct {
-	UserID              uuid.UUID    `json:"user_id"`
-	HistoryID           int64        `json:"history_id"`
-	SyncedAt            time.Time    `json:"synced_at"`
-	ExamplesCollectedAt sql.NullTime `json:"examples_collected_at"`
+	UserID              uuid.UUID `json:"user_id"`
+	HistoryID           int64     `json:"history_id"`
+	SyncedAt            time.Time `json:"synced_at"`
+	ExamplesCollectedAt null.Time `json:"examples_collected_at"`
 }
 
 func (q *Queries) UpsertUserEmailSyncHistory(ctx context.Context, arg UpsertUserEmailSyncHistoryParams) error {

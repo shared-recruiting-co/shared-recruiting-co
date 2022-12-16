@@ -9,3 +9,23 @@ sql:
         out: "client"
         emit_json_tags: true
         emit_prepared_queries: true
+        overrides:
+          # Prefer https://github.com/guregu/null for null types because they implement json.(Un)Marshaler
+          - db_type: "text"
+            nullable: true
+            go_type:
+              import: gopkg.in/guregu/null.v4
+              package: 'null'
+              type: String
+          - db_type: "date"
+            nullable: true
+            go_type:
+              import: gopkg.in/guregu/null.v4
+              package: 'null'
+              type: Time
+          - db_type: "timestamptz"
+            nullable: true
+            go_type:
+              import: gopkg.in/guregu/null.v4
+              package: 'null'
+              type: Time
