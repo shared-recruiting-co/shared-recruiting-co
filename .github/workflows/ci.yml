@@ -18,6 +18,10 @@ jobs:
           # We should always be compatible with the latest Supabase CLI
           version: latest
 
+      - name: "Install app dependencies"
+        working-directory: ./app
+        run: npm install
+
       - name: "Start Supabase local development setup"
         working-directory: ./app
         run: supabase start
@@ -25,14 +29,12 @@ jobs:
       - name: "Verify generated types are up-to-date"
         working-directory: ./app
         run: |
-          npm i
           npm run gen-types
           if [ "$(git diff --ignore-space-at-eol types.ts | wc -l)" -gt "0" ]; then
             echo "Detected uncommitted changes after build. See status below:"
             git diff
             exit 1
           fi
-
   golang:
     runs-on: ubuntu-latest
     strategy:
