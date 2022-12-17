@@ -9,7 +9,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/db/client"
 )
 
@@ -71,6 +73,7 @@ func TestHTTPQueriesDoRequest(t *testing.T) {
 			t.Errorf("got %v, want %v", body["test"], input["test"])
 		}
 	}))
+	defer ts.Close()
 
 	q := client.NewHTTP(ts.URL, apikey)
 
@@ -82,4 +85,68 @@ func TestHTTPQueriesDoRequest(t *testing.T) {
 	q.DoRequest(ctx, method, path, io.NopCloser(bytes.NewReader(
 		inputBytes,
 	)))
+}
+
+func TestHTTPGetUserProfileByEmail(t *testing.T) {
+	apikey := "apikey"
+	email := "example@test.com"
+	wantPath := fmt.Sprintf("/user_profile?select=*&email=eq.%s", email)
+	want := client.UserProfile{
+		UserID:    uuid.New(),
+		Email:     email,
+		FirstName: "John",
+		LastName:  "Doe",
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			t.Errorf("got %v, want %v", r.Method, http.MethodGet)
+		}
+		if r.URL.Path != wantPath {
+			t.Errorf("got %v, want %v", r.URL.Path, wantPath)
+		}
+		// check auth headers
+		wantAuth := fmt.Sprintf("Bearer %s", apikey)
+		if r.Header.Get("Authorization") != wantAuth {
+			t.Errorf("got %v, want %v", r.Header.Get("Authorization"), wantAuth)
+		}
+		if r.Header.Get("apikey") != apikey {
+			t.Errorf("got %v, want %v", r.Header.Get("apikey"), apikey)
+		}
+		// check content type
+		if r.Header.Get("Content-Type") != "application/json" {
+			t.Errorf("got %v, want %v", r.Header.Get("Content-Type"), "application/json")
+		}
+
+		// return a dummy list of user profiles
+		resp := []client.UserProfile{want}
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			t.Errorf("failed to encode response: %v", err)
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer ts.Close()
+
+	q := client.NewHTTP(ts.URL, apikey)
+
+	ctx := context.Background()
+	resp, err := q.GetUserProfileByEmail(ctx, email)
+	if err != nil {
+		t.Errorf("failed to get user profile: %v", err)
+	}
+
+	if resp.UserID.String() != want.UserID.String() {
+		t.Errorf("got %v, want %v", resp.UserID, want.UserID)
+	}
+	if resp.Email != want.Email {
+		t.Errorf("got %v, want %v", resp.Email, want.Email)
+	}
+	if resp.FirstName != want.FirstName {
+		t.Errorf("got %v, want %v", resp.FirstName, want.FirstName)
+	}
+	if resp.LastName != want.LastName {
+		t.Errorf("got %v, want %v", resp.LastName, want.LastName)
+	}
 }
