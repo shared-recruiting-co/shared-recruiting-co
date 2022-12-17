@@ -25,6 +25,7 @@ jobs:
       - name: "Verify generated types are up-to-date"
         working-directory: ./app
         run: |
+          npm i
           npm run gen-types
           if [ "$(git diff --ignore-space-at-eol types.ts | wc -l)" -gt "0" ]; then
             echo "Detected uncommitted changes after build. See status below:"
