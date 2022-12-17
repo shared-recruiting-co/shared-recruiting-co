@@ -1,7 +1,6 @@
 package cloudfunctions
 
 import (
-	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -12,7 +11,6 @@ import (
 	"time"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
-	_ "github.com/lib/pq"
 	"golang.org/x/oauth2"
 
 	"google.golang.org/api/gmail/v1"
@@ -72,37 +70,22 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 0, Create SRC client
-	connectionURI := os.Getenv("DATABASE_URL")
-	db, err := sql.Open("postgres", connectionURI)
-	if err != nil {
-		log.Printf("error connecting to database: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	defer db.Close()
-	// use a max of 2 connections
-	db.SetMaxOpenConns(2)
-
-	// prepare queries
-	queries, err := client.Prepare(ctx, db)
-	if err != nil {
-		log.Printf("error preparing db queries: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	// 0, Create SRC http client
+	apiURL := os.Getenv("SUPABASE_API_URL")
+	apiKey := os.Getenv("SUPABASE_API_KEY")
+	queries := client.NewHTTP(apiURL, apiKey)
 
 	// 1. Get User from email address
-	user, err := queries.GetUserByEmail(ctx, email)
+	user, err := queries.GetUserProfileByEmail(ctx, email)
 	if err != nil {
-		log.Printf("error getting user by email: %v", err)
+		log.Printf("error getting user profile by email: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// Get User' OAuth Token
 	userToken, err := queries.GetUserOAuthToken(ctx, client.GetUserOAuthTokenParams{
-		UserID:   user.ID,
+		UserID:   user.UserID,
 		Provider: provider,
 	})
 	if err != nil {
@@ -112,7 +95,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create Gmail Service
-	auth := []byte(userToken.Token.RawMessage)
+	auth := []byte(userToken.Token)
 	srv, err := mail.NewService(ctx, creds, auth)
 
 	// Create SRC Labels
