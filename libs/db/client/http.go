@@ -37,6 +37,11 @@ func (q *HTTPQueries) DoRequest(ctx context.Context, method, path string, body i
 	if err != nil {
 		return nil, fmt.Errorf("error joining path: %w", err)
 	}
+	// url.JoinPath escapes the query string, so we need to unescape it
+	reqPath, err = url.QueryUnescape(reqPath)
+	if err != nil {
+		return nil, fmt.Errorf("error unescaping path: %w", err)
+	}
 
 	req, err := http.NewRequestWithContext(ctx, method, reqPath, body)
 	if err != nil {
