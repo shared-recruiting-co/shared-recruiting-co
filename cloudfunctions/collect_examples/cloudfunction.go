@@ -1,7 +1,6 @@
 package cloudfunctions
 
 import (
-	"database/sql"
 	"encoding/base64"
 	"log"
 	"net/http"
@@ -9,7 +8,7 @@ import (
 	"time"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
-	_ "github.com/lib/pq"
+	"gopkg.in/guregu/null.v4"
 
 	"google.golang.org/api/gmail/v1"
 
@@ -44,27 +43,15 @@ func collectExamples(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 0, Create SRC client
-	connectionURI := os.Getenv("DATABASE_URL")
-	db, err := sql.Open("postgres", connectionURI)
-	if err != nil {
-		log.Printf("error connecting to database: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	defer db.Close()
-	// use a max of 2 connections
-	db.SetMaxOpenConns(2)
-
-	// prepare queries
-	queries, err := client.Prepare(ctx, db)
-	if err != nil {
-		log.Printf("error preparing db queries: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	apiURL := os.Getenv("SUPABASE_API_URL")
+	apiKey := os.Getenv("SUPABASE_API_KEY")
+	queries := client.NewHTTP(apiURL, apiKey)
 
 	// 1. Fetch auth tokens for all user
-	userTokens, err := queries.ListValidOAuthTokensByProvider(ctx, provider)
+	userTokens, err := queries.ListUserOAuthTokens(ctx, client.ListUserOAuthTokensParams{
+		Provider: provider,
+		IsValid:  true,
+	})
 	if err != nil {
 		log.Printf("error getting user tokens: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -83,7 +70,7 @@ func collectExamples(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		auth := []byte(userToken.Token.RawMessage)
+		auth := []byte(userToken.Token)
 
 		srv, err := mail.NewService(ctx, creds, auth)
 		if err != nil {
@@ -140,13 +127,10 @@ func collectExamples(w http.ResponseWriter, r *http.Request) {
 
 		// save sync date
 		err = queries.UpsertUserEmailSyncHistory(ctx, client.UpsertUserEmailSyncHistoryParams{
-			UserID:    userToken.UserID,
-			HistoryID: history.HistoryID,
-			SyncedAt:  history.SyncedAt,
-			ExamplesCollectedAt: sql.NullTime{
-				Time:  time.Now(),
-				Valid: true,
-			},
+			UserID:              userToken.UserID,
+			HistoryID:           history.HistoryID,
+			SyncedAt:            history.SyncedAt,
+			ExamplesCollectedAt: null.NewTime(time.Now(), true),
 		})
 
 		if err != nil {

@@ -15,8 +15,8 @@ jobs:
 
       - uses: supabase/setup-cli@v1
         with:
-          # version of CLI to use...consider switching to latest
-          version: 1.12.1
+          # We should always be compatible with the latest Supabase CLI
+          version: latest
 
       - name: "Install app dependencies"
         working-directory: ./app
@@ -35,7 +35,6 @@ jobs:
             git diff
             exit 1
           fi
-
   golang:
     runs-on: ubuntu-latest
     strategy:
@@ -44,6 +43,7 @@ jobs:
         directory: 
           - "./cloudfunctions/email_push_notifications" 
           - "./cloudfunctions/watch_emails" 
+          - "./cloudfunctions/full_email_sync" 
           - "./libs/db" 
           - "./libs/gmail" 
 
