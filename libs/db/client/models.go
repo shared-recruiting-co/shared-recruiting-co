@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	null "gopkg.in/guregu/null.v4"
 )
 
 type AuthUser struct {
@@ -18,12 +17,11 @@ type AuthUser struct {
 }
 
 type UserEmailSyncHistory struct {
-	UserID              uuid.UUID `json:"user_id"`
-	HistoryID           int64     `json:"history_id"`
-	SyncedAt            time.Time `json:"synced_at"`
-	ExamplesCollectedAt null.Time `json:"examples_collected_at"`
-	CreatedAt           time.Time `json:"created_at"`
-	UpdatedAt           time.Time `json:"updated_at"`
+	UserID    uuid.UUID `json:"user_id"`
+	HistoryID int64     `json:"history_id"`
+	SyncedAt  time.Time `json:"synced_at"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type UserOauthToken struct {

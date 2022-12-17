@@ -44,17 +44,15 @@ select
     user_id,
     history_id,
     synced_at,
-    examples_collected_at,
     created_at,
     updated_at
 from public.user_email_sync_history
 where user_id = $1;
 
 -- name: UpsertUserEmailSyncHistory :exec
-insert into public.user_email_sync_history(user_id, history_id, synced_at, examples_collected_at)
-values ($1, $2, $3, $4)
+insert into public.user_email_sync_history(user_id, history_id, synced_at)
+values ($1, $2, $3)
 on conflict (user_id) 
 do update set 
     history_id = excluded.history_id,
-    synced_at = excluded.synced_at,
-    examples_collected_at = excluded.examples_collected_at;
+    synced_at = excluded.synced_at;

@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	null "gopkg.in/guregu/null.v4"
 )
 
 const getUserEmailSyncHistory = `-- name: GetUserEmailSyncHistory :one
@@ -19,7 +18,6 @@ select
     user_id,
     history_id,
     synced_at,
-    examples_collected_at,
     created_at,
     updated_at
 from public.user_email_sync_history
@@ -33,7 +31,6 @@ func (q *Queries) GetUserEmailSyncHistory(ctx context.Context, userID uuid.UUID)
 		&i.UserID,
 		&i.HistoryID,
 		&i.SyncedAt,
-		&i.ExamplesCollectedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -145,29 +142,22 @@ func (q *Queries) ListUserOAuthTokens(ctx context.Context, arg ListUserOAuthToke
 }
 
 const upsertUserEmailSyncHistory = `-- name: UpsertUserEmailSyncHistory :exec
-insert into public.user_email_sync_history(user_id, history_id, synced_at, examples_collected_at)
-values ($1, $2, $3, $4)
+insert into public.user_email_sync_history(user_id, history_id, synced_at)
+values ($1, $2, $3)
 on conflict (user_id) 
 do update set 
     history_id = excluded.history_id,
-    synced_at = excluded.synced_at,
-    examples_collected_at = excluded.examples_collected_at
+    synced_at = excluded.synced_at
 `
 
 type UpsertUserEmailSyncHistoryParams struct {
-	UserID              uuid.UUID `json:"user_id"`
-	HistoryID           int64     `json:"history_id"`
-	SyncedAt            time.Time `json:"synced_at"`
-	ExamplesCollectedAt null.Time `json:"examples_collected_at"`
+	UserID    uuid.UUID `json:"user_id"`
+	HistoryID int64     `json:"history_id"`
+	SyncedAt  time.Time `json:"synced_at"`
 }
 
 func (q *Queries) UpsertUserEmailSyncHistory(ctx context.Context, arg UpsertUserEmailSyncHistoryParams) error {
-	_, err := q.exec(ctx, q.upsertUserEmailSyncHistoryStmt, upsertUserEmailSyncHistory,
-		arg.UserID,
-		arg.HistoryID,
-		arg.SyncedAt,
-		arg.ExamplesCollectedAt,
-	)
+	_, err := q.exec(ctx, q.upsertUserEmailSyncHistoryStmt, upsertUserEmailSyncHistory, arg.UserID, arg.HistoryID, arg.SyncedAt)
 	return err
 }
 
