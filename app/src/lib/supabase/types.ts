@@ -7,49 +7,52 @@ export interface Database {
 				Row: {
 					user_id: string;
 					history_id: number;
-					created_at: string | null;
-					updated_at: string | null;
 					examples_collected_at: string | null;
+					synced_at: string;
+					created_at: string;
+					updated_at: string;
 				};
 				Insert: {
 					user_id: string;
 					history_id: number;
-					created_at?: string | null;
-					updated_at?: string | null;
 					examples_collected_at?: string | null;
+					synced_at?: string;
+					created_at?: string;
+					updated_at?: string;
 				};
 				Update: {
 					user_id?: string;
 					history_id?: number;
-					created_at?: string | null;
-					updated_at?: string | null;
 					examples_collected_at?: string | null;
+					synced_at?: string;
+					created_at?: string;
+					updated_at?: string;
 				};
 			};
 			user_oauth_token: {
 				Row: {
 					user_id: string;
 					provider: string;
-					token: Json | null;
-					created_at: string | null;
-					updated_at: string | null;
 					is_valid: boolean;
+					created_at: string;
+					updated_at: string;
+					token: Json;
 				};
 				Insert: {
 					user_id: string;
 					provider: string;
-					token?: Json | null;
-					created_at?: string | null;
-					updated_at?: string | null;
 					is_valid?: boolean;
+					created_at?: string;
+					updated_at?: string;
+					token: Json;
 				};
 				Update: {
 					user_id?: string;
 					provider?: string;
-					token?: Json | null;
-					created_at?: string | null;
-					updated_at?: string | null;
 					is_valid?: boolean;
+					created_at?: string;
+					updated_at?: string;
+					token?: Json;
 				};
 			};
 			user_profile: {
@@ -58,24 +61,24 @@ export interface Database {
 					email: string;
 					first_name: string;
 					last_name: string;
-					created_at: string | null;
-					updated_at: string | null;
+					updated_at: string;
+					created_at: string;
 				};
 				Insert: {
 					user_id: string;
 					email: string;
 					first_name: string;
 					last_name: string;
-					created_at?: string | null;
-					updated_at?: string | null;
+					updated_at?: string;
+					created_at?: string;
 				};
 				Update: {
 					user_id?: string;
 					email?: string;
 					first_name?: string;
 					last_name?: string;
-					created_at?: string | null;
-					updated_at?: string | null;
+					updated_at?: string;
+					created_at?: string;
 				};
 			};
 			waitlist: {
@@ -87,8 +90,8 @@ export interface Database {
 					linkedin_url: string;
 					responses: Json;
 					can_create_account: boolean;
-					created_at: string | null;
-					updated_at: string | null;
+					created_at: string;
+					updated_at: string;
 				};
 				Insert: {
 					user_id: string;
@@ -98,8 +101,8 @@ export interface Database {
 					linkedin_url: string;
 					responses?: Json;
 					can_create_account?: boolean;
-					created_at?: string | null;
-					updated_at?: string | null;
+					created_at?: string;
+					updated_at?: string;
 				};
 				Update: {
 					user_id?: string;
@@ -109,8 +112,8 @@ export interface Database {
 					linkedin_url?: string;
 					responses?: Json;
 					can_create_account?: boolean;
-					created_at?: string | null;
-					updated_at?: string | null;
+					created_at?: string;
+					updated_at?: string;
 				};
 			};
 		};
