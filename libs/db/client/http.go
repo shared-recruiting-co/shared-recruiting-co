@@ -3,6 +3,7 @@ package client
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -58,7 +59,8 @@ func (q *HTTPQueries) DoRequest(ctx context.Context, method, path string, body i
 func singleOrError[T any](slice []T) (T, error) {
 	var result T
 	if len(slice) == 0 {
-		return result, fmt.Errorf("no elements in slice")
+		// for now, return same error as database client
+		return result, sql.ErrNoRows
 	}
 
 	if len(slice) > 1 {
@@ -180,23 +182,28 @@ func (q *HTTPQueries) ListUserOAuthTokens(ctx context.Context, arg ListUserOAuth
 	query = fmt.Sprintf("%s&is_valid=eq.%t", query, arg.IsValid)
 
 	path := fmt.Sprintf("%s?%s", basePath, query)
+	var result []UserOauthToken
 
 	resp, err := q.DoRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
-		return nil, err
+		return result, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("list valid user oauth tokens: %s", resp.Status)
+		return result, fmt.Errorf("list valid user oauth tokens: %s", resp.Status)
 	}
 
-	var tokens []UserOauthToken
-	if err := json.NewDecoder(resp.Body).Decode(&tokens); err != nil {
-		return nil, err
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return result, err
 	}
 
-	return tokens, nil
+	if result == nil || len(result) == 0 {
+		// for now, return same error as database client
+		return result, sql.ErrNoRows
+	}
+
+	return result, nil
 }
 
 // UpsertUserEmailSyncHistory upserts a user's email sync history.

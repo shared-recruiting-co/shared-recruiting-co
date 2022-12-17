@@ -35,7 +35,6 @@ jobs:
             git diff
             exit 1
           fi
-
   golang:
     runs-on: ubuntu-latest
     strategy:

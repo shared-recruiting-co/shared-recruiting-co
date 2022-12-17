@@ -91,9 +91,10 @@
 
 	<div class="space-y-6 sm:px-6 lg:col-span-9 lg:px-0">
 		<div class="px-4">
-		<h1 class="text-3xl sm:text-4xl">Account</h1>
-		<p class="mt-1 text-sm text-slate-500">Member since {new Date($page.data.profile.createdAt).toLocaleDateString()}</p>
-
+			<h1 class="text-3xl sm:text-4xl">Account</h1>
+			<p class="mt-1 text-sm text-slate-500">
+				Member since {new Date($page.data.profile.createdAt).toLocaleDateString()}
+			</p>
 		</div>
 		<form action="#" method="POST">
 			<div class="relative shadow sm:overflow-hidden sm:rounded-md">

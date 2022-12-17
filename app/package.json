@@ -9,8 +9,8 @@
 		"test": "playwright test",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"lint": "prettier --plugin-search-dir . --check . && eslint .",
-		"format": "prettier --plugin-search-dir . --write .",
+		"lint": "npx prettier --plugin-search-dir . --check . && npx eslint .",
+		"format": "npx prettier --plugin-search-dir . --write .",
 		"gen-types": "npx supabase gen types typescript --local > src/lib/supabase/types.ts && npm run format"
 	},
 	"devDependencies": {

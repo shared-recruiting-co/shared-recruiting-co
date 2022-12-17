@@ -11,6 +11,7 @@ sql:
         emit_prepared_queries: true
         emit_interface: true
         overrides:
+          # List of type can be found: https://github.com/kyleconroy/sqlc/blob/main/internal/codegen/golang/postgresql_type.go
           # Prefer https://github.com/guregu/null for null types because they implement json.(Un)Marshaler
           - db_type: "text"
             nullable: true
