@@ -14,7 +14,7 @@
 
 {#if show}
 	<div
-		class="relative z-10"
+		class="relative z-50"
 		aria-labelledby="modal-title"
 		role="dialog"
 		aria-modal="true"
