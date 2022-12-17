@@ -62,39 +62,8 @@
 </script>
 
 <div class="my-12 lg:grid lg:grid-cols-12 lg:gap-x-5">
-	<aside class="hidden py-6 px-2 sm:px-6 lg:col-span-3 lg:block lg:py-0 lg:px-0">
-		<nav class="space-y-1">
-			<!-- Current: "bg-slate-50 text-blue-700 hover:text-indigo-700 hover:bg-white", Default: "text-slate-900 hover:text-slate-900 hover:bg-slate-50" -->
-			<a
-				href="/account/profile"
-				class="group flex items-center rounded-md bg-slate-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-white hover:text-indigo-700"
-				aria-current="page"
-			>
-				<!--
-          Heroicon name: outline/user-circle
-
-          Current: "text-blue-500 group-hover:text-indigo-500", Default: "text-slate-400 group-hover:text-slate-500"
-        -->
-				<svg
-					class="-ml-1 mr-3 h-6 w-6 flex-shrink-0 text-blue-500 group-hover:text-indigo-500"
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke-width="1.5"
-					stroke="currentColor"
-					aria-hidden="true"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"
-					/>
-				</svg>
-				<span class="truncate">Profile</span>
-			</a>
-		</nav>
-	</aside>
-
+	<!-- Empty space for now -->
+	<aside class="block py-6 px-2 sm:px-6 lg:col-span-2 lg:py-0 lg:px-0" />
 	<div class="space-y-6 sm:px-6 lg:col-span-9 lg:px-0">
 		<div class="px-4">
 			<h1 class="text-3xl sm:text-4xl">Account</h1>
