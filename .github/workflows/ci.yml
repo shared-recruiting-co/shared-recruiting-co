@@ -18,10 +18,6 @@ jobs:
           # We should always be compatible with the latest Supabase CLI
           version: latest
 
-      - name: "Install app dependencies"
-        working-directory: ./app
-        run: npm install
-
       - name: "Start Supabase local development setup"
         working-directory: ./app
         run: supabase start
