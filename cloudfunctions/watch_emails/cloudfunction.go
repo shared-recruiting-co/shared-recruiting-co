@@ -1,7 +1,6 @@
 package cloudfunctions
 
 import (
-	"database/sql"
 	"encoding/base64"
 	"errors"
 	"log"
@@ -9,7 +8,6 @@ import (
 	"os"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
-	_ "github.com/lib/pq"
 	"golang.org/x/oauth2"
 
 	"google.golang.org/api/gmail/v1"
@@ -33,6 +31,7 @@ func jsonFromEnv(env string) ([]byte, error) {
 
 func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 	log.Println("received watch trigger")
+	ctx := r.Context()
 	creds, err := jsonFromEnv("GOOGLE_OAUTH2_CREDENTIALS")
 	if err != nil {
 		log.Printf("error getting credentials: %v", err)
@@ -41,28 +40,21 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create SRC client
-	ctx := r.Context()
-
-	connectionURI := os.Getenv("DATABASE_URL")
-	db, err := sql.Open("postgres", connectionURI)
-	if err != nil {
-		log.Printf("error connecting to database: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	defer db.Close()
-	// use a max of 2 connections
-	db.SetMaxOpenConns(2)
-
-	queries := client.New(db)
+	apiURL := os.Getenv("SUPABASE_API_URL")
+	apiKey := os.Getenv("SUPABASE_API_KEY")
+	queries := client.NewHTTP(apiURL, apiKey)
 
 	// TODO
 	// v0 -> no pagination, no go routines
 	// 2. Spawn a goroutine for each user to watch their emails
 	// 3. Wait for all goroutines to finish
 
-	// 1. Fetch auth tokens for all user
-	userTokens, err := queries.ListValidOAuthTokensByProvider(ctx, provider)
+	// 1. Fetch valid auth tokens for all users
+	userTokens, err := queries.ListUserOAuthTokens(ctx, client.ListUserOAuthTokensParams{
+		Provider: provider,
+		IsValid:  true,
+	})
+
 	if err != nil {
 		log.Printf("error getting user tokens: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -77,7 +69,7 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 	hasError := false
 
 	for _, userToken := range userTokens {
-		auth := []byte(userToken.Token.RawMessage)
+		auth := []byte(userToken.Token)
 
 		srv, err = mail.NewService(ctx, creds, auth)
 		if err != nil {

@@ -5,9 +5,8 @@ go 1.19
 require (
 	github.com/GoogleCloudPlatform/functions-framework-go v1.6.1
 	github.com/cloudevents/sdk-go/v2 v2.12.0
-	github.com/lib/pq v1.10.7
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/db v0.0.0-20221216013946-3f52b04068e8
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20221216013946-3f52b04068e8
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/db v0.0.0-20221217221352-2adc4cbc7ac3
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20221217221352-2adc4cbc7ac3
 	golang.org/x/oauth2 v0.3.0
 	google.golang.org/api v0.105.0
 )
@@ -23,7 +22,6 @@ require (
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
 	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
-	github.com/tabbed/pqtype v0.1.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
@@ -35,4 +33,5 @@ require (
 	google.golang.org/genproto v0.0.0-20221207170731-23e4bf6bdc37 // indirect
 	google.golang.org/grpc v1.51.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
+	gopkg.in/guregu/null.v4 v4.0.0 // indirect
 )

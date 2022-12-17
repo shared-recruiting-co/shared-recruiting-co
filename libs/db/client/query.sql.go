@@ -7,26 +7,12 @@ package client
 
 import (
 	"context"
-	"database/sql"
+	"encoding/json"
+	"time"
 
 	"github.com/google/uuid"
-	"github.com/tabbed/pqtype"
+	null "gopkg.in/guregu/null.v4"
 )
-
-const getUserByEmail = `-- name: GetUserByEmail :one
-select
-    id,
-    email
-from auth.users
-where email = $1
-`
-
-func (q *Queries) GetUserByEmail(ctx context.Context, email string) (AuthUser, error) {
-	row := q.queryRow(ctx, q.getUserByEmailStmt, getUserByEmail, email)
-	var i AuthUser
-	err := row.Scan(&i.ID, &i.Email)
-	return i, err
-}
 
 const getUserEmailSyncHistory = `-- name: GetUserEmailSyncHistory :one
 select
@@ -85,49 +71,33 @@ func (q *Queries) GetUserOAuthToken(ctx context.Context, arg GetUserOAuthTokenPa
 	return i, err
 }
 
-const listOAuthTokensByProvider = `-- name: ListOAuthTokensByProvider :many
+const getUserProfileByEmail = `-- name: GetUserProfileByEmail :one
 select
     user_id,
-    provider,
-    token,
-    is_valid,
+    email,
+    first_name,
+    last_name,
     created_at,
     updated_at
-from public.user_oauth_token
-where provider = $1
+from public.user_profile
+where email = $1
 `
 
-func (q *Queries) ListOAuthTokensByProvider(ctx context.Context, provider string) ([]UserOauthToken, error) {
-	rows, err := q.query(ctx, q.listOAuthTokensByProviderStmt, listOAuthTokensByProvider, provider)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []UserOauthToken
-	for rows.Next() {
-		var i UserOauthToken
-		if err := rows.Scan(
-			&i.UserID,
-			&i.Provider,
-			&i.Token,
-			&i.IsValid,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) GetUserProfileByEmail(ctx context.Context, email string) (UserProfile, error) {
+	row := q.queryRow(ctx, q.getUserProfileByEmailStmt, getUserProfileByEmail, email)
+	var i UserProfile
+	err := row.Scan(
+		&i.UserID,
+		&i.Email,
+		&i.FirstName,
+		&i.LastName,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
-const listValidOAuthTokensByProvider = `-- name: ListValidOAuthTokensByProvider :many
+const listUserOAuthTokens = `-- name: ListUserOAuthTokens :many
 select
     user_id,
     provider,
@@ -136,11 +106,16 @@ select
     created_at,
     updated_at
 from public.user_oauth_token
-where provider = $1 and is_valid = true
+where provider = $1 and is_valid = $2
 `
 
-func (q *Queries) ListValidOAuthTokensByProvider(ctx context.Context, provider string) ([]UserOauthToken, error) {
-	rows, err := q.query(ctx, q.listValidOAuthTokensByProviderStmt, listValidOAuthTokensByProvider, provider)
+type ListUserOAuthTokensParams struct {
+	Provider string `json:"provider"`
+	IsValid  bool   `json:"is_valid"`
+}
+
+func (q *Queries) ListUserOAuthTokens(ctx context.Context, arg ListUserOAuthTokensParams) ([]UserOauthToken, error) {
+	rows, err := q.query(ctx, q.listUserOAuthTokensStmt, listUserOAuthTokens, arg.Provider, arg.IsValid)
 	if err != nil {
 		return nil, err
 	}
@@ -180,10 +155,10 @@ do update set
 `
 
 type UpsertUserEmailSyncHistoryParams struct {
-	UserID              uuid.UUID    `json:"user_id"`
-	HistoryID           int64        `json:"history_id"`
-	SyncedAt            sql.NullTime `json:"synced_at"`
-	ExamplesCollectedAt sql.NullTime `json:"examples_collected_at"`
+	UserID              uuid.UUID `json:"user_id"`
+	HistoryID           int64     `json:"history_id"`
+	SyncedAt            time.Time `json:"synced_at"`
+	ExamplesCollectedAt null.Time `json:"examples_collected_at"`
 }
 
 func (q *Queries) UpsertUserEmailSyncHistory(ctx context.Context, arg UpsertUserEmailSyncHistoryParams) error {
@@ -206,10 +181,10 @@ do update set
 `
 
 type UpsertUserOAuthTokenParams struct {
-	UserID   uuid.UUID             `json:"user_id"`
-	Provider string                `json:"provider"`
-	Token    pqtype.NullRawMessage `json:"token"`
-	IsValid  bool                  `json:"is_valid"`
+	UserID   uuid.UUID       `json:"user_id"`
+	Provider string          `json:"provider"`
+	Token    json.RawMessage `json:"token"`
+	IsValid  bool            `json:"is_valid"`
 }
 
 func (q *Queries) UpsertUserOAuthToken(ctx context.Context, arg UpsertUserOAuthTokenParams) error {

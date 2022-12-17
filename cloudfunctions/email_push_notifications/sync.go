@@ -76,7 +76,7 @@ func syncNewEmails(
 		// get next set of messages
 		if historyIDExpired {
 			// if history id is expired, trigger async full sync to last sync date
-			err = triggerBackgroundfFullEmailSync(context.Background(), email, syncHistory.SyncedAt.Time)
+			err = triggerBackgroundfFullEmailSync(context.Background(), email, syncHistory.SyncedAt)
 			if err != nil {
 				return fmt.Errorf("error triggering full sync: %v", err)
 			}
@@ -92,11 +92,7 @@ func syncNewEmails(
 			gErr := &googleapi.Error{}
 			if errors.As(err, &gErr); !historyIDExpired && gErr.Code == http.StatusNotFound {
 				log.Printf("expired history id: %v", gErr)
-				// make sure the sync at date is set
-				if !syncHistory.SyncedAt.Valid {
-					return fmt.Errorf("history id expired, but user has never synced before")
-				}
-				log.Printf("syncing from %s", syncHistory.SyncedAt.Time.Format("2006/01/02"))
+				log.Printf("syncing from %s", syncHistory.SyncedAt.Format("2006/01/02"))
 				// set flag and continue iterating
 				historyIDExpired = true
 				continue

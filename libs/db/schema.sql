@@ -14,10 +14,10 @@ create extension if not exists moddatetime schema extensions;
 create table public.user_oauth_token (
     user_id uuid references auth.users(id) not null,
     provider text not null,
-    token jsonb,
+    token jsonb not null,
     is_valid boolean not null default true,
-    created_at timestamp with time zone default now(),
-    updated_at timestamp with time zone default now(),
+    created_at timestamp with time zone not null default now(),
+    updated_at timestamp with time zone not null default now(),
 
     primary key (user_id, provider)
 );
@@ -45,11 +45,11 @@ create table public.user_email_sync_history (
     user_id uuid references auth.users(id) not null,
     history_id int8 not null,
     -- track successful sync attempts
-    synced_at timestamp with time zone default now(),
+    synced_at timestamp with time zone not null default now(),
     -- temporary column to track when we've last collected examples for this user
     examples_collected_at date,
-    created_at timestamp with time zone default now(),
-    updated_at timestamp with time zone default now(),
+    created_at timestamp with time zone not null default now(),
+    updated_at timestamp with time zone not null default now(),
 
     primary key (user_id)
 );
@@ -75,8 +75,8 @@ create table public.waitlist (
     linkedin_url text not null,
     responses jsonb not null default '{}'::jsonb,
     can_create_account boolean not null default false,
-    created_at timestamp with time zone default now(),
-    updated_at timestamp with time zone default now(),
+    created_at timestamp with time zone not null default now(),
+    updated_at timestamp with time zone not null default now(),
 
     primary key (user_id)
 );
@@ -98,8 +98,8 @@ create table public.user_profile (
     email text not null,
     first_name text not null,
     last_name text not null,
-    created_at timestamp with time zone default now(),
-    updated_at timestamp with time zone default now(),
+    created_at timestamp with time zone not null default now(),
+    updated_at timestamp with time zone not null default now(),
 
     primary key (user_id)
 );
