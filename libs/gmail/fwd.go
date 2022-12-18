@@ -3,9 +3,12 @@ package gmail
 import (
 	"encoding/base64"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"google.golang.org/api/gmail/v1"
+
+	"github.com/jaytaylor/html2text"
 )
 
 const (
@@ -79,9 +82,27 @@ func (m ForwardMessage) References() string {
 // ParentBody returns the body of the parent message.
 // Note: We always convert to text/plain. It's simpler to do deal with and is sufficient for our purposes.
 func (m ForwardMessage) ParentBody() string {
-	// The "Body:" field will contain the contents of the parent's
-	// "Body:" field (if any)
-	return MessageBody(m.Parent)
+	body := MessageBody(m.Parent)
+	mime := http.DetectContentType([]byte(body))
+	// mime will be "text/html; charset=utf-8"
+	if strings.HasPrefix(mime, "text/html") {
+		text, err := html2text.FromString(body,
+			html2text.Options{
+				PrettyTables: false,
+				// text only loses some information about headers, lists, block quotes, bold, italic text
+				// https://github.com/jaytaylor/html2text/pull/49/files
+				TextOnly: true,
+			})
+
+		// if err, just return the original body
+		if err != nil {
+			return body
+		}
+
+		return text, nil
+	}
+
+	return body
 }
 
 // Raw returns the raw RFC-822 compliant forwarded message.
