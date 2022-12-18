@@ -148,4 +148,6 @@ func (s *Service) ForwardEmail(messageID, to string) (*gmail.Message, error) {
 
 // Ideas for future
 // GetMessage()
+// ListMessages()
+// cache GetMessage calls until next ListMessages call
 // Something to help with setting the default query for listing src and non-src messages
