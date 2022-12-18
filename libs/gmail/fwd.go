@@ -99,7 +99,7 @@ func (m ForwardMessage) ParentBody() string {
 			return body
 		}
 
-		return text, nil
+		return text
 	}
 
 	return body
