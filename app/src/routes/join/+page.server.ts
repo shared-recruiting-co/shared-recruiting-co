@@ -40,7 +40,6 @@ export const actions: Actions = {
 		const linkedin = getTrimmedFormValue(data, 'linkedin');
 		const referrer = getTrimmedFormValue(data, 'referrer');
 		const comment = getTrimmedFormValue(data, 'comment');
-		const status = getTrimmedFormValue(data, 'status');
 
 		// form validation
 		// Trims whitespace for all fields
@@ -97,18 +96,9 @@ export const actions: Actions = {
 			});
 		}
 
-		if (!status) {
-			return fail(400, {
-				errors: {
-					status: 'Please select one of the options'
-				}
-			});
-		}
-
 		const responses = {
 			referrer,
 			comment,
-			status
 		};
 
 		// add the user to waitlist

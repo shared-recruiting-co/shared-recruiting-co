@@ -12,7 +12,6 @@
 	let lastName = names?.length ? names[names.length - 1] : '';
 	let linkedin = '';
 	let referrer = '';
-	let status = '';
 
 	export let form: null | {
 		success?: boolean;
@@ -118,28 +117,6 @@
 				</div>
 				{#if formError('linkedin')}
 					<p class="mt-1 text-xs text-rose-500">{formError('linkedin')}</p>
-				{/if}
-			</div>
-			<div>
-				<label for="status" class="block text-sm font-medium text-slate-700"
-					>Are you open to new opportunities?</label
-				>
-				<div class="mt-1">
-					<select
-						bind:value={status}
-						id="status"
-						name="status"
-						class="mt-1 block w-full rounded-md border-slate-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
-					>
-						<option disabled>--</option>
-						<option>Yes, I'm actively looking</option>
-						<option>Maybe. Only if the right opportunity comes my way</option>
-						<option>No, but I might be in the next year</option>
-						<option>No, not for the foreseeable future</option>
-					</select>
-				</div>
-				{#if formError('status')}
-					<p class="mt-1 text-xs text-rose-500">{formError('status')}</p>
 				{/if}
 			</div>
 			<div>
