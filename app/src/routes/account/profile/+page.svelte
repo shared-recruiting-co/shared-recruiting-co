@@ -10,6 +10,7 @@
 	let profileSaved = false;
 	let settingsSaved = false;
 	let errors: Record<string, string> = {};
+	let isActive = $page.data.profile.isActive;
 	let autoContribute = $page.data.profile.autoContribute;
 	let autoArchive = $page.data.profile.autoArchive;
 	let showDeactivateEmailModal = false;
@@ -76,6 +77,7 @@
 			}, savedMessageTimeout);
 			return;
 		}
+		// TODO: Display error
 		errors['settings'] = 'There was an error saving your changes';
 	};
 
@@ -88,6 +90,27 @@
 			debouncedSaveSettings();
 		};
 	}
+
+	const onDeactivateConfirm = async () => {
+		showDeactivateEmailModal = false;
+		const resp = await fetch('/api/account/gmail/unsubscribe', { method: 'POST' });
+		// handle errors
+		if (resp.status !== 200) {
+			errors['deactivate'] = 'There was an error deactivating your account';
+			return;
+		}
+		isActive = false;
+	};
+
+	const activateEmail = async () => {
+		const resp = await fetch('/api/account/gmail/subscribe', { method: 'POST' });
+		// handle errors
+		if (resp.status !== 200) {
+			errors['activate'] = 'There was an error activating your account';
+			return;
+		}
+		isActive = true;
+	};
 </script>
 
 <div class="sm:my-18 my-12 lg:grid lg:grid-cols-12 lg:gap-x-5">
@@ -210,93 +233,114 @@
 					<span>Saved</span>
 				</div>
 			{/if}
-			<div class="space-y-6 bg-white py-6 px-4 sm:p-6">
-				<div>
-					<h3 class="text-lg font-medium leading-6 text-slate-900">Settings</h3>
-					<p class="mt-1 text-sm text-slate-500">Manage your account settings and preferences.</p>
+			{#if isActive}
+				<div class="space-y-6 bg-white py-6 px-4 sm:p-6">
+					<div>
+						<h3 class="text-lg font-medium leading-6 text-slate-900">Settings</h3>
+						<p class="mt-1 text-sm text-slate-500">Manage your account settings and preferences.</p>
+					</div>
+					<ul class="mt-2 divide-y divide-slate-200">
+						<li class="flex items-center justify-between py-4">
+							<div class="flex flex-col pr-4 sm:pr-8">
+								<p class="text-sm font-medium text-slate-900" id="privacy-option-2-label">
+									Hide Recruiting Emails from Inbox
+								</p>
+								<p class="mt-1 text-xs text-slate-500 sm:text-sm" id="privacy-option-2-description">
+									Keep your inbox distraction free when you aren't actively looking for a new role.
+									<br />
+									Recruiting emails are always accessible under the @SRC folder.
+								</p>
+							</div>
+							<Toggle
+								bind:checked={autoArchive}
+								label="Recruiting Assistant"
+								onToggle={onSettingsToggle}
+							/>
+						</li>
+						<li class="flex items-center justify-between py-4">
+							<div class="flex flex-col pr-4 sm:pr-8">
+								<p class="text-sm font-medium text-slate-900" id="privacy-option-1-label">
+									Auto-Contribute Recruiting Emails
+								</p>
+								<p class="mt-1 text-xs text-slate-500 sm:text-sm" id="privacy-option-1-description">
+									Help us build the best product for candidates by automatically contributing your
+									inbound recruiting emails to our recruiting email dataset.
+									<br />
+									You can always manually contribute emails by forwarding them to
+									<a class="underline" href="mailto:examples@sharedrecruiting.co"
+										>examples@sharedrecruiting.co</a
+									>.
+								</p>
+							</div>
+							<Toggle
+								bind:checked={autoContribute}
+								label="Auto Contribute"
+								onToggle={onSettingsToggle}
+							/>
+						</li>
+						<li class="flex items-center justify-between py-4">
+							<div class="flex flex-col pr-4 sm:pr-8">
+								<p class="text-sm font-medium text-slate-900" id="privacy-option-3-label">
+									Block Automated Email Sequences&NonBreakingSpace;
+									<span class="text-slate-500">(Coming Soon)</span>
+								</p>
+								<p class="mt-1 text-xs text-slate-500 sm:text-sm" id="privacy-option-3-description">
+									Block automated recruiting sequences by automatically replying to recruiters with
+									a standard message.
+								</p>
+							</div>
+							<Toggle checked={false} disabled label="Auto-Reply" />
+						</li>
+					</ul>
 				</div>
-				<ul class="mt-2 divide-y divide-slate-200">
-					<li class="flex items-center justify-between py-4">
-						<div class="flex flex-col pr-4 sm:pr-8">
-							<p class="text-sm font-medium text-slate-900" id="privacy-option-2-label">
-								Hide Recruiting Emails from Inbox
-							</p>
-							<p class="mt-1 text-xs text-slate-500 sm:text-sm" id="privacy-option-2-description">
-								Keep your inbox distraction free when you aren't actively looking for a new role.
-								<br />
-								Recruiting emails are always accessible under the @SRC folder.
-							</p>
-						</div>
-						<Toggle
-							bind:checked={autoArchive}
-							label="Recruiting Assistant"
-							onToggle={onSettingsToggle}
-						/>
-					</li>
-					<li class="flex items-center justify-between py-4">
-						<div class="flex flex-col pr-4 sm:pr-8">
-							<p class="text-sm font-medium text-slate-900" id="privacy-option-1-label">
-								Auto-Contribute Recruiting Emails
-							</p>
-							<p class="mt-1 text-xs text-slate-500 sm:text-sm" id="privacy-option-1-description">
-								Help us build the best product for candidates by automatically contributing your
-								inbound recruiting emails to our recruiting email dataset.
-								<br />
-								You can always manually contribute emails by forwarding them to
-								<a class="underline" href="mailto:examples@sharedrecruiting.co"
-									>examples@sharedrecruiting.co</a
-								>.
-							</p>
-						</div>
-						<Toggle
-							bind:checked={autoContribute}
-							label="Auto Contribute"
-							onToggle={onSettingsToggle}
-						/>
-					</li>
-					<li class="flex items-center justify-between py-4">
-						<div class="flex flex-col pr-4 sm:pr-8">
-							<p class="text-sm font-medium text-slate-900" id="privacy-option-3-label">
-								Block Automated Email Sequences&NonBreakingSpace;
-								<span class="text-slate-500">(Coming Soon)</span>
-							</p>
-							<p class="mt-1 text-xs text-slate-500 sm:text-sm" id="privacy-option-3-description">
-								Block automated recruiting sequences by automatically replying to recruiters with a
-								standard message.
-							</p>
-						</div>
-						<Toggle checked={false} disabled label="Auto-Reply" />
-					</li>
-				</ul>
-			</div>
+			{/if}
 		</div>
-		<div class="shadow sm:overflow-hidden sm:rounded-md">
-			<div class="space-y-6 bg-white py-6 px-4 sm:p-6">
-				<div class="max-w-2xl">
-					<h3 class="text-lg font-medium leading-6 text-slate-900">Deactivate Inbox Assistant</h3>
-					<p class="mt-1 text-sm text-slate-500">
-						Deactivate the SRC inbox assistant. While disabled, recruiting emails will no longer be
-						automatically labeled or managed for you. This will not delete your account nor any
-						data. The @SRC labels will remain in your inbox. You can reactivate SRC at anytime.
-					</p>
+		{#if isActive}
+			<div class="shadow sm:overflow-hidden sm:rounded-md">
+				<div class="space-y-6 bg-white py-6 px-4 sm:p-6">
+					<div class="max-w-2xl">
+						<h3 class="text-lg font-medium leading-6 text-slate-900">Deactivate Inbox Assistant</h3>
+						<p class="mt-1 text-sm text-slate-500">
+							Deactivate the SRC inbox assistant. While disabled, recruiting emails will no longer
+							be automatically labeled or managed for you. This will not delete your account nor any
+							data. The @SRC labels will remain in your inbox. You can reactivate SRC at anytime.
+						</p>
+					</div>
+					<button
+						type="button"
+						class="inline-flex w-full justify-center rounded-md border border-transparent bg-rose-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:w-auto sm:text-sm"
+						on:click={() => {
+							showDeactivateEmailModal = true;
+						}}>Deactivate</button
+					>
 				</div>
-				<button
-					type="button"
-					class="inline-flex w-full justify-center rounded-md border border-transparent bg-rose-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:w-auto sm:text-sm"
-					on:click={() => {
-						showDeactivateEmailModal = true;
-					}}>Deactivate</button
-				>
+				<AlertModal
+					bind:show={showDeactivateEmailModal}
+					title="Deactive Inbox Assistant?"
+					description="Are you sure you want to deactivate the SRC inbox assistant? While disabled, recruiting emails will no longer be automatically labeled or managed for you."
+					cta="Deactivate"
+					onConfirm={onDeactivateConfirm}
+				/>
 			</div>
-			<AlertModal
-				bind:show={showDeactivateEmailModal}
-				title="Deactive Inbox Assistant?"
-				description="Are you sure you want to deactivate the SRC inbox assistant? While disabled, recruiting emails will no longer be automatically labeled or managed for you."
-				cta="Deactivate"
-				onConfirm={() => {
-					showDeactivateEmailModal = false;
-				}}
-			/>
-		</div>
+		{/if}
+		{#if !isActive}
+			<div class="shadow sm:overflow-hidden sm:rounded-md">
+				<div class="space-y-6 bg-white py-6 px-4 sm:p-6">
+					<div class="max-w-2xl">
+						<h3 class="text-lg font-medium leading-6 text-slate-900">Enable Inbox Assistant</h3>
+						<p class="mt-1 text-sm text-slate-500">
+							Your SRC Inbox Assistant is currently disabled. Re-enable it to start monitoring your
+							inbox for job opportunities. Once re-enabled, SRC will re-sync your inbox between now
+							and the last time SRC was active.
+						</p>
+					</div>
+					<button
+						type="button"
+						class="inline-flex w-full justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:w-auto sm:text-sm"
+						on:click={activateEmail}>Activate</button
+					>
+				</div>
+			</div>
+		{/if}
 	</div>
 </div>
