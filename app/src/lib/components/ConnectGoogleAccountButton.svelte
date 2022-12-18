@@ -81,5 +81,5 @@
 	<p class="mt-2 text-sm text-rose-500">{error}</p>
 {/if}
 <svelte:head>
-	<script src="/scripts/gsi.js" on:load={onLoad} async defer></script>
+	<script src="https://accounts.google.com/gsi/client" on:load={onLoad} async defer></script>
 </svelte:head>
