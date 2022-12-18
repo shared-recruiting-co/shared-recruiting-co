@@ -231,7 +231,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	}()
 
 	// 7. Sync new emails
-	err = syncNewEmails(email, srv, classifier, prevSyncHistory, srcJobOpportunityLabel.Id)
+	err = syncNewEmails(user, srv, classifier, prevSyncHistory, srcJobOpportunityLabel.Id)
 	if err != nil {
 		revertSynctHistory()
 		return fmt.Errorf("error processing messages: %v", err)

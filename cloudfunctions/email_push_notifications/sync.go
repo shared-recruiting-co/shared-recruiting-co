@@ -19,6 +19,10 @@ import (
 	"google.golang.org/api/idtoken"
 )
 
+const (
+	forwardTo = "Examples <examples@sharedrecruiting.co>"
+)
+
 type FullEmailSyncRequest struct {
 	Email     string    `json:"email"`
 	StartDate time.Time `json:"start_date"`
@@ -60,7 +64,7 @@ func triggerBackgroundfFullEmailSync(ctx context.Context, email string, startDat
 }
 
 func syncNewEmails(
-	email string,
+	user client.UserProfile,
 	srv *mail.Service,
 	classifier Classifier,
 	syncHistory client.UserEmailSyncHistory,
@@ -76,7 +80,7 @@ func syncNewEmails(
 		// get next set of messages
 		if historyIDExpired {
 			// if history id is expired, trigger async full sync to last sync date
-			err = triggerBackgroundfFullEmailSync(context.Background(), email, syncHistory.SyncedAt)
+			err = triggerBackgroundfFullEmailSync(context.Background(), user.Email, syncHistory.SyncedAt)
 			if err != nil {
 				return fmt.Errorf("error triggering full sync: %v", err)
 			}
@@ -153,27 +157,50 @@ func syncNewEmails(
 		log.Printf("number of recruiting emails: %d", len(recruitingEmailIDs))
 
 		// Take action on recruiting emails
-		if len(recruitingEmailIDs) > 0 {
-			err = srv.Users.Messages.BatchModify(srv.UserID, &gmail.BatchModifyMessagesRequest{
-				Ids: recruitingEmailIDs,
-				// Add SRC Label
-				AddLabelIds: []string{jobLabelID},
-				// In future,
-				// - mark as read
-				// - archive
-				// - create response
-				// RemoveLabelIds: []string{"UNREAD"},
-			}).Do()
-
-			// for now, abort on error
-			if err != nil {
-				return fmt.Errorf("error modifying recruiting emails: %v", err)
-			}
+		err = handleRecruitingEmails(srv, user, jobLabelID, recruitingEmailIDs)
+		// for now, abort on error
+		if err != nil {
+			return fmt.Errorf("error modifying recruiting emails: %v", err)
 		}
 
 		if pageToken == "" {
 			break
 		}
 	}
+	return nil
+}
+
+func handleRecruitingEmails(srv *mail.Service, profile client.UserProfile, jobLabelID string, messageIDs []string) error {
+	if len(messageIDs) == 0 {
+		return nil
+	}
+
+	removeLabels := []string{}
+	if profile.AutoArchive {
+		removeLabels = append(removeLabels, "INBOX", "UNREAD")
+	}
+
+	err := srv.Users.Messages.BatchModify(srv.UserID, &gmail.BatchModifyMessagesRequest{
+		Ids:            messageIDs,
+		AddLabelIds:    []string{jobLabelID},
+		RemoveLabelIds: removeLabels,
+	}).Do()
+
+	if err != nil {
+		return fmt.Errorf("error modifying recruiting emails: %v", err)
+	}
+
+	if profile.AutoContribute {
+		for _, id := range messageIDs {
+			_, err := srv.ForwardEmail(id, forwardTo)
+
+			if err != nil {
+				// don't abort on error
+				log.Printf("error forwarding email %s: %v", id, err)
+				continue
+			}
+		}
+	}
+
 	return nil
 }
