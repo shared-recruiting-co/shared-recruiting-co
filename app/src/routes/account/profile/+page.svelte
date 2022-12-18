@@ -7,11 +7,12 @@
 	import Toggle from '$lib/components/Toggle.svelte';
 	import AlertModal from '$lib/components/AlertModal.svelte';
 
-	let saved = false;
+	let profileSaved = false;
+	let settingsSaved = false;
 	let errors: Record<string, string> = {};
-	let autoContribute = true;
-	let archiveEmails = false;
-	let showDeleteAccountModal = false;
+	let autoContribute = $page.data.profile.autoContribute;
+	let autoArchive = $page.data.profile.autoArchive;
+	let showDeactivateEmailModal = false;
 
 	let debounceTimeout: NodeJS.Timeout;
 	const debounceDelay = 1000;
@@ -48,9 +49,9 @@
 			.select()
 			.maybeSingle();
 		if (!error && data && data[name as keyof typeof data] === value) {
-			saved = true;
+			profileSaved = true;
 			setTimeout(() => {
-				saved = false;
+				profileSaved = false;
 			}, savedMessageTimeout);
 			return;
 		}
@@ -59,9 +60,37 @@
 
 	// debounce input to limit database writes
 	const debouncedHandleInput = debounce(handleInput, debounceDelay);
+
+	const saveSettings = async () => {
+		settingsSaved = false;
+		const { data, error } = await supabaseClient
+			.from('user_profile')
+			.update({ auto_contribute: autoContribute, auto_archive: autoArchive })
+			.eq('user_id', $page.data.session?.user.id)
+			.select()
+			.maybeSingle();
+		if (!error && data) {
+			settingsSaved = true;
+			setTimeout(() => {
+				settingsSaved = false;
+			}, savedMessageTimeout);
+			return;
+		}
+		errors['settings'] = 'There was an error saving your changes';
+	};
+
+	const debouncedSaveSettings = debounce(saveSettings, debounceDelay);
+	let onSettingsToggle: (checked: boolean) => void;
+
+	$: {
+		// keep onSettingsToggle in sync with settings values
+		onSettingsToggle = (_checked: boolean) => {
+			debouncedSaveSettings();
+		};
+	}
 </script>
 
-<div class="my-12 sm:my-18 lg:grid lg:grid-cols-12 lg:gap-x-5">
+<div class="sm:my-18 my-12 lg:grid lg:grid-cols-12 lg:gap-x-5">
 	<!-- Empty space for now -->
 	<aside class="block py-6 px-2 sm:px-6 lg:col-span-2 lg:py-0 lg:px-0" />
 	<div class="space-y-6 sm:px-6 lg:col-span-9 lg:px-0">
@@ -72,7 +101,7 @@
 			</p>
 		</div>
 		<div class="relative shadow sm:overflow-hidden sm:rounded-md">
-			{#if saved}
+			{#if profileSaved}
 				<div
 					class="absolute top-0 right-0 mt-6 mr-8 flex items-center space-x-2 text-green-600"
 					in:slide
@@ -157,7 +186,7 @@
 			</div>
 		</div>
 		<div class="relative shadow sm:overflow-hidden sm:rounded-md">
-			{#if saved}
+			{#if settingsSaved}
 				<div
 					class="absolute top-0 right-0 mt-6 mr-8 flex items-center space-x-2 text-green-600"
 					in:slide
@@ -198,7 +227,11 @@
 								Recruiting emails are always accessible under the @SRC folder.
 							</p>
 						</div>
-						<Toggle bind:checked={archiveEmails} label="Recruiting Assistant" />
+						<Toggle
+							bind:checked={autoArchive}
+							label="Recruiting Assistant"
+							onToggle={onSettingsToggle}
+						/>
 					</li>
 					<li class="flex items-center justify-between py-4">
 						<div class="flex flex-col pr-4 sm:pr-8">
@@ -215,7 +248,11 @@
 								>.
 							</p>
 						</div>
-						<Toggle bind:checked={autoContribute} label="Auto Contribute" />
+						<Toggle
+							bind:checked={autoContribute}
+							label="Auto Contribute"
+							onToggle={onSettingsToggle}
+						/>
 					</li>
 					<li class="flex items-center justify-between py-4">
 						<div class="flex flex-col pr-4 sm:pr-8">
@@ -247,17 +284,17 @@
 					type="button"
 					class="inline-flex w-full justify-center rounded-md border border-transparent bg-rose-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:w-auto sm:text-sm"
 					on:click={() => {
-						showDeleteAccountModal = true;
+						showDeactivateEmailModal = true;
 					}}>Deactivate</button
 				>
 			</div>
 			<AlertModal
-				bind:show={showDeleteAccountModal}
+				bind:show={showDeactivateEmailModal}
 				title="Deactive Inbox Assistant?"
 				description="Are you sure you want to deactivate the SRC inbox assistant? While disabled, recruiting emails will no longer be automatically labeled or managed for you."
 				cta="Deactivate"
 				onConfirm={() => {
-					showDeleteAccountModal = false;
+					showDeactivateEmailModal = false;
 				}}
 			/>
 		</div>
