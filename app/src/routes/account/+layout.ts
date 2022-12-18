@@ -26,7 +26,10 @@ export const load: PageLoad = async (event) => {
 				firstName: profile.first_name,
 				lastName: profile.last_name,
 				email: session.user.email,
-				createdAt: profile.created_at
+				createdAt: profile.created_at,
+				isActive: profile.is_active,
+				autoArchive: profile.auto_archive,
+				autoContribute: profile.auto_contribute
 			}
 		};
 	}
