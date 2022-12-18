@@ -168,7 +168,7 @@ func (q *HTTPQueries) UpsertUserOAuthToken(ctx context.Context, arg UpsertUserOA
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusCreated {
 		return fmt.Errorf("upsert user email sync history: %s", resp.Status)
 	}
 
@@ -226,7 +226,7 @@ func (q *HTTPQueries) UpsertUserEmailSyncHistory(ctx context.Context, arg Upsert
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusCreated {
 		return fmt.Errorf("upsert user email sync history: %s", resp.Status)
 	}
 
