@@ -184,10 +184,9 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 		// save the current history ID
 		err = queries.UpsertUserEmailSyncHistory(ctx, client.UpsertUserEmailSyncHistoryParams{
-			UserID:              user.UserID,
-			HistoryID:           int64(historyID),
-			SyncedAt:            time.Now(),
-			ExamplesCollectedAt: prevSyncHistory.ExamplesCollectedAt,
+			UserID:    user.UserID,
+			HistoryID: int64(historyID),
+			SyncedAt:  time.Now(),
 		})
 		if err != nil {
 			return fmt.Errorf("error upserting email sync history: %v", err)
@@ -201,10 +200,9 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	}
 
 	err = queries.UpsertUserEmailSyncHistory(ctx, client.UpsertUserEmailSyncHistoryParams{
-		UserID:              user.UserID,
-		HistoryID:           int64(historyID),
-		SyncedAt:            time.Now(),
-		ExamplesCollectedAt: prevSyncHistory.ExamplesCollectedAt,
+		UserID:    user.UserID,
+		HistoryID: int64(historyID),
+		SyncedAt:  time.Now(),
 	})
 	if err != nil {
 		return fmt.Errorf("error upserting email sync history: %v", err)
@@ -213,10 +211,9 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	// on any errors after this, we want to reset the history ID to the previous one
 	revertSynctHistory := func() {
 		err := queries.UpsertUserEmailSyncHistory(ctx, client.UpsertUserEmailSyncHistoryParams{
-			UserID:              user.UserID,
-			HistoryID:           prevSyncHistory.HistoryID,
-			SyncedAt:            prevSyncHistory.SyncedAt,
-			ExamplesCollectedAt: prevSyncHistory.ExamplesCollectedAt,
+			UserID:    user.UserID,
+			HistoryID: prevSyncHistory.HistoryID,
+			SyncedAt:  prevSyncHistory.SyncedAt,
 		})
 		if err != nil {
 			log.Printf("error reverting email sync history: %v", err)
