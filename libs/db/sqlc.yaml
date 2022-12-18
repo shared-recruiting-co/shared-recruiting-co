@@ -19,15 +19,16 @@ sql:
               import: gopkg.in/guregu/null.v4
               package: 'null'
               type: String
-          - db_type: "date"
-            nullable: true
-            go_type:
-              import: gopkg.in/guregu/null.v4
-              package: 'null'
-              type: Time
           - db_type: "timestamptz"
             nullable: true
             go_type:
               import: gopkg.in/guregu/null.v4
               package: 'null'
               type: Time
+          # TODO: Figure out how to support date type (null.Time isn't able to parse it)
+          # - db_type: "date"
+            # nullable: true
+            # go_type:
+              # import: gopkg.in/guregu/null.v4
+              # package: 'null'
+              # type: Time

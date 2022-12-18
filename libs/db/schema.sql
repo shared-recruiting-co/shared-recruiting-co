@@ -46,8 +46,6 @@ create table public.user_email_sync_history (
     history_id int8 not null,
     -- track successful sync attempts
     synced_at timestamp with time zone not null default now(),
-    -- temporary column to track when we've last collected examples for this user
-    examples_collected_at date,
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
 
