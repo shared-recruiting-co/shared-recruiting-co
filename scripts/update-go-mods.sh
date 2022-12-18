@@ -1,4 +1,4 @@
-pkgs=("./cloudfunctions/collect_examples" "./cloudfunctions/email_push_notifications" "./cloudfunctions/full_email_sync" "./cloudfunctions/watch_emails")
+pkgs=("./cloudfunctions/email_push_notifications" "./cloudfunctions/full_email_sync" "./cloudfunctions/watch_emails")
 sha=$(git rev-parse origin/main)
 
 for pkg in "${pkgs[@]}"
