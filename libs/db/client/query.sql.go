@@ -74,6 +74,9 @@ select
     email,
     first_name,
     last_name,
+    is_active,
+    auto_archive,
+    auto_contribute,
     created_at,
     updated_at
 from public.user_profile
@@ -88,6 +91,9 @@ func (q *Queries) GetUserProfileByEmail(ctx context.Context, email string) (User
 		&i.Email,
 		&i.FirstName,
 		&i.LastName,
+		&i.IsActive,
+		&i.AutoArchive,
+		&i.AutoContribute,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

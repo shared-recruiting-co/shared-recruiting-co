@@ -4,6 +4,9 @@ select
     email,
     first_name,
     last_name,
+    is_active,
+    auto_archive,
+    auto_contribute,
     created_at,
     updated_at
 from public.user_profile

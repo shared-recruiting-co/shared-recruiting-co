@@ -34,12 +34,15 @@ type UserOauthToken struct {
 }
 
 type UserProfile struct {
-	UserID    uuid.UUID `json:"user_id"`
-	Email     string    `json:"email"`
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	UserID         uuid.UUID `json:"user_id"`
+	Email          string    `json:"email"`
+	FirstName      string    `json:"first_name"`
+	LastName       string    `json:"last_name"`
+	IsActive       bool      `json:"is_active"`
+	AutoArchive    bool      `json:"auto_archive"`
+	AutoContribute bool      `json:"auto_contribute"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
 }
 
 type Waitlist struct {

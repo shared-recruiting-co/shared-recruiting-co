@@ -96,6 +96,11 @@ create table public.user_profile (
     email text not null,
     first_name text not null,
     last_name text not null,
+    -- user email settings
+    -- in future, this will be migrated to a separate table to support multi-email accounts
+    is_active boolean not null default true,
+    auto_archive boolean not null default false,
+    auto_contribute boolean not null default false,
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
 
