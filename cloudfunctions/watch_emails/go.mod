@@ -4,8 +4,8 @@ go 1.19
 
 require (
 	github.com/GoogleCloudPlatform/functions-framework-go v1.6.1
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/db v0.0.0-20221217232808-8ac13618ee04
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20221217232808-8ac13618ee04
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/db v0.0.0-20221218001357-32d90d59e19a
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20221218001357-32d90d59e19a
 	golang.org/x/oauth2 v0.3.0
 	google.golang.org/api v0.105.0
 )
@@ -33,5 +33,4 @@ require (
 	google.golang.org/genproto v0.0.0-20221207170731-23e4bf6bdc37 // indirect
 	google.golang.org/grpc v1.51.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
-	gopkg.in/guregu/null.v4 v4.0.0 // indirect
 )
