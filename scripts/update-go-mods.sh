@@ -1,5 +1,13 @@
+libs=("./libs/gmail" "./libs/db")
 pkgs=("./cloudfunctions/email_push_notifications" "./cloudfunctions/full_email_sync" "./cloudfunctions/watch_emails")
 sha=$(git rev-parse origin/main)
+
+for lib in "${libs[@]}"; do
+  pushd $lib
+  echo "Updating $(basename $lib)"
+  go mod tidy
+  popd
+done
 
 for pkg in "${pkgs[@]}"
 do
