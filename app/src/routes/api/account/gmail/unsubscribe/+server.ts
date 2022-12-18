@@ -27,5 +27,14 @@ export const POST: RequestHandler = async (event) => {
 	const stopResponse = await stop(accessToken);
 	if (stopResponse.status !== 200) throw error(500, 'failed to unsubscribe to gmail notifications');
 
+	// "deactivate" the email in db
+	const { error: updateError } = await supabaseClient
+		.from('user_profile')
+		.update({ is_active: false })
+		.eq('user_id', session?.user.id);
+
+	// should we re-subscribe if the db update fails?
+	if (updateError) throw error(500, 'failed to saved changes to database');
+
 	return new Response('success');
 };

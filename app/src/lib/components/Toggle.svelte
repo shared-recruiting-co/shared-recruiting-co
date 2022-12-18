@@ -2,10 +2,12 @@
 	export let label: string;
 	export let checked: boolean;
 	export let disabled: boolean = false;
+	export let onToggle: ((checked: boolean) => void) | undefined = undefined;
 
 	const toggle = () => {
 		if (disabled) return;
 		checked = !checked;
+		if (onToggle) onToggle(checked);
 	};
 </script>
 

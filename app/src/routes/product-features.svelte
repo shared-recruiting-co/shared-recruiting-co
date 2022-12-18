@@ -58,7 +58,7 @@
 	<h2 class="max-w-4xl text-center text-4xl font-bold sm:text-5xl">
 		Your Personal Recruiting Assistant
 	</h2>
-	<h3 class="mt-8 mb-16 max-w-2xl text-center text-slate-100 px-4">
+	<h3 class="mt-8 mb-16 max-w-2xl px-4 text-center text-slate-100">
 		SRC puts candidates first in the recruiting process, respecting your time and privacy.
 	</h3>
 	<div class="flex w-2/3 flex-wrap justify-between">

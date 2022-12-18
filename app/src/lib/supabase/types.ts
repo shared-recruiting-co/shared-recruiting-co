@@ -7,7 +7,6 @@ export interface Database {
 				Row: {
 					user_id: string;
 					history_id: number;
-					examples_collected_at: string | null;
 					synced_at: string;
 					created_at: string;
 					updated_at: string;
@@ -15,7 +14,6 @@ export interface Database {
 				Insert: {
 					user_id: string;
 					history_id: number;
-					examples_collected_at?: string | null;
 					synced_at?: string;
 					created_at?: string;
 					updated_at?: string;
@@ -23,7 +21,6 @@ export interface Database {
 				Update: {
 					user_id?: string;
 					history_id?: number;
-					examples_collected_at?: string | null;
 					synced_at?: string;
 					created_at?: string;
 					updated_at?: string;
@@ -63,6 +60,9 @@ export interface Database {
 					last_name: string;
 					updated_at: string;
 					created_at: string;
+					is_active: boolean;
+					auto_archive: boolean;
+					auto_contribute: boolean;
 				};
 				Insert: {
 					user_id: string;
@@ -71,6 +71,9 @@ export interface Database {
 					last_name: string;
 					updated_at?: string;
 					created_at?: string;
+					is_active?: boolean;
+					auto_archive?: boolean;
+					auto_contribute?: boolean;
 				};
 				Update: {
 					user_id?: string;
@@ -79,6 +82,9 @@ export interface Database {
 					last_name?: string;
 					updated_at?: string;
 					created_at?: string;
+					is_active?: boolean;
+					auto_archive?: boolean;
+					auto_contribute?: boolean;
 				};
 			};
 			waitlist: {

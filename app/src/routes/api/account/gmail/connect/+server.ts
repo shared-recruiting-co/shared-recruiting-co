@@ -103,7 +103,9 @@ const connectEmail = async ({
 			user_id: session.user.id,
 			first_name: waitlist.first_name,
 			last_name: waitlist.last_name,
-			email: session.user.email
+			email: session.user.email,
+			// for now, all early users opt-in to auto contributing emails
+			auto_contribute: true
 		});
 
 		if (createError) {
