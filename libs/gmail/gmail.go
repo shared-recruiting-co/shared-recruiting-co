@@ -146,8 +146,14 @@ func (s *Service) ForwardEmail(messageID, to string) (*gmail.Message, error) {
 	return s.Users.Messages.Send(s.UserID, fwd.Create()).Do()
 }
 
+// GetMessage() fetches a message by ID
+// It is a convenience method that wraps the gmail API call.
+// It opens opportunities for caching and rate-limiting handling
+func (s *Service) GetMessage(id string) (*gmail.Message, error) {
+	return s.Users.Messages.Get(s.UserID, id).Do()
+}
+
 // Ideas for future
-// GetMessage()
 // ListMessages()
 // cache GetMessage calls until next ListMessages call
 // Something to help with setting the default query for listing src and non-src messages
