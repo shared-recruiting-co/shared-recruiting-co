@@ -77,8 +77,7 @@
 			}, savedMessageTimeout);
 			return;
 		}
-		// TODO: Display error
-		errors['settings'] = 'There was an error saving your changes';
+		errors['settings'] = 'There was an error saving your changes. Please try again.';
 	};
 
 	const debouncedSaveSettings = debounce(saveSettings, debounceDelay);
@@ -96,7 +95,8 @@
 		const resp = await fetch('/api/account/gmail/unsubscribe', { method: 'POST' });
 		// handle errors
 		if (resp.status !== 200) {
-			errors['deactivate'] = 'There was an error deactivating your account';
+			errors['deactivate'] =
+				'There was an error deactivating the inbox assistant. Please try again.';
 			return;
 		}
 		isActive = false;
@@ -106,7 +106,7 @@
 		const resp = await fetch('/api/account/gmail/subscribe', { method: 'POST' });
 		// handle errors
 		if (resp.status !== 200) {
-			errors['activate'] = 'There was an error activating your account';
+			errors['activate'] = 'There was an error activating your inbox assistant. Please try again.';
 			return;
 		}
 		isActive = true;
@@ -209,6 +209,11 @@
 			</div>
 		</div>
 		<div class="relative shadow sm:overflow-hidden sm:rounded-md">
+			{#if formError(errors, 'settings')}
+				<div class="absolute top-0 right-0 mt-6 mr-8 flex items-center space-x-2 text-green-600">
+					<p class="mt-1 text-xs text-rose-500">{formError(errors, 'settings')}</p>
+				</div>
+			{/if}
 			{#if settingsSaved}
 				<div
 					class="absolute top-0 right-0 mt-6 mr-8 flex items-center space-x-2 text-green-600"
@@ -313,6 +318,18 @@
 							showDeactivateEmailModal = true;
 						}}>Deactivate</button
 					>
+					{#if formError(errors, 'deactivate')}
+						<p class="mt-1 text-xs text-rose-500">
+							{formError(errors, 'deactivate')}
+							<br />
+							<span>
+								If the error persists, please reach out to <a
+									href="mailto:team@sharedrecruiting.co?subject=Error Deactivating Inbox Assistant"
+									class="underline">team@sharedrecruiting.co</a
+								>
+							</span>
+						</p>
+					{/if}
 				</div>
 				<AlertModal
 					bind:show={showDeactivateEmailModal}
@@ -327,7 +344,7 @@
 			<div class="shadow sm:overflow-hidden sm:rounded-md">
 				<div class="space-y-6 bg-white py-6 px-4 sm:p-6">
 					<div class="max-w-2xl">
-						<h3 class="text-lg font-medium leading-6 text-slate-900">Enable Inbox Assistant</h3>
+						<h3 class="text-lg font-medium leading-6 text-slate-900">Activate Inbox Assistant</h3>
 						<p class="mt-1 text-sm text-slate-500">
 							Your SRC Inbox Assistant is currently disabled. Re-enable it to start monitoring your
 							inbox for job opportunities. Once re-enabled, SRC will re-sync your inbox between now
@@ -339,6 +356,18 @@
 						class="inline-flex w-full justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:w-auto sm:text-sm"
 						on:click={activateEmail}>Activate</button
 					>
+					{#if formError(errors, 'activate')}
+						<p class="mt-1 text-xs text-rose-500">
+							{formError(errors, 'activate')}
+							<br />
+							<span>
+								If the error persists, please reach out to <a
+									href="mailto:team@sharedrecruiting.co?subject=Error Activating Inbox Assistant"
+									class="underline">team@sharedrecruiting.co</a
+								>
+							</span>
+						</p>
+					{/if}
 				</div>
 			</div>
 		{/if}
