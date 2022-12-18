@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -21,7 +22,8 @@ import (
 )
 
 const (
-	provider = "google"
+	provider  = "google"
+	forwardTo = "Examples <examples@sharedrecruiting.co>"
 )
 
 func init() {
@@ -218,24 +220,12 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 		log.Printf("number of recruiting emails: %d", len(recruitingEmailIDs))
 
 		// Take action on recruiting emails
-		if len(recruitingEmailIDs) > 0 {
-			err = srv.Users.Messages.BatchModify(srv.UserID, &gmail.BatchModifyMessagesRequest{
-				Ids: recruitingEmailIDs,
-				// Add SRC Job Label
-				AddLabelIds: []string{srcJobOpportunityLabel.Id},
-				// In future,
-				// - mark as read
-				// - archive
-				// - create response
-				// RemoveLabelIds: []string{"UNREAD"},
-			}).Do()
-
-			// for now, abort on error
-			if err != nil {
-				log.Printf("error modifying recruiting emails: %v", err)
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
+		err = handleRecruitingEmails(srv, user, srcJobOpportunityLabel.Id, recruitingEmailIDs)
+		// for now, abort on error
+		if err != nil {
+			log.Printf("error modifying recruiting emails: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 
 		if pageToken == "" {
@@ -244,4 +234,39 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("done.")
+}
+
+func handleRecruitingEmails(srv *mail.Service, profile client.UserProfile, jobLabelID string, messageIDs []string) error {
+	if len(messageIDs) == 0 {
+		return nil
+	}
+
+	removeLabels := []string{}
+	if profile.AutoArchive {
+		removeLabels = append(removeLabels, "INBOX", "UNREAD")
+	}
+
+	err := srv.Users.Messages.BatchModify(srv.UserID, &gmail.BatchModifyMessagesRequest{
+		Ids:            messageIDs,
+		AddLabelIds:    []string{jobLabelID},
+		RemoveLabelIds: removeLabels,
+	}).Do()
+
+	if err != nil {
+		return fmt.Errorf("error modifying recruiting emails: %v", err)
+	}
+
+	if profile.AutoContribute {
+		for _, id := range messageIDs {
+			_, err := srv.ForwardEmail(id, forwardTo)
+
+			if err != nil {
+				// don't abort on error
+				log.Printf("error forwarding email %s: %v", id, err)
+				continue
+			}
+		}
+	}
+
+	return nil
 }

@@ -19,6 +19,10 @@ import (
 	"google.golang.org/api/idtoken"
 )
 
+const (
+	forwardTo = "Examples <examples@sharedrecruiting.co>"
+)
+
 type FullEmailSyncRequest struct {
 	Email     string    `json:"email"`
 	StartDate time.Time `json:"start_date"`
@@ -187,7 +191,15 @@ func handleRecruitingEmails(srv *mail.Service, profile client.UserProfile, jobLa
 	}
 
 	if profile.AutoContribute {
-		// TODO: implement
+		for _, id := range messageIDs {
+			_, err := srv.ForwardEmail(id, forwardTo)
+
+			if err != nil {
+				// don't abort on error
+				log.Printf("error forwarding email %s: %v", id, err)
+				continue
+			}
+		}
 	}
 
 	return nil
