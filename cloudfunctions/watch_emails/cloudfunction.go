@@ -77,15 +77,13 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 			hasError = true
 			continue
 		}
-		// Watch for changes in labelId
-		resp, err := srv.Users.Watch(user, &gmail.WatchRequest{
-			LabelIds:          []string{label},
-			LabelFilterAction: "include",
-			TopicName:         topic,
-		}).Do()
 
+		// Get the user's email address
+		// This also keeps the user's refresh token valid for deactivated emails
+		gmailProfile, err := srv.Profile()
 		if err != nil {
-			log.Printf("error watching: %v", err)
+			log.Printf("error getting gmail profile: %v", err)
+
 			// check for oauth token expiration or revocation
 			oauth2Err := &oauth2.RetrieveError{}
 			if errors.As(err, &oauth2Err) {
@@ -104,6 +102,31 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			hasError = true
+			continue
+		}
+
+		// validate the user's email is active
+		userProfile, err := queries.GetUserProfileByEmail(ctx, gmailProfile.EmailAddress)
+		if err != nil {
+			log.Printf("error getting user profile: %v", err)
+			hasError = true
+			continue
+		}
+
+		if !userProfile.IsActive {
+			log.Printf("skipping deactivated email %s", userProfile.Email)
+			continue
+		}
+
+		// Watch for changes in labelId
+		resp, err := srv.Users.Watch(user, &gmail.WatchRequest{
+			LabelIds:          []string{label},
+			LabelFilterAction: "include",
+			TopicName:         topic,
+		}).Do()
+
+		if err != nil {
+			log.Printf("error watching: %v", err)
 			continue
 		}
 		// success
