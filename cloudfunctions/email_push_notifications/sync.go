@@ -19,10 +19,6 @@ import (
 	"google.golang.org/api/idtoken"
 )
 
-const (
-	forwardTo = "Examples <examples@sharedrecruiting.co>"
-)
-
 type FullEmailSyncRequest struct {
 	Email     string    `json:"email"`
 	StartDate time.Time `json:"start_date"`
@@ -198,11 +194,17 @@ func handleRecruitingEmails(srv *mail.Service, profile client.UserProfile, jobLa
 
 	if profile.AutoContribute {
 		for _, id := range messageIDs {
-			_, err := srv.ForwardEmail(id, forwardTo)
+			// shouldn't happen
+			if examplesCollectorSrv == nil {
+				log.Print("examples collector service not initialized")
+				break
+			}
+			// clone the message to the examples inbox
+			_, err := mail.CloneMessage(srv, examplesCollectorSrv, id, collectedExampleLabels)
 
 			if err != nil {
 				// don't abort on error
-				log.Printf("error forwarding email %s: %v", id, err)
+				log.Printf("error collecting email %s: %v", id, err)
 				continue
 			}
 		}

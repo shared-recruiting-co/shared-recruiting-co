@@ -22,8 +22,13 @@ import (
 )
 
 const (
-	provider  = "google"
-	forwardTo = "Examples <examples@sharedrecruiting.co>"
+	provider = "google"
+)
+
+var (
+	// global variable to share across functions...simplest approach for now
+	examplesCollectorSrv   *mail.Service
+	collectedExampleLabels = []string{"INBOX", "UNREAD"}
 )
 
 func init() {
@@ -83,6 +88,21 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 		log.Printf("error getting user profile by email: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
+	}
+	// if auto contribute is on, create the collector service
+	if user.AutoContribute {
+		auth, err := jsonFromEnv("EXAMPLES_GMAIL_OAUTH_TOKEN")
+		if err != nil {
+			log.Printf("error reading examples@sharedrecruiting.co credentials: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		examplesCollectorSrv, err = mail.NewService(ctx, creds, auth)
+		if err != nil {
+			log.Printf("error creating example collector service: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	}
 
 	// Get User' OAuth Token
@@ -258,11 +278,17 @@ func handleRecruitingEmails(srv *mail.Service, profile client.UserProfile, jobLa
 
 	if profile.AutoContribute {
 		for _, id := range messageIDs {
-			_, err := srv.ForwardEmail(id, forwardTo)
+			// shouldn't happen
+			if examplesCollectorSrv == nil {
+				log.Print("examples collector service not initialized")
+				break
+			}
+			// clone the message to the examples inbox
+			_, err := mail.CloneMessage(srv, examplesCollectorSrv, id, collectedExampleLabels)
 
 			if err != nil {
 				// don't abort on error
-				log.Printf("error forwarding email %s: %v", id, err)
+				log.Printf("error collecting email %s: %v", id, err)
 				continue
 			}
 		}

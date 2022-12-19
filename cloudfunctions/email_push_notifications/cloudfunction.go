@@ -24,6 +24,12 @@ const (
 	provider = "google"
 )
 
+var (
+	// global variable to share across functions...simplest approach for now
+	examplesCollectorSrv   *mail.Service
+	collectedExampleLabels = []string{"INBOX", "UNREAD"}
+)
+
 func init() {
 	functions.CloudEvent("EmailPushNotificationHandler", emailPushNotificationHandler)
 }
@@ -100,6 +106,16 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	user, err := queries.GetUserProfileByEmail(ctx, email)
 	if err != nil {
 		return fmt.Errorf("error getting user profile by email: %v", err)
+	}
+	if user.AutoContribute {
+		auth, err := jsonFromEnv("EXAMPLES_GMAIL_OAUTH_TOKEN")
+		if err != nil {
+			return fmt.Errorf("error reading examples@sharedrecruiting.co credentials: %v", err)
+		}
+		examplesCollectorSrv, err = mail.NewService(ctx, creds, auth)
+		if err != nil {
+			return fmt.Errorf("error creating example collector service: %v", err)
+		}
 	}
 
 	// 2. Get User' OAuth Token
