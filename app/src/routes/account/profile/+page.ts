@@ -19,9 +19,13 @@ export const load: PageLoad<Data> = async (event) => {
 		.select('synced_at')
 		.maybeSingle();
 
-	// TODO: Check and return the status of the user oauth token
+	const { data: oauthToken } = await supabaseClient
+		.from('user_oauth_token')
+		.select('is_valid')
+		.maybeSingle();
 
 	return {
-		lastSyncedAt: emailSyncHistory?.synced_at as string | undefined
+		lastSyncedAt: emailSyncHistory?.synced_at as string | undefined,
+		isSetup: Boolean(oauthToken?.is_valid)
 	};
 };
