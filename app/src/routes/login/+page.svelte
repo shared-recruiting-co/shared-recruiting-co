@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { supabaseClient } from '$lib/supabase/client';
 
+	let error: string | null = null;
+
 	const handleLogin = async () => {
 		try {
 			const { error } = await supabaseClient.auth.signInWithOAuth({
@@ -10,16 +12,15 @@
 				}
 			});
 			if (error) throw error;
-		} catch (error) {
-			// TODO: handle error
+		} catch (error: unknown) {
 			if (error instanceof Error) {
-				alert(error.message);
+				error = error.message || 'Something went wrong. Please try again.';
 			}
 		}
 	};
 </script>
 
-<div class="mx-4 my-12 max-w-2xl rounded-md bg-blue-50 p-12 sm:mx-auto">
+<div class="mx-4 my-12 max-w-2xl rounded-md bg-blue-100 p-12 sm:mx-auto">
 	<h1 class="text-4xl">Sign In</h1>
 	<p class="my-4">Sign into SRC with the email you typically receive recruiting inbound on.</p>
 	<div class="mt-12">
@@ -28,5 +29,8 @@
 			on:click={handleLogin}
 			><img src="/google.svg" alt="Google logo" class="mr-3" />Sign in with Google</button
 		>
+		{#if error}
+			<div class="mt-2 text-sm text-rose-500">{error}</div>
+		{/if}
 	</div>
 </div>
