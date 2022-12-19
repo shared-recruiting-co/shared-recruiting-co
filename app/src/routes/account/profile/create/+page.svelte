@@ -12,8 +12,6 @@
 	// Create separate layouts for (marketing) and (account) pages
 	// Create account header
 	// Create account sidebar
-	// Design & create account page
-	// Active Toggle on settings page
 </script>
 
 <div class="m-2 flex flex-row items-center justify-center sm:mx-auto sm:my-16">

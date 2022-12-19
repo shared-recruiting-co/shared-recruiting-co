@@ -6,14 +6,21 @@
 
 	import Toggle from '$lib/components/Toggle.svelte';
 	import AlertModal from '$lib/components/AlertModal.svelte';
+	import ConnectGoogleAccountButton from '$lib/components/ConnectGoogleAccountButton.svelte';
 
 	let profileSaved = false;
 	let settingsSaved = false;
 	let errors: Record<string, string> = {};
 	let isActive = $page.data.profile.isActive;
+	let isSetup = $page.data.isSetup;
 	let autoContribute = $page.data.profile.autoContribute;
 	let autoArchive = $page.data.profile.autoArchive;
 	let showDeactivateEmailModal = false;
+
+	const onConnect = () => {
+		isSetup = true;
+		isActive = true;
+	};
 
 	let debounceTimeout: NodeJS.Timeout;
 	const debounceDelay = 1000;
@@ -208,37 +215,37 @@
 				</div>
 			</div>
 		</div>
-		<div class="relative shadow sm:overflow-hidden sm:rounded-md">
-			{#if formError(errors, 'settings')}
-				<div class="absolute top-0 right-0 mt-6 mr-8 flex items-center space-x-2 text-green-600">
-					<p class="mt-1 text-xs text-rose-500">{formError(errors, 'settings')}</p>
-				</div>
-			{/if}
-			{#if settingsSaved}
-				<div
-					class="absolute top-0 right-0 mt-6 mr-8 flex items-center space-x-2 text-green-600"
-					in:slide
-					out:fade
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke-width="1.5"
-						stroke="currentColor"
-						class="h-6 w-6"
+		{#if isActive && isSetup}
+			<div class="relative shadow sm:overflow-hidden sm:rounded-md">
+				{#if formError(errors, 'settings')}
+					<div class="absolute top-0 right-0 mt-6 mr-8 flex items-center space-x-2 text-green-600">
+						<p class="mt-1 text-xs text-rose-500">{formError(errors, 'settings')}</p>
+					</div>
+				{/if}
+				{#if settingsSaved}
+					<div
+						class="absolute top-0 right-0 mt-6 mr-8 flex items-center space-x-2 text-green-600"
+						in:slide
+						out:fade
 					>
-						<path
-							transition:draw
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-						/>
-					</svg>
-					<span>Saved</span>
-				</div>
-			{/if}
-			{#if isActive}
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke-width="1.5"
+							stroke="currentColor"
+							class="h-6 w-6"
+						>
+							<path
+								transition:draw
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+							/>
+						</svg>
+						<span>Saved</span>
+					</div>
+				{/if}
 				<div class="space-y-6 bg-white py-6 px-4 sm:p-6">
 					<div>
 						<h3 class="text-lg font-medium leading-6 text-slate-900">Settings</h3>
@@ -298,9 +305,7 @@
 						</li>
 					</ul>
 				</div>
-			{/if}
-		</div>
-		{#if isActive}
+			</div>
 			<div class="shadow sm:overflow-hidden sm:rounded-md">
 				<div class="space-y-6 bg-white py-6 px-4 sm:p-6">
 					<div class="max-w-2xl">
@@ -339,8 +344,22 @@
 					onConfirm={onDeactivateConfirm}
 				/>
 			</div>
-		{/if}
-		{#if !isActive}
+		{:else if !isSetup}
+			<div class="shadow sm:overflow-hidden sm:rounded-md">
+				<div class="space-y-6 bg-sky-50 py-6 px-4 sm:p-6">
+					<div class="max-w-2xl">
+						<h3 class="text-lg font-medium leading-6 text-slate-900">Connect Gmail Account</h3>
+						<p class="mt-1 text-sm text-slate-500">
+							We lost connection to your Gmail account. Please reconnect to continue using SRC. Once
+							re-enabled, SRC will re-sync your inbox between now and the last time the connection
+							was active.
+						</p>
+					</div>
+					<ConnectGoogleAccountButton {onConnect} email={$page.data.profile?.email} />
+				</div>
+			</div>
+			<!-- else not active -->
+		{:else}
 			<div class="shadow sm:overflow-hidden sm:rounded-md">
 				<div class="space-y-6 bg-white py-6 px-4 sm:p-6">
 					<div class="max-w-2xl">
