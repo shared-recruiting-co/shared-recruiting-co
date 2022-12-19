@@ -125,6 +125,12 @@ func syncNewEmails(
 				continue
 			}
 
+			// filter out messages with the sent or already have a job label
+			// TODO: Handle new messages with the job label differently
+			if contains(message.LabelIds, "SENT") || contains(message.LabelIds, jobLabelID) {
+				continue
+			}
+
 			example := &PredictRequest{
 				From:    mail.MessageSender(message),
 				Subject: mail.MessageSubject(message),
