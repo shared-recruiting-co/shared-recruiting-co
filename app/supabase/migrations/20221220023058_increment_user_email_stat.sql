@@ -6,7 +6,7 @@
 CREATE OR REPLACE FUNCTION public.increment_user_email_stat(
 	user_id uuid,
 	email text,
-	stat_name text,
+	stat_id text,
 	stat_value integer)
     RETURNS void
     LANGUAGE 'sql'
@@ -14,7 +14,7 @@ CREATE OR REPLACE FUNCTION public.increment_user_email_stat(
     VOLATILE PARALLEL UNSAFE
 AS $BODY$
   insert into public.user_email_stat(user_id, email, stat_id, stat_value)
-  values (user_id, email, stat_name, stat_value)
+  values (user_id, email, stat_id, stat_value)
   on conflict (user_id, email, stat_id)
   do update set
       stat_value = user_email_stat.stat_value + excluded.stat_value;

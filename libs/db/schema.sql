@@ -159,11 +159,11 @@ create policy "Users can view their own email stats"
 -- enable realtime
 alter publication supabase_realtime add table user_email_stat;
 
-create or replace function increment_user_email_stat (user_id uuid, email text, stat_name text, stat_value int)
+create or replace function increment_user_email_stat (user_id uuid, email text, stat_id text, stat_value int)
 returns void as
 $$
   insert into public.user_email_stat(user_id, email, stat_id, stat_value)
-  values (user_id, email, stat_name, stat_value)
+  values (user_id, email, stat_id, stat_value)
   on conflict (user_id, email, stat_id)
   do update set
       stat_value = user_email_stat.stat_value + excluded.stat_value;
