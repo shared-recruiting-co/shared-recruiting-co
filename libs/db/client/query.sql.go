@@ -100,6 +100,31 @@ func (q *Queries) GetUserProfileByEmail(ctx context.Context, email string) (User
 	return i, err
 }
 
+const incrementUserEmailStat = `-- name: IncrementUserEmailStat :exec
+insert into public.user_email_stat(user_id, email, stat_id, stat_value)
+values ($1, $2, $3, $4)
+on conflict (user_id, email, stat_id)
+do update set
+    stat_value = user_email_stat.stat_value + excluded.stat_value
+`
+
+type IncrementUserEmailStatParams struct {
+	UserID    uuid.UUID `json:"user_id"`
+	Email     string    `json:"email"`
+	StatID    string    `json:"stat_id"`
+	StatValue int32     `json:"stat_value"`
+}
+
+func (q *Queries) IncrementUserEmailStat(ctx context.Context, arg IncrementUserEmailStatParams) error {
+	_, err := q.exec(ctx, q.incrementUserEmailStatStmt, incrementUserEmailStat,
+		arg.UserID,
+		arg.Email,
+		arg.StatID,
+		arg.StatValue,
+	)
+	return err
+}
+
 const listUserOAuthTokens = `-- name: ListUserOAuthTokens :many
 select
     user_id,

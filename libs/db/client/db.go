@@ -33,6 +33,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getUserProfileByEmailStmt, err = db.PrepareContext(ctx, getUserProfileByEmail); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserProfileByEmail: %w", err)
 	}
+	if q.incrementUserEmailStatStmt, err = db.PrepareContext(ctx, incrementUserEmailStat); err != nil {
+		return nil, fmt.Errorf("error preparing query IncrementUserEmailStat: %w", err)
+	}
 	if q.listUserOAuthTokensStmt, err = db.PrepareContext(ctx, listUserOAuthTokens); err != nil {
 		return nil, fmt.Errorf("error preparing query ListUserOAuthTokens: %w", err)
 	}
@@ -60,6 +63,11 @@ func (q *Queries) Close() error {
 	if q.getUserProfileByEmailStmt != nil {
 		if cerr := q.getUserProfileByEmailStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getUserProfileByEmailStmt: %w", cerr)
+		}
+	}
+	if q.incrementUserEmailStatStmt != nil {
+		if cerr := q.incrementUserEmailStatStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing incrementUserEmailStatStmt: %w", cerr)
 		}
 	}
 	if q.listUserOAuthTokensStmt != nil {
@@ -119,6 +127,7 @@ type Queries struct {
 	getUserEmailSyncHistoryStmt    *sql.Stmt
 	getUserOAuthTokenStmt          *sql.Stmt
 	getUserProfileByEmailStmt      *sql.Stmt
+	incrementUserEmailStatStmt     *sql.Stmt
 	listUserOAuthTokensStmt        *sql.Stmt
 	upsertUserEmailSyncHistoryStmt *sql.Stmt
 	upsertUserOAuthTokenStmt       *sql.Stmt
@@ -131,6 +140,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getUserEmailSyncHistoryStmt:    q.getUserEmailSyncHistoryStmt,
 		getUserOAuthTokenStmt:          q.getUserOAuthTokenStmt,
 		getUserProfileByEmailStmt:      q.getUserProfileByEmailStmt,
+		incrementUserEmailStatStmt:     q.incrementUserEmailStatStmt,
 		listUserOAuthTokensStmt:        q.listUserOAuthTokensStmt,
 		upsertUserEmailSyncHistoryStmt: q.upsertUserEmailSyncHistoryStmt,
 		upsertUserOAuthTokenStmt:       q.upsertUserOAuthTokenStmt,
