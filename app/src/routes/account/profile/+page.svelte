@@ -2,24 +2,63 @@
 	import { page } from '$app/stores';
 	import { slide, draw, fade } from 'svelte/transition';
 
-	import { supabaseClient } from '$lib/supabase/client';
+	import { supabaseClient, UserEmailStats } from '$lib/supabase/client';
 
 	import Toggle from '$lib/components/Toggle.svelte';
 	import AlertModal from '$lib/components/AlertModal.svelte';
 	import ConnectGoogleAccountButton from '$lib/components/ConnectGoogleAccountButton.svelte';
 
+	// ui state
 	let profileSaved = false;
 	let settingsSaved = false;
 	let errors: Record<string, string> = {};
+	// settings
 	let isActive = $page.data.profile.isActive;
 	let isSetup = $page.data.isSetup;
 	let autoContribute = $page.data.profile.autoContribute;
 	let autoArchive = $page.data.profile.autoArchive;
 	let showDeactivateEmailModal = false;
+	// stats
 	let lastSyncedAt = $page.data.lastSyncedAt;
-	// TODO
-	const numEmailsProcessed = 4321;
-	const numEmailsDetected = 125;
+	let numEmailsProcessed = $page.data.numEmailsProcessed;
+	let numJobsDetected = $page.data.numJobsDetected;
+
+	supabaseClient
+		.channel('table-db-changes')
+		.on(
+			'postgres_changes',
+			{
+				event: '*',
+				table: 'user_email_stat',
+				schema: 'public'
+			},
+			(payload) => {
+				// rename because of keyword
+				const { new: changed } = payload;
+				if (!changed) return;
+				// TODO: Show a cool animation when the numbers of stats change
+				if (changed.stat_id === UserEmailStats.EmailsProcessed) {
+					numEmailsProcessed = changed.stat_value;
+				} else if (changed.stat_id === UserEmailStats.JobsDetected) {
+					numJobsDetected = changed.stat_value;
+				}
+			}
+		)
+		.on(
+			'postgres_changes',
+			{
+				event: '*',
+				table: 'user_email_sync_history',
+				schema: 'public'
+			},
+			(payload) => {
+				// rename because of keyword
+				const { new: changed } = payload;
+				if (!changed || !changed.synced_at) return;
+				lastSyncedAt = changed.synced_at;
+			}
+		)
+		.subscribe();
 
 	const onConnect = () => {
 		isSetup = true;
@@ -153,7 +192,7 @@
 				Member since {new Date($page.data.profile.createdAt).toLocaleDateString()}
 			</p>
 		</div>
-		{#if lastSyncedAt && false}
+		{#if lastSyncedAt}
 			<div>
 				<dl class="mt-5 hidden gap-5 sm:grid sm:grid-cols-3">
 					<div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
@@ -171,9 +210,9 @@
 					</div>
 
 					<div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-						<dt class="truncate text-sm font-medium text-gray-500">Job Opportunities Identified</dt>
+						<dt class="truncate text-sm font-medium text-gray-500">Jobs Identified</dt>
 						<dd class="mt-1 text-2xl tracking-tight text-gray-900">
-							{numberFormatter.format(numEmailsDetected)}
+							{numberFormatter.format(numJobsDetected)}
 						</dd>
 					</div>
 				</dl>

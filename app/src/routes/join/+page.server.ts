@@ -98,7 +98,7 @@ export const actions: Actions = {
 
 		const responses = {
 			referrer,
-			comment,
+			comment
 		};
 
 		// add the user to waitlist
