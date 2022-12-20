@@ -5,8 +5,8 @@ go 1.19
 require (
 	github.com/GoogleCloudPlatform/functions-framework-go v1.6.1
 	github.com/cloudevents/sdk-go/v2 v2.12.0
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/db v0.0.0-20221219190549-f59fe1d47111
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20221219190549-f59fe1d47111
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/db v0.0.0-20221220151318-736e95524780
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20221220151318-736e95524780
 	golang.org/x/oauth2 v0.3.0
 	google.golang.org/api v0.105.0
 )
