@@ -25,6 +25,7 @@ export const load: PageLoad<Data> = async (event) => {
 			supabaseClient.from('user_email_stat').select('*')
 		]);
 
+	//TODO: Move this aggregation to the database
 	const numEmailsProcessed = emailStats?.reduce(
 		(acc, stat) => (stat.stat_id === UserEmailStats.EmailsProcessed ? acc + stat.stat_value : acc),
 		0
