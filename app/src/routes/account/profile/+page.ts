@@ -14,15 +14,10 @@ export const load: PageLoad<Data> = async (event) => {
 		throw redirect(303, '/login');
 	}
 
-	const { data: emailSyncHistory } = await supabaseClient
-		.from('user_email_sync_history')
-		.select('synced_at')
-		.maybeSingle();
-
-	const { data: oauthToken } = await supabaseClient
-		.from('user_oauth_token')
-		.select('is_valid')
-		.maybeSingle();
+	const [{ data: emailSyncHistory }, { data: oauthToken }] = await Promise.all([
+		supabaseClient.from('user_email_sync_history').select('synced_at').maybeSingle(),
+		supabaseClient.from('user_oauth_token').select('is_valid').maybeSingle()
+	]);
 
 	return {
 		lastSyncedAt: emailSyncHistory?.synced_at as string | undefined,

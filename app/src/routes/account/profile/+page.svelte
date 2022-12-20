@@ -16,6 +16,10 @@
 	let autoContribute = $page.data.profile.autoContribute;
 	let autoArchive = $page.data.profile.autoArchive;
 	let showDeactivateEmailModal = false;
+	let lastSyncedAt = $page.data.lastSyncedAt;
+	// TODO
+	const numEmailsProcessed = 4321;
+	const numEmailsDetected = 125;
 
 	const onConnect = () => {
 		isSetup = true;
@@ -118,18 +122,63 @@
 		}
 		isActive = true;
 	};
+
+	const timeFormatter = new Intl.DateTimeFormat('en', {
+		timeStyle: 'short'
+	});
+	const numberFormatter = new Intl.NumberFormat('en');
+	// written by ChatGPT
+	const formatDate = (iso: string): string => {
+		const date = new Date(iso);
+		const today = new Date();
+
+		if (date.toDateString() === today.toDateString()) {
+			// If the date is today, return "Today at" followed by the time
+			return `Today at ${timeFormatter.format(date)}`;
+		} else {
+			// Otherwise, return the month and day followed by "at" and the time
+			const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+			return `${date.toLocaleDateString('en-US', options)} at ${timeFormatter.format(date)}`;
+		}
+	};
 </script>
 
 <div class="sm:my-18 my-12 lg:grid lg:grid-cols-12 lg:gap-x-5">
 	<!-- Empty space for now -->
 	<aside class="block py-6 px-2 sm:px-6 lg:col-span-2 lg:py-0 lg:px-0" />
 	<div class="space-y-6 sm:px-6 lg:col-span-9 lg:px-0">
-		<div class="px-4">
+		<div class="px-4 sm:px-0">
 			<h1 class="text-3xl sm:text-4xl">Account</h1>
 			<p class="mt-1 text-sm text-slate-500">
 				Member since {new Date($page.data.profile.createdAt).toLocaleDateString()}
 			</p>
 		</div>
+		{#if lastSyncedAt && false}
+			<div>
+				<dl class="mt-5 hidden gap-5 sm:grid sm:grid-cols-3">
+					<div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+						<dt class="truncate text-sm font-medium text-gray-500">Last Synced</dt>
+						<dd class="mt-1 text-2xl tracking-tight text-gray-900">
+							{formatDate(lastSyncedAt)}
+						</dd>
+					</div>
+
+					<div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+						<dt class="truncate text-sm font-medium text-gray-500">Emails Analyzed</dt>
+						<dd class="mt-1 text-2xl tracking-tight text-gray-900">
+							{numberFormatter.format(numEmailsProcessed)}
+						</dd>
+					</div>
+
+					<div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+						<dt class="truncate text-sm font-medium text-gray-500">Job Opportunities Identified</dt>
+						<dd class="mt-1 text-2xl tracking-tight text-gray-900">
+							{numberFormatter.format(numEmailsDetected)}
+						</dd>
+					</div>
+				</dl>
+			</div>
+		{/if}
 		<div class="relative shadow sm:overflow-hidden sm:rounded-md">
 			{#if profileSaved}
 				<div
