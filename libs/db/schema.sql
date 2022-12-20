@@ -10,6 +10,15 @@ create table auth.users (
 -- Add moddatetime extension
 create extension if not exists moddatetime schema extensions;
 
+-- Enable Suapbase Realtime
+begin;
+  -- remove the supabase_realtime publication
+  drop publication if exists supabase_realtime;
+
+  -- re-create the supabase_realtime publication with no tables
+  create publication supabase_realtime;
+commit;
+
 -- User OAuth Token Table
 create table public.user_oauth_token (
     user_id uuid references auth.users(id) not null,
@@ -26,7 +35,6 @@ create trigger handle_updated_at_user_oauth_token before update on public.user_o
   for each row execute procedure moddatetime (updated_at);
 
 alter table public.user_oauth_token enable row level security;
-
 
 create policy "Users can view their own oauth tokens"
   on public.user_oauth_token for select
@@ -63,7 +71,10 @@ create policy "Users can view their own email sync history"
   on public.user_email_sync_history for select
   using ( auth.uid() = user_id );
 
--- waitlist table
+-- enable realtime
+alter publication supabase_realtime add table user_email_sync_history;
+
+-- Waitlist table
 create table public.waitlist (
     user_id uuid references auth.users(id) not null,
     -- duplicate email for convenience
@@ -119,3 +130,31 @@ create policy "Users can view their own profile"
 create policy "Users can update their own profile"
   on public.user_profile for update
   using ( auth.uid() = user_id );
+
+-- user_email_stat table
+-- simple table to keep track of realtime user facing statistics
+create table public.user_email_stat (
+    user_id uuid references auth.users(id) not null,
+    -- in future, user can have multiple emails
+    email text not null,
+    -- free form stat id
+    stat_id text not null,
+    -- integer for now
+    stat_value integer not null default 0,
+    created_at timestamp with time zone not null default now(),
+    updated_at timestamp with time zone not null default now(),
+
+    primary key (user_id, email, stat_id)
+);
+
+create trigger handle_updated_at_user_email_stat before update on public.user_email_stat
+  for each row execute procedure moddatetime (updated_at);
+
+-- enable RLS
+alter table public.user_email_stat enable row level security;
+create policy "Users can view their own email stats"
+  on public.user_email_stat for select
+  using ( auth.uid() = user_id );
+
+-- enable realtime
+alter publication supabase_realtime add table user_email_stat;
