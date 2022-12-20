@@ -59,3 +59,10 @@ on conflict (user_id)
 do update set 
     history_id = excluded.history_id,
     synced_at = excluded.synced_at;
+
+-- name: IncrementUserEmailStat :exec
+insert into public.user_email_stat(user_id, email, stat_id, stat_value)
+values ($1, $2, $3, $4)
+on conflict (user_id, email, stat_id)
+do update set
+    stat_value = user_email_stat.stat_value + excluded.stat_value;

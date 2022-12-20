@@ -232,3 +232,26 @@ func (q *HTTPQueries) UpsertUserEmailSyncHistory(ctx context.Context, arg Upsert
 
 	return nil
 }
+
+// IncrementUserEmailStat increments a user's email stat.
+func (q *HTTPQueries) IncrementUserEmailStat(ctx context.Context, arg IncrementUserEmailStatParams) error {
+	// we cannot do upserts with PostgREST, so instead we user a stored procedure
+	basePath := "/rpc/increment_user_email_stat"
+	path := fmt.Sprintf("%s", basePath)
+	body, err := json.Marshal(arg)
+	if err != nil {
+		return err
+	}
+
+	resp, err := q.DoRequest(ctx, http.MethodPost, path, bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		return fmt.Errorf("increment user email stat: %s", resp.Status)
+	}
+
+	return nil
+}

@@ -62,6 +62,7 @@ func triggerBackgroundfFullEmailSync(ctx context.Context, email string, startDat
 func syncNewEmails(
 	user client.UserProfile,
 	srv *mail.Service,
+	queries client.Querier,
 	classifier Classifier,
 	syncHistory client.UserEmailSyncHistory,
 	jobLabelID string,
@@ -163,6 +164,38 @@ func syncNewEmails(
 		// for now, abort on error
 		if err != nil {
 			return fmt.Errorf("error modifying recruiting emails: %v", err)
+		}
+
+		// save statistics
+		if len(examples) > 0 {
+			err = queries.IncrementUserEmailStat(
+				context.Background(),
+				client.IncrementUserEmailStatParams{
+					UserID:    user.UserID,
+					Email:     user.Email,
+					StatID:    "emails_processed",
+					StatValue: int32(len(examples)),
+				},
+			)
+			if err != nil {
+				// print error, but don't abort
+				log.Printf("error incrementing user email stat: %v", err)
+			}
+		}
+		if len(recruitingEmailIDs) > 0 {
+			err = queries.IncrementUserEmailStat(
+				context.Background(),
+				client.IncrementUserEmailStatParams{
+					UserID:    user.UserID,
+					Email:     user.Email,
+					StatID:    "jobs_detected",
+					StatValue: int32(len(recruitingEmailIDs)),
+				},
+			)
+			if err != nil {
+				// print error, but don't abort
+				log.Printf("error incrementing user email stat: %v", err)
+			}
 		}
 
 		if pageToken == "" {
