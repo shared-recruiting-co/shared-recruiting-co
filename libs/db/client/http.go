@@ -249,7 +249,8 @@ func (q *HTTPQueries) IncrementUserEmailStat(ctx context.Context, arg IncrementU
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusCreated {
+	// RPCs return 204
+	if resp.StatusCode != http.StatusNoContent {
 		return fmt.Errorf("increment user email stat: %s", resp.Status)
 	}
 
