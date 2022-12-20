@@ -248,6 +248,38 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// save statistics
+		if len(examples) > 0 {
+			err = queries.IncrementUserEmailStat(
+				ctx,
+				client.IncrementUserEmailStatParams{
+					UserID:    user.UserID,
+					Email:     user.Email,
+					StatID:    "emails_processed",
+					StatValue: int32(len(examples)),
+				},
+			)
+			if err != nil {
+				// print error, but don't abort
+				log.Printf("error incrementing user email stat: %v", err)
+			}
+		}
+		if len(recruitingEmailIDs) > 0 {
+			err = queries.IncrementUserEmailStat(
+				ctx,
+				client.IncrementUserEmailStatParams{
+					UserID:    user.UserID,
+					Email:     user.Email,
+					StatID:    "jobs_detected",
+					StatValue: int32(len(recruitingEmailIDs)),
+				},
+			)
+			if err != nil {
+				// print error, but don't abort
+				log.Printf("error incrementing user email stat: %v", err)
+			}
+		}
+
 		if pageToken == "" {
 			break
 		}
