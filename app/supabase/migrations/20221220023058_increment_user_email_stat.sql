@@ -6,36 +6,6 @@
 CREATE OR REPLACE FUNCTION public.increment_user_email_stat(
 	user_id uuid,
 	email text,
-	stat_name integer,
-	stat_value integer)
-    RETURNS void
-    LANGUAGE 'sql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
-AS $BODY$
-  insert into public.user_email_stat(user_id, email, stat_id, stat_value)
-  values (user_id, email, stat_name, stat_value)
-  on conflict (user_id, email, stat_id)
-  do update set
-      stat_value = user_email_stat.stat_value + excluded.stat_value;
-$BODY$;
-
-ALTER FUNCTION public.increment_user_email_stat(uuid, text, integer, integer)
-    OWNER TO postgres;
-
-GRANT EXECUTE ON FUNCTION public.increment_user_email_stat(uuid, text, integer, integer) TO PUBLIC;
-
-GRANT EXECUTE ON FUNCTION public.increment_user_email_stat(uuid, text, integer, integer) TO anon;
-
-GRANT EXECUTE ON FUNCTION public.increment_user_email_stat(uuid, text, integer, integer) TO authenticated;
-
-GRANT EXECUTE ON FUNCTION public.increment_user_email_stat(uuid, text, integer, integer) TO postgres;
-
-GRANT EXECUTE ON FUNCTION public.increment_user_email_stat(uuid, text, integer, integer) TO service_role;
-
-CREATE OR REPLACE FUNCTION public.increment_user_email_stat(
-	user_id uuid,
-	email text,
 	stat_name text,
 	stat_value integer)
     RETURNS void
