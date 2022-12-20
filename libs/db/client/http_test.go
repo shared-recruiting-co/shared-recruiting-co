@@ -104,8 +104,8 @@ func TestHTTPGetUserProfileByEmail(t *testing.T) {
 		if r.Method != http.MethodGet {
 			t.Errorf("got %v, want %v", r.Method, http.MethodGet)
 		}
-		if r.URL.Path != wantPath {
-			t.Errorf("got %v, want %v", r.URL.Path, wantPath)
+		if r.URL.String() != wantPath {
+			t.Errorf("got %v, want %v", r.URL.String(), wantPath)
 		}
 		// check auth headers
 		wantAuth := fmt.Sprintf("Bearer %s", apikey)
