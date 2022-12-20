@@ -16,6 +16,15 @@ type AuthUser struct {
 	Email string    `json:"email"`
 }
 
+type UserEmailStat struct {
+	UserID    uuid.UUID `json:"user_id"`
+	Email     string    `json:"email"`
+	StatID    string    `json:"stat_id"`
+	StatValue int32     `json:"stat_value"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 type UserEmailSyncHistory struct {
 	UserID    uuid.UUID `json:"user_id"`
 	HistoryID int64     `json:"history_id"`
