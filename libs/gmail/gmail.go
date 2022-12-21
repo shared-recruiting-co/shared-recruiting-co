@@ -3,7 +3,9 @@ package gmail
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -226,6 +228,33 @@ func (s *Service) GetOrCreateSRCLabels() (*srclabel.Labels, error) {
 	}
 
 	return &result, nil
+}
+
+// AllowMessage
+func (s *Service) AllowMessage(m *gmail.Message) (bool, error) {
+	sender := MessageSender(m)
+
+	// check if sender is allowed
+	// leverage Gmail's native query engine to check
+	q := fmt.Sprintf("from:%s label:%s", sender, srclabel.AllowSender.Name)
+	resp, err := s.Users.Messages.List(s.UserID).Q(q).Do()
+	if err != nil {
+		return false, err
+	}
+	if len(resp.Messages) > 0 {
+		return true, nil
+	}
+	// check if sender's email domain is allowed
+	parts := strings.SplitAfter(sender, "@")
+	if len(parts) != 2 {
+		return false, fmt.Errorf("unable to parse domain from sender: %s", sender)
+	}
+	// remove name related characters (i.e Jo Smo <joe@smo.com>)
+	domain := strings.ReplaceAll("@"+parts[1], ">", "")
+	q = fmt.Sprintf("from:%s label:%s", domain, srclabel.AllowDomain.Name)
+	resp, err = s.Users.Messages.List(s.UserID).Q(q).Do()
+
+	return len(resp.Messages) > 0, err
 }
 
 // Messages
