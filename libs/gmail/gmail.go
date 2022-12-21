@@ -8,7 +8,7 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 
-	srclabels "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail/labels"
+	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail/label"
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/option"
 )
@@ -124,48 +124,48 @@ func (s *Service) CreateLabel(l *gmail.Label) (*gmail.Label, error) {
 
 // GetOrCreateSRCLabels fetches or creates all of the labels managed by SRC
 // Label IDs are unique to each gmail account, so we need to list all labels and match based off names.
-func (s *Service) GetOrCreateSRCLabels() (*srclabels.Labels, error) {
+func (s *Service) GetOrCreateSRCLabels() (*srclabel.Labels, error) {
 	// TODO: What is a better data structure or interface to make this function more DRY?
 	// list all labels
 	labels, err := s.Users.Labels.List(s.UserID).Do()
 	if err != nil {
 		return nil, err
 	}
-	result := srclabels.Labels{}
+	result := srclabel.Labels{}
 
 	// for each label,
 	// if it exists, add it to the struct
 	// if it doesn't exist, create it and add it to the struct
 	for _, label := range labels.Labels {
 		switch label.Name {
-		case srclabels.SRC.Name:
+		case srclabel.SRC.Name:
 			result.SRC = label
 			break
-		case srclabels.Jobs.Name:
+		case srclabel.Jobs.Name:
 			result.Jobs = label
 			break
-		case srclabels.JobsOpportunity.Name:
+		case srclabel.JobsOpportunity.Name:
 			result.JobsOpportunity = label
 			break
-		case srclabels.Allow.Name:
+		case srclabel.Allow.Name:
 			result.Allow = label
 			break
-		case srclabels.AllowSender.Name:
+		case srclabel.AllowSender.Name:
 			result.AllowSender = label
 			break
-		case srclabels.AllowDomain.Name:
+		case srclabel.AllowDomain.Name:
 			result.AllowDomain = label
 			break
-		case srclabels.Block.Name:
+		case srclabel.Block.Name:
 			result.Block = label
 			break
-		case srclabels.BlockSender.Name:
+		case srclabel.BlockSender.Name:
 			result.BlockSender = label
 			break
-		case srclabels.BlockDomain.Name:
+		case srclabel.BlockDomain.Name:
 			result.BlockDomain = label
 			break
-		case srclabels.BlockGraveyard.Name:
+		case srclabel.BlockGraveyard.Name:
 			result.BlockGraveyard = label
 			break
 		}
@@ -173,62 +173,62 @@ func (s *Service) GetOrCreateSRCLabels() (*srclabels.Labels, error) {
 
 	// create any labels that don't exist
 	if result.SRC == nil {
-		result.SRC, err = s.CreateLabel(&srclabels.SRC)
+		result.SRC, err = s.CreateLabel(&srclabel.SRC)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if result.Jobs == nil {
-		result.Jobs, err = s.CreateLabel(&srclabels.Jobs)
+		result.Jobs, err = s.CreateLabel(&srclabel.Jobs)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if result.JobsOpportunity == nil {
-		result.JobsOpportunity, err = s.CreateLabel(&srclabels.JobsOpportunity)
+		result.JobsOpportunity, err = s.CreateLabel(&srclabel.JobsOpportunity)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if result.Allow == nil {
-		result.Allow, err = s.CreateLabel(&srclabels.Allow)
+		result.Allow, err = s.CreateLabel(&srclabel.Allow)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if result.AllowSender == nil {
-		result.AllowSender, err = s.CreateLabel(&srclabels.AllowSender)
+		result.AllowSender, err = s.CreateLabel(&srclabel.AllowSender)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if result.AllowDomain == nil {
-		result.AllowDomain, err = s.CreateLabel(&srclabels.AllowDomain)
+		result.AllowDomain, err = s.CreateLabel(&srclabel.AllowDomain)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if result.Block == nil {
-		result.Block, err = s.CreateLabel(&srclabels.Block)
+		result.Block, err = s.CreateLabel(&srclabel.Block)
 		if err != nil {
 			return nil, err
 		}
 
 	}
 	if result.BlockSender == nil {
-		result.BlockSender, err = s.CreateLabel(&srclabels.BlockSender)
+		result.BlockSender, err = s.CreateLabel(&srclabel.BlockSender)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if result.BlockDomain == nil {
-		result.BlockDomain, err = s.CreateLabel(&srclabels.BlockDomain)
+		result.BlockDomain, err = s.CreateLabel(&srclabel.BlockDomain)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if result.BlockGraveyard == nil {
-		result.BlockGraveyard, err = s.CreateLabel(&srclabels.BlockGraveyard)
+		result.BlockGraveyard, err = s.CreateLabel(&srclabel.BlockGraveyard)
 		if err != nil {
 			return nil, err
 		}
