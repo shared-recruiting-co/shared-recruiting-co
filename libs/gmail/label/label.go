@@ -29,7 +29,7 @@ type Labels struct {
 	// BlockDomain is the @SRC/Block/Domain folder for email domains that are automatically removed from your inbox.
 	// Blocked emails are not analyzed by SRC.
 	BlockDomain *gmail.Label
-	// BlockGraveyard is the @SRC/Block/Graveyard folder for emails that have been removed from your inbox.
+	// BlockGraveyard is the @SRC/Block/🪦 folder for emails that have been removed from your inbox.
 	// Blocked emails are not be analyzed by SRC.
 	BlockGraveyard *gmail.Label
 }
@@ -113,7 +113,7 @@ var (
 	// BlockGraveyard is the @SRC/Block/Graveyard folder for emails that have been removed from your inbox.
 	// Blocked emails are not be analyzed by SRC.
 	BlockGraveyard = gmail.Label{
-		Name:                  Block.Name + "/Graveyard",
+		Name:                  Block.Name + "/🪦",
 		MessageListVisibility: "show",
 		Color:                 Block.Color,
 	}
