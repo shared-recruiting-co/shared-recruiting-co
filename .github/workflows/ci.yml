@@ -44,6 +44,7 @@ jobs:
           - "./cloudfunctions/email_push_notifications" 
           - "./cloudfunctions/watch_emails" 
           - "./cloudfunctions/full_email_sync" 
+          - "./cloudfunctions/adhoc" 
           - "./libs/db" 
           - "./libs/gmail" 
 
