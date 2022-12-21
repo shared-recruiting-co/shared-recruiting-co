@@ -141,7 +141,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	}
 
 	// 4. Get or Create SRC Labels
-	_, err = srv.GetOrCreateSRCLabel()
+	labels, err := srv.GetOrCreateSRCLabels()
 	if err != nil {
 		// first request, so check if the error is an oauth error
 		// if so, update the database
@@ -163,11 +163,6 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		}
 		return fmt.Errorf("error getting or creating the SRC label: %v", err)
 	}
-	srcJobOpportunityLabel, err := srv.GetOrCreateSRCJobOpportunityLabel()
-	if err != nil {
-		return fmt.Errorf("error getting or creating the SRC job opportunity label: %v", err)
-	}
-
 	// Create recruiting detector client
 	classifierBaseURL := os.Getenv("CLASSIFIER_URL")
 	idTokenSource, err := idtoken.NewTokenSource(ctx, classifierBaseURL)
@@ -252,7 +247,9 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		srv,
 		queries,
 		classifier,
-		prevSyncHistory, srcJobOpportunityLabel.Id)
+		prevSyncHistory,
+		labels,
+	)
 	if err != nil {
 		revertSynctHistory()
 		return fmt.Errorf("error processing messages: %v", err)
