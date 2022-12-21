@@ -230,21 +230,8 @@ func (s *Service) GetOrCreateSRCLabels() (*srclabel.Labels, error) {
 	return &result, nil
 }
 
-// AllowMessage checks if message is on the user's allow list
-func (s *Service) AllowMessage(m *gmail.Message) (bool, error) {
-	var err error
-	// make sure message payload headers are present
-	if m.Payload == nil {
-		m, err = s.GetMessage(m.Id)
-		if err != nil {
-			return false, err
-		}
-		if m.Payload == nil || len(m.Payload.Headers) == 0 {
-			return false, fmt.Errorf("error allowing message: message %s payload headers are empty", m.Id)
-		}
-	}
-	sender := MessageSender(m)
-
+// IsSenderAllowed checks if message is on the user's allow list
+func (s *Service) IsSenderAllowed(sender string) (bool, error) {
 	// check if sender is allowed
 	// leverage Gmail's native query engine to check
 	q := fmt.Sprintf("from:%s label:%s", sender, srclabel.AllowSender.Name)
@@ -268,21 +255,8 @@ func (s *Service) AllowMessage(m *gmail.Message) (bool, error) {
 	return len(resp.Messages) > 0, err
 }
 
-// BlockMessage checks if message is on the user's block list
-func (s *Service) BlockMessage(m *gmail.Message) (bool, error) {
-	var err error
-	// make sure message payload headers are present
-	if m.Payload == nil {
-		m, err = s.GetMessage(m.Id)
-		if err != nil {
-			return false, err
-		}
-		if m.Payload == nil || len(m.Payload.Headers) == 0 {
-			return false, fmt.Errorf("error blocking message: message %s payload headers are empty", m.Id)
-		}
-	}
-	sender := MessageSender(m)
-
+// IsSenderBlocked checks if message is on the user's block list
+func (s *Service) IsSenderBlocked(sender string) (bool, error) {
 	// check if sender is allowed
 	// leverage Gmail's native query engine to check
 	q := fmt.Sprintf("from:%s label:%s", sender, srclabel.BlockSender.Name)
@@ -307,6 +281,16 @@ func (s *Service) BlockMessage(m *gmail.Message) (bool, error) {
 }
 
 // Messages
+
+// BlockMessage blocks a message by moving moving out of the users inbox and into the block graveyard
+func (s *Service) BlockMessage(id string, labels *srclabel.Labels) error {
+	_, err := s.Users.Messages.Modify(s.UserID, id, &gmail.ModifyMessageRequest{
+		AddLabelIds:    []string{labels.BlockGraveyard.Id},
+		RemoveLabelIds: []string{"UNREAD", "INBOX"},
+	}).Do()
+
+	return err
+}
 
 // ForwardEmail is a good enough implementation of forwarding an email in the same format as the gmail client.
 // It is good enough because it doesn't naively handle HTML mime-type content or when there are multiple parent messages.

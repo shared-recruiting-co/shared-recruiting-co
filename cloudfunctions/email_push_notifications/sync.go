@@ -129,8 +129,9 @@ func syncNewEmails(
 				continue
 			}
 
+			sender := mail.MessageSender(message)
 			// check if message sender is on the allow list
-			allowed, err := srv.AllowMessage(message)
+			allowed, err := srv.IsSenderAllowed(sender)
 			if err != nil {
 				log.Printf("error checking allow list: %v", err)
 			}
@@ -141,17 +142,13 @@ func syncNewEmails(
 			}
 
 			// check if message sender is on the block list
-			blocked, err := srv.BlockMessage(message)
+			blocked, err := srv.IsSenderBlocked(sender)
 			if err != nil {
 				log.Printf("error checking block list: %v", err)
 			}
 			// do not take action on allowed senders
 			if blocked {
-				// block message by adding to graveyard and removing from inbox
-				_, err = srv.Users.Messages.Modify(srv.UserID, message.Id, &gmail.ModifyMessageRequest{
-					AddLabelIds:    []string{labels.BlockGraveyard.Id},
-					RemoveLabelIds: []string{"UNREAD", "INBOX"},
-				}).Do()
+				err = srv.BlockMessage(message.Id, labels)
 				if err != nil {
 					log.Printf("error blocking message: %v", err)
 					continue
