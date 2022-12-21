@@ -5,6 +5,7 @@ import (
 	"time"
 
 	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
+	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail/label"
 	"google.golang.org/api/gmail/v1"
 )
 
@@ -15,7 +16,7 @@ const maxResults = 250
 // Use the next page token to fetch the rest of the emails
 func fetchEmailsSinceDate(srv *mail.Service, date time.Time, pageToken string) ([]*gmail.Message, string, error) {
 	// get all (including archived) emails after the start date, ignore sent emails and emails already processed by SRC
-	q := fmt.Sprintf("-label:sent -label:%s after:%s", mail.SRCJobOpportunityLabel, date.Format("2006/01/02"))
+	q := fmt.Sprintf("-label:sent -label:%s after:%s", srclabel.SRC.Name, date.Format("2006/01/02"))
 
 	r, err := srv.Users.Messages.
 		List(srv.UserID).
