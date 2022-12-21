@@ -230,8 +230,19 @@ func (s *Service) GetOrCreateSRCLabels() (*srclabel.Labels, error) {
 	return &result, nil
 }
 
-// AllowMessage
+// AllowMessage checks if message is on the user's allow list
 func (s *Service) AllowMessage(m *gmail.Message) (bool, error) {
+	var err error
+	// make sure message payload headers are present
+	if m.Payload == nil {
+		m, err = s.GetMessage(m.Id)
+		if err != nil {
+			return false, err
+		}
+		if m.Payload == nil || len(m.Payload.Headers) == 0 {
+			return false, fmt.Errorf("message %s payload headers are empty", m.Id)
+		}
+	}
 	sender := MessageSender(m)
 
 	// check if sender is allowed
