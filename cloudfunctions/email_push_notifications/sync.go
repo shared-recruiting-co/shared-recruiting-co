@@ -140,6 +140,26 @@ func syncNewEmails(
 				continue
 			}
 
+			// check if message sender is on the block list
+			blocked, err := srv.BlockMessage(message)
+			if err != nil {
+				log.Printf("error checking block list: %v", err)
+			}
+			// do not take action on allowed senders
+			if blocked {
+				// block message by adding to graveyard and removing from inbox
+				_, err = srv.Users.Messages.Modify(srv.UserID, message.Id, &gmail.ModifyMessageRequest{
+					AddLabelIds:    []string{labels.BlockGraveyard.Id},
+					RemoveLabelIds: []string{"UNREAD", "INBOX"},
+				}).Do()
+				if err != nil {
+					log.Printf("error blocking message: %v", err)
+					continue
+				}
+				log.Printf("blocked message: %s", message.Id)
+				continue
+			}
+
 			example := &PredictRequest{
 				From:    mail.MessageSender(message),
 				Subject: mail.MessageSubject(message),
