@@ -87,7 +87,7 @@ func migrateLabels(w http.ResponseWriter, r *http.Request) {
 		pageToken := ""
 		fetchMessageError := false
 		for {
-			messages, err := srv.Users.Messages.List(srv.UserID).Q(q).MaxResults(500).Do()
+			messages, err := srv.Users.Messages.List(srv.UserID).Q(q).PageToken(pageToken).MaxResults(500).Do()
 			if err != nil {
 				log.Printf("error getting messages: %v", err)
 				hasError = true
