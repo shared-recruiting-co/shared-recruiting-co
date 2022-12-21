@@ -129,6 +129,17 @@ func syncNewEmails(
 				continue
 			}
 
+			// check if message sender is on the allow list
+			allowed, err := srv.AllowMessage(message)
+			if err != nil {
+				log.Printf("error checking allow list: %v", err)
+			}
+			// do not take action on allowed senders
+			if allowed {
+				log.Printf("allowing message: %s", message.Id)
+				continue
+			}
+
 			example := &PredictRequest{
 				From:    mail.MessageSender(message),
 				Subject: mail.MessageSubject(message),
