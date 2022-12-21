@@ -8,6 +8,7 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 
+	srclabels "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail/labels"
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/option"
 )
@@ -115,6 +116,125 @@ func (s *Service) GetOrCreateSRCLabel() (*gmail.Label, error) {
 
 func (s *Service) GetOrCreateSRCJobOpportunityLabel() (*gmail.Label, error) {
 	return s.GetOrCreateLabel(SRCJobOpportunityLabel, SRCJobOpportunityLabelColor)
+}
+
+func (s *Service) CreateLabel(l *gmail.Label) (*gmail.Label, error) {
+	return s.Users.Labels.Create(s.UserID, l).Do()
+}
+
+// GetOrCreateSRCLabels fetches or creates all of the labels managed by SRC
+// Label IDs are unique to each gmail account, so we need to list all labels and match based off names.
+func (s *Service) GetOrCreateSRCLabels() (*srclabels.Labels, error) {
+	// TODO: What is a better data structure or interface to make this function more DRY?
+	// list all labels
+	labels, err := s.Users.Labels.List(s.UserID).Do()
+	if err != nil {
+		return nil, err
+	}
+	result := srclabels.Labels{}
+
+	// for each label,
+	// if it exists, add it to the struct
+	// if it doesn't exist, create it and add it to the struct
+	for _, label := range labels.Labels {
+		switch label.Name {
+		case srclabels.SRC.Name:
+			result.SRC = label
+			break
+		case srclabels.Jobs.Name:
+			result.Jobs = label
+			break
+		case srclabels.JobsOpportunity.Name:
+			result.JobsOpportunity = label
+			break
+		case srclabels.Allow.Name:
+			result.Allow = label
+			break
+		case srclabels.AllowSender.Name:
+			result.AllowSender = label
+			break
+		case srclabels.AllowDomain.Name:
+			result.AllowDomain = label
+			break
+		case srclabels.Block.Name:
+			result.Block = label
+			break
+		case srclabels.BlockSender.Name:
+			result.BlockSender = label
+			break
+		case srclabels.BlockDomain.Name:
+			result.BlockDomain = label
+			break
+		case srclabels.BlockGraveyard.Name:
+			result.BlockGraveyard = label
+			break
+		}
+	}
+
+	// create any labels that don't exist
+	if result.SRC == nil {
+		result.SRC, err = s.CreateLabel(&srclabels.SRC)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if result.Jobs == nil {
+		result.Jobs, err = s.CreateLabel(&srclabels.Jobs)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if result.JobsOpportunity == nil {
+		result.JobsOpportunity, err = s.CreateLabel(&srclabels.JobsOpportunity)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if result.Allow == nil {
+		result.Allow, err = s.CreateLabel(&srclabels.Allow)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if result.AllowSender == nil {
+		result.AllowSender, err = s.CreateLabel(&srclabels.AllowSender)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if result.AllowDomain == nil {
+		result.AllowDomain, err = s.CreateLabel(&srclabels.AllowDomain)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if result.Block == nil {
+		result.Block, err = s.CreateLabel(&srclabels.Block)
+		if err != nil {
+			return nil, err
+		}
+
+	}
+	if result.BlockSender == nil {
+		result.BlockSender, err = s.CreateLabel(&srclabels.BlockSender)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if result.BlockDomain == nil {
+		result.BlockDomain, err = s.CreateLabel(&srclabels.BlockDomain)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if result.BlockGraveyard == nil {
+		result.BlockGraveyard, err = s.CreateLabel(&srclabels.BlockGraveyard)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &result, nil
 }
 
 // Messages
