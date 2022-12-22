@@ -285,7 +285,7 @@ func (s *Service) IsSenderBlocked(sender string) (bool, error) {
 // BlockMessage blocks a message by moving moving out of the users inbox and into the block graveyard
 func (s *Service) BlockMessage(id string, labels *srclabel.Labels) error {
 	_, err := s.Users.Messages.Modify(s.UserID, id, &gmail.ModifyMessageRequest{
-		AddLabelIds:    []string{labels.BlockGraveyard.Id},
+		AddLabelIds:    []string{labels.SRC.Id, labels.Block.Id, labels.BlockGraveyard.Id},
 		RemoveLabelIds: []string{"UNREAD", "INBOX"},
 	}).Do()
 
