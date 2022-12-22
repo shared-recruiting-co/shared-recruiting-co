@@ -14,6 +14,7 @@ import (
 
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/db/client"
 	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
+	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail/label"
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/googleapi"
 	"google.golang.org/api/idtoken"
@@ -65,7 +66,7 @@ func syncNewEmails(
 	queries client.Querier,
 	classifier Classifier,
 	syncHistory client.UserEmailSyncHistory,
-	jobLabelID string,
+	labels *srclabel.Labels,
 ) error {
 	var err error
 	pageToken := ""
@@ -124,7 +125,7 @@ func syncNewEmails(
 
 			// filter out messages with the sent or already have a job label
 			// TODO: Handle new messages with the job label differently
-			if contains(message.LabelIds, "SENT") || contains(message.LabelIds, jobLabelID) {
+			if contains(message.LabelIds, "SENT") || contains(message.LabelIds, labels.JobsOpportunity.Id) {
 				continue
 			}
 
@@ -160,7 +161,7 @@ func syncNewEmails(
 		log.Printf("number of recruiting emails: %d", len(recruitingEmailIDs))
 
 		// Take action on recruiting emails
-		err = handleRecruitingEmails(srv, user, jobLabelID, recruitingEmailIDs)
+		err = handleRecruitingEmails(srv, user, labels, recruitingEmailIDs)
 		// for now, abort on error
 		if err != nil {
 			return fmt.Errorf("error modifying recruiting emails: %v", err)
@@ -205,7 +206,7 @@ func syncNewEmails(
 	return nil
 }
 
-func handleRecruitingEmails(srv *mail.Service, profile client.UserProfile, jobLabelID string, messageIDs []string) error {
+func handleRecruitingEmails(srv *mail.Service, profile client.UserProfile, labels *srclabel.Labels, messageIDs []string) error {
 	if len(messageIDs) == 0 {
 		return nil
 	}
@@ -216,8 +217,9 @@ func handleRecruitingEmails(srv *mail.Service, profile client.UserProfile, jobLa
 	}
 
 	err := srv.Users.Messages.BatchModify(srv.UserID, &gmail.BatchModifyMessagesRequest{
-		Ids:            messageIDs,
-		AddLabelIds:    []string{jobLabelID},
+		Ids: messageIDs,
+		// Add job opportunity label and parent folder labels
+		AddLabelIds:    []string{labels.SRC.Id, labels.Jobs.Id, labels.JobsOpportunity.Id},
 		RemoveLabelIds: removeLabels,
 	}).Do()
 

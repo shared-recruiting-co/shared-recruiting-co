@@ -19,6 +19,7 @@ import (
 
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/db/client"
 	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
+	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail/label"
 )
 
 const (
@@ -121,7 +122,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 	srv, err := mail.NewService(ctx, creds, auth)
 
 	// Create SRC Labels
-	_, err = srv.GetOrCreateSRCLabel()
+	labels, err := srv.GetOrCreateSRCLabels()
 	if err != nil {
 		// first request, so check if the error is an oauth error
 		// if so, update the database
@@ -142,13 +143,6 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		log.Printf("error getting or creating the SRC label: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	srcJobOpportunityLabel, err := srv.GetOrCreateSRCJobOpportunityLabel()
-	if err != nil {
-		log.Printf("error getting or creating the SRC job opportunity label: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -240,7 +234,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 		log.Printf("number of recruiting emails: %d", len(recruitingEmailIDs))
 
 		// Take action on recruiting emails
-		err = handleRecruitingEmails(srv, user, srcJobOpportunityLabel.Id, recruitingEmailIDs)
+		err = handleRecruitingEmails(srv, user, labels, recruitingEmailIDs)
 		// for now, abort on error
 		if err != nil {
 			log.Printf("error modifying recruiting emails: %v", err)
@@ -288,7 +282,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 	log.Printf("done.")
 }
 
-func handleRecruitingEmails(srv *mail.Service, profile client.UserProfile, jobLabelID string, messageIDs []string) error {
+func handleRecruitingEmails(srv *mail.Service, profile client.UserProfile, labels *srclabel.Labels, messageIDs []string) error {
 	if len(messageIDs) == 0 {
 		return nil
 	}
@@ -299,8 +293,9 @@ func handleRecruitingEmails(srv *mail.Service, profile client.UserProfile, jobLa
 	}
 
 	err := srv.Users.Messages.BatchModify(srv.UserID, &gmail.BatchModifyMessagesRequest{
-		Ids:            messageIDs,
-		AddLabelIds:    []string{jobLabelID},
+		Ids: messageIDs,
+		// Add job opportunity label and parent folder labels
+		AddLabelIds:    []string{labels.SRC.Id, labels.Jobs.Id, labels.JobsOpportunity.Id},
 		RemoveLabelIds: removeLabels,
 	}).Do()
 
