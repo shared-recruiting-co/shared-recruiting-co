@@ -3,7 +3,9 @@ package gmail
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -228,7 +230,67 @@ func (s *Service) GetOrCreateSRCLabels() (*srclabel.Labels, error) {
 	return &result, nil
 }
 
+// IsSenderAllowed checks if message is on the user's allow list
+func (s *Service) IsSenderAllowed(sender string) (bool, error) {
+	// check if sender is allowed
+	// leverage Gmail's native query engine to check
+	q := fmt.Sprintf("from:%s label:%s", sender, srclabel.AllowSender.Name)
+	resp, err := s.Users.Messages.List(s.UserID).Q(q).Do()
+	if err != nil {
+		return false, err
+	}
+	if len(resp.Messages) > 0 {
+		return true, nil
+	}
+	// check if sender's email domain is allowed
+	parts := strings.SplitAfter(sender, "@")
+	if len(parts) != 2 {
+		return false, fmt.Errorf("error allowing message: unable to parse domain from sender: %s", sender)
+	}
+	// remove name related characters (i.e Jo Smo <joe@smo.com>)
+	domain := strings.ReplaceAll("@"+parts[1], ">", "")
+	q = fmt.Sprintf("from:%s label:%s", domain, srclabel.AllowDomain.Name)
+	resp, err = s.Users.Messages.List(s.UserID).Q(q).Do()
+
+	return len(resp.Messages) > 0, err
+}
+
+// IsSenderBlocked checks if message is on the user's block list
+func (s *Service) IsSenderBlocked(sender string) (bool, error) {
+	// check if sender is allowed
+	// leverage Gmail's native query engine to check
+	q := fmt.Sprintf("from:%s label:%s", sender, srclabel.BlockSender.Name)
+	resp, err := s.Users.Messages.List(s.UserID).Q(q).Do()
+	if err != nil {
+		return false, err
+	}
+	if len(resp.Messages) > 0 {
+		return true, nil
+	}
+	// check if sender's email domain is allowed
+	parts := strings.SplitAfter(sender, "@")
+	if len(parts) != 2 {
+		return false, fmt.Errorf("error blocking message: unable to parse domain from sender: %s", sender)
+	}
+	// remove name related characters (i.e Jo Smo <joe@smo.com>)
+	domain := strings.ReplaceAll("@"+parts[1], ">", "")
+	q = fmt.Sprintf("from:%s label:%s", domain, srclabel.BlockDomain.Name)
+	resp, err = s.Users.Messages.List(s.UserID).Q(q).Do()
+
+	return len(resp.Messages) > 0, err
+}
+
 // Messages
+
+// BlockMessage blocks a message by moving moving out of the users inbox and into the block graveyard
+func (s *Service) BlockMessage(id string, labels *srclabel.Labels) error {
+	_, err := s.Users.Messages.Modify(s.UserID, id, &gmail.ModifyMessageRequest{
+		AddLabelIds:    []string{labels.BlockGraveyard.Id},
+		RemoveLabelIds: []string{"UNREAD", "INBOX"},
+	}).Do()
+
+	return err
+}
 
 // ForwardEmail is a good enough implementation of forwarding an email in the same format as the gmail client.
 // It is good enough because it doesn't naively handle HTML mime-type content or when there are multiple parent messages.

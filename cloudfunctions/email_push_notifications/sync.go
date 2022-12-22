@@ -129,6 +129,34 @@ func syncNewEmails(
 				continue
 			}
 
+			sender := mail.MessageSender(message)
+			// check if message sender is on the allow list
+			allowed, err := srv.IsSenderAllowed(sender)
+			if err != nil {
+				log.Printf("error checking allow list: %v", err)
+			}
+			// do not take action on allowed senders
+			if allowed {
+				log.Printf("allowing message: %s", message.Id)
+				continue
+			}
+
+			// check if message sender is on the block list
+			blocked, err := srv.IsSenderBlocked(sender)
+			if err != nil {
+				log.Printf("error checking block list: %v", err)
+			}
+			// do not take action on allowed senders
+			if blocked {
+				err = srv.BlockMessage(message.Id, labels)
+				if err != nil {
+					log.Printf("error blocking message: %v", err)
+					continue
+				}
+				log.Printf("blocked message: %s", message.Id)
+				continue
+			}
+
 			example := &PredictRequest{
 				From:    mail.MessageSender(message),
 				Subject: mail.MessageSubject(message),
