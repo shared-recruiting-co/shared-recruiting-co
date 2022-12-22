@@ -83,7 +83,7 @@ func migrateLabels(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Get all messages with the old label scheme and not new scheme
-		q := fmt.Sprintf("label:%s label:%s -label:%s", srclabel.SRC.Name, srclabel.JobsOpportunity.Name, oldLabel.Name)
+		q := fmt.Sprintf("-label:%s label:%s", srclabel.JobsOpportunity.Name, oldLabel.Name)
 		pageToken := ""
 		fetchMessageError := false
 		for {
@@ -103,8 +103,7 @@ func migrateLabels(w http.ResponseWriter, r *http.Request) {
 			if len(messageIDs) > 0 {
 				// Remove old labels
 				err = srv.Users.Messages.BatchModify(srv.UserID, &gmail.BatchModifyMessagesRequest{
-					Ids: messageIDs,
-					// Add job opportunity label and parent folder labels
+					Ids:            messageIDs,
 					RemoveLabelIds: []string{newLabels.SRC.Id, oldLabel.Id},
 				}).Do()
 
