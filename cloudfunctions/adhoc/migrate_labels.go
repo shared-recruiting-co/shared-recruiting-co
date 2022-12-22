@@ -75,7 +75,7 @@ func migrateLabels(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Get old label Ids
-		oldLabel, err := srv.GetOrCreateSRCJobOpportunityLabel()
+		oldLabel, err := srv.GetOrCreateLabel("@SRC/Job Opportunity", srclabel.JobsOpportunity.Color)
 		if err != nil {
 			log.Printf("error getting old labels: %v", err)
 			hasError = true

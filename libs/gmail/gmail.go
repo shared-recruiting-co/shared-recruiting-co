@@ -93,7 +93,6 @@ func (s *Service) Profile() (*gmail.Profile, error) {
 }
 
 // Labels
-
 func (s *Service) GetOrCreateLabel(name string, color *gmail.LabelColor) (*gmail.Label, error) {
 	labels, err := s.Users.Labels.List(s.UserID).Do()
 
@@ -108,14 +107,6 @@ func (s *Service) GetOrCreateLabel(name string, color *gmail.LabelColor) (*gmail
 	}
 
 	return s.Users.Labels.Create(s.UserID, &gmail.Label{Name: name, Color: color}).Do()
-}
-
-func (s *Service) GetOrCreateSRCLabel() (*gmail.Label, error) {
-	return s.GetOrCreateLabel(SRCLabel, SRCLabelColor)
-}
-
-func (s *Service) GetOrCreateSRCJobOpportunityLabel() (*gmail.Label, error) {
-	return s.GetOrCreateLabel(SRCJobOpportunityLabel, SRCJobOpportunityLabelColor)
 }
 
 func (s *Service) CreateLabel(l *gmail.Label) (*gmail.Label, error) {
