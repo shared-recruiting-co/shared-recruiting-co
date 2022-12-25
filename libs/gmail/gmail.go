@@ -10,9 +10,10 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 
-	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail/label"
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/option"
+
+	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail/label"
 )
 
 // scopes required for the SRC service
@@ -85,7 +86,10 @@ func (s *Service) Profile() (*gmail.Profile, error) {
 		return s.profile, nil
 	}
 
-	profile, err := s.Users.GetProfile(s.UserID).Do()
+	profile, err := ExecuteWithRetries(func() (*gmail.Profile, error) {
+		return s.Users.GetProfile(s.UserID).Do()
+	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -95,24 +99,33 @@ func (s *Service) Profile() (*gmail.Profile, error) {
 }
 
 // Labels
-func (s *Service) GetOrCreateLabel(name string, color *gmail.LabelColor) (*gmail.Label, error) {
-	labels, err := s.Users.Labels.List(s.UserID).Do()
+
+func (s *Service) ListLabels() (*gmail.ListLabelsResponse, error) {
+	return ExecuteWithRetries(func() (*gmail.ListLabelsResponse, error) {
+		return s.Users.Labels.List(s.UserID).Do()
+	})
+}
+
+func (s *Service) GetOrCreateLabel(l *gmail.Label) (*gmail.Label, error) {
+	labels, err := s.ListLabels()
 
 	if err != nil {
 		return nil, err
 	}
 
 	for _, label := range labels.Labels {
-		if label.Name == name {
+		if label.Name == l.Name {
 			return label, err
 		}
 	}
 
-	return s.Users.Labels.Create(s.UserID, &gmail.Label{Name: name, Color: color}).Do()
+	return s.CreateLabel(l)
 }
 
 func (s *Service) CreateLabel(l *gmail.Label) (*gmail.Label, error) {
-	return s.Users.Labels.Create(s.UserID, l).Do()
+	return ExecuteWithRetries(func() (*gmail.Label, error) {
+		return s.Users.Labels.Create(s.UserID, l).Do()
+	})
 }
 
 // GetOrCreateSRCLabels fetches or creates all of the labels managed by SRC
@@ -120,7 +133,7 @@ func (s *Service) CreateLabel(l *gmail.Label) (*gmail.Label, error) {
 func (s *Service) GetOrCreateSRCLabels() (*srclabel.Labels, error) {
 	// TODO: What is a better data structure or interface to make this function more DRY?
 	// list all labels
-	labels, err := s.Users.Labels.List(s.UserID).Do()
+	labels, err := s.ListLabels()
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +248,9 @@ func (s *Service) IsSenderAllowed(sender string) (bool, error) {
 	// check if sender is allowed
 	// leverage Gmail's native query engine to check
 	q := fmt.Sprintf("from:%s label:%s", sender, srclabel.AllowSender.Name)
-	resp, err := s.Users.Messages.List(s.UserID).Q(q).Do()
+	resp, err := ExecuteWithRetries(func() (*gmail.ListMessagesResponse, error) {
+		return s.Users.Messages.List(s.UserID).Q(q).Do()
+	})
 	if err != nil {
 		return false, err
 	}
@@ -250,7 +265,9 @@ func (s *Service) IsSenderAllowed(sender string) (bool, error) {
 	// remove name related characters (i.e Jo Smo <joe@smo.com>)
 	domain := strings.ReplaceAll("@"+parts[1], ">", "")
 	q = fmt.Sprintf("from:%s label:%s", domain, srclabel.AllowDomain.Name)
-	resp, err = s.Users.Messages.List(s.UserID).Q(q).Do()
+	resp, err = ExecuteWithRetries(func() (*gmail.ListMessagesResponse, error) {
+		return s.Users.Messages.List(s.UserID).Q(q).Do()
+	})
 
 	return len(resp.Messages) > 0, err
 }
@@ -260,7 +277,9 @@ func (s *Service) IsSenderBlocked(sender string) (bool, error) {
 	// check if sender is allowed
 	// leverage Gmail's native query engine to check
 	q := fmt.Sprintf("from:%s label:%s", sender, srclabel.BlockSender.Name)
-	resp, err := s.Users.Messages.List(s.UserID).Q(q).Do()
+	resp, err := ExecuteWithRetries(func() (*gmail.ListMessagesResponse, error) {
+		return s.Users.Messages.List(s.UserID).Q(q).Do()
+	})
 	if err != nil {
 		return false, err
 	}
@@ -275,7 +294,9 @@ func (s *Service) IsSenderBlocked(sender string) (bool, error) {
 	// remove name related characters (i.e Jo Smo <joe@smo.com>)
 	domain := strings.ReplaceAll("@"+parts[1], ">", "")
 	q = fmt.Sprintf("from:%s label:%s", domain, srclabel.BlockDomain.Name)
-	resp, err = s.Users.Messages.List(s.UserID).Q(q).Do()
+	resp, err = ExecuteWithRetries(func() (*gmail.ListMessagesResponse, error) {
+		return s.Users.Messages.List(s.UserID).Q(q).Do()
+	})
 
 	return len(resp.Messages) > 0, err
 }
@@ -284,11 +305,12 @@ func (s *Service) IsSenderBlocked(sender string) (bool, error) {
 
 // BlockMessage blocks a message by moving moving out of the users inbox and into the block graveyard
 func (s *Service) BlockMessage(id string, labels *srclabel.Labels) error {
-	_, err := s.Users.Messages.Modify(s.UserID, id, &gmail.ModifyMessageRequest{
-		AddLabelIds:    []string{labels.SRC.Id, labels.Block.Id, labels.BlockGraveyard.Id},
-		RemoveLabelIds: []string{"UNREAD", "INBOX"},
-	}).Do()
-
+	_, err := ExecuteWithRetries(func() (*gmail.Message, error) {
+		return s.Users.Messages.Modify(s.UserID, id, &gmail.ModifyMessageRequest{
+			AddLabelIds:    []string{labels.SRC.Id, labels.Block.Id, labels.BlockGraveyard.Id},
+			RemoveLabelIds: []string{"UNREAD", "INBOX"},
+		}).Do()
+	})
 	return err
 }
 
@@ -296,34 +318,40 @@ func (s *Service) BlockMessage(id string, labels *srclabel.Labels) error {
 // It is good enough because it doesn't naively handle HTML mime-type content or when there are multiple parent messages.
 // This is sufficient for our purposes.
 func (s *Service) ForwardEmail(messageID, to string) (*gmail.Message, error) {
-	// 1. get the original message
-	parent, err := s.Users.Messages.Get(s.UserID, messageID).Do()
-	if err != nil {
-		return nil, err
-	}
+	f := func() (*gmail.Message, error) {
+		// 1. get the original message
+		parent, err := s.GetMessage(messageID)
+		if err != nil {
+			return nil, err
+		}
 
-	// 2. Get the current user's email address
-	profile, err := s.Profile()
-	if err != nil {
-		return nil, err
-	}
+		// 2. Get the current user's email address
+		profile, err := s.Profile()
+		if err != nil {
+			return nil, err
+		}
 
-	// 3. Create the forwarded message
-	fwd := ForwardMessage{
-		Sender: profile.EmailAddress,
-		To:     to,
-		Parent: parent,
-	}
+		// 3. Create the forwarded message
+		fwd := ForwardMessage{
+			Sender: profile.EmailAddress,
+			To:     to,
+			Parent: parent,
+		}
 
-	// send the message
-	return s.Users.Messages.Send(s.UserID, fwd.Create()).Do()
+		// send the message
+		return s.Users.Messages.Send(s.UserID, fwd.Create()).Do()
+	}
+	return ExecuteWithRetries(f)
 }
 
 // GetMessage() fetches a message by ID
 // It is a convenience method that wraps the gmail API call.
 // It opens opportunities for caching and rate-limiting handling
 func (s *Service) GetMessage(id string) (*gmail.Message, error) {
-	return s.Users.Messages.Get(s.UserID, id).Do()
+	f := func() (*gmail.Message, error) {
+		return s.Users.Messages.Get(s.UserID, id).Do()
+	}
+	return ExecuteWithRetries(f)
 }
 
 // Ideas for future
