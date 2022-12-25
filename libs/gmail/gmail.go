@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"golang.org/x/oauth2"
@@ -19,6 +20,11 @@ import (
 var scopes = []string{
 	gmail.GmailModifyScope,
 }
+
+var (
+	// senderEmailRe is a regex to extract the email address from a sender string (i.e. "Jo Smo <jo.smo@gmail.com>")
+	senderEmailRe = regexp.MustCompile(`<([^>]+)>`)
+)
 
 func newGmailService(ctx context.Context, creds []byte, auth []byte) (*gmail.Service, error) {
 	tok := &oauth2.Token{}
@@ -232,6 +238,11 @@ func (s *Service) GetOrCreateSRCLabels() (*srclabel.Labels, error) {
 
 // IsSenderAllowed checks if message is on the user's allow list
 func (s *Service) IsSenderAllowed(sender string) (bool, error) {
+	// if there is a sender display name ("John Doe <john.doe@gmail.com>")
+	// extract the email address
+	if senderEmailRe.MatchString(sender) {
+		sender = senderEmailRe.FindStringSubmatch(sender)[1]
+	}
 	// check if sender is allowed
 	// leverage Gmail's native query engine to check
 	q := fmt.Sprintf("from:%s label:%s", sender, srclabel.AllowSender.Name)
@@ -257,7 +268,12 @@ func (s *Service) IsSenderAllowed(sender string) (bool, error) {
 
 // IsSenderBlocked checks if message is on the user's block list
 func (s *Service) IsSenderBlocked(sender string) (bool, error) {
-	// check if sender is allowed
+	// if there is a sender display name ("John Doe <john.doe@gmail.com>")
+	// extract the email address
+	if senderEmailRe.MatchString(sender) {
+		sender = senderEmailRe.FindStringSubmatch(sender)[1]
+	}
+	// check if sender is blocked
 	// leverage Gmail's native query engine to check
 	q := fmt.Sprintf("from:%s label:%s", sender, srclabel.BlockSender.Name)
 	resp, err := s.Users.Messages.List(s.UserID).Q(q).Do()
@@ -267,7 +283,7 @@ func (s *Service) IsSenderBlocked(sender string) (bool, error) {
 	if len(resp.Messages) > 0 {
 		return true, nil
 	}
-	// check if sender's email domain is allowed
+	// check if sender's email domain is blocked
 	parts := strings.SplitAfter(sender, "@")
 	if len(parts) != 2 {
 		return false, fmt.Errorf("error blocking message: unable to parse domain from sender: %s", sender)
