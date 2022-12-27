@@ -15,14 +15,16 @@ func fetchNewEmailsSinceHistoryID(srv *mail.Service, historyID uint64, labelID s
 		labelID = defaultLabelID
 	}
 
-	r, err := srv.Users.History.
-		List(srv.UserID).
-		LabelId(labelID).
-		StartHistoryId(historyID).
-		HistoryTypes(historyTypeMessageAdded).
-		PageToken(pageToken).
-		MaxResults(maxResults).
-		Do()
+	r, err := mail.ExecuteWithRetries(func() (*gmail.ListHistoryResponse, error) {
+		return srv.Users.History.
+			List(srv.UserID).
+			LabelId(labelID).
+			StartHistoryId(historyID).
+			HistoryTypes(historyTypeMessageAdded).
+			PageToken(pageToken).
+			MaxResults(maxResults).
+			Do()
+	})
 
 	if err != nil {
 		return nil, "", err
