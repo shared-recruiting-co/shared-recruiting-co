@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -16,7 +15,6 @@ import (
 	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
 	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail/label"
 	"google.golang.org/api/gmail/v1"
-	"google.golang.org/api/googleapi"
 	"google.golang.org/api/idtoken"
 )
 
@@ -91,9 +89,8 @@ func syncNewEmails(
 		// for now, abort on error
 		if err != nil {
 			// check for a history not found error
-			gErr := &googleapi.Error{}
-			if errors.As(err, &gErr); !historyIDExpired && gErr.Code == http.StatusNotFound {
-				log.Printf("expired history id: %v", gErr)
+			if mail.IsNotFound(err) && !historyIDExpired {
+				log.Printf("expired history id: %v", err)
 				log.Printf("syncing from %s", syncHistory.SyncedAt.Format("2006/01/02"))
 				// set flag and continue iterating
 				historyIDExpired = true
@@ -108,8 +105,7 @@ func syncNewEmails(
 			// payload isn't included in the list endpoint responses
 			message, err := srv.Users.Messages.Get(srv.UserID, m.Id).Do()
 			if err != nil {
-				gErr := &googleapi.Error{}
-				if errors.As(err, &gErr); gErr.Code == http.StatusNotFound {
+				if mail.IsNotFound(err) {
 					// message was deleted, skip
 					log.Printf("skipping message %s was deleted", m.Id)
 					continue

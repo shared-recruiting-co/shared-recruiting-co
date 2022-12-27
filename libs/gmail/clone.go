@@ -10,7 +10,10 @@ import (
 // TODO: Support recipient anonymization (i.e. randomize 'To' header, strings.Replace first and last name).
 func CloneMessage(src *Service, dst *Service, messageID string, dstLabelIds []string) (*gmail.Message, error) {
 	// Get the raw message from the source account
-	msg, err := src.Users.Messages.Get(src.UserID, messageID).Format("raw").Do()
+	msg, err := ExecuteWithRetries(func() (*gmail.Message, error) {
+		return src.Users.Messages.Get(src.UserID, messageID).Format("raw").Do()
+	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -20,5 +23,7 @@ func CloneMessage(src *Service, dst *Service, messageID string, dstLabelIds []st
 	// Set the destination labels
 	msg.LabelIds = dstLabelIds
 	// Insert the message into the destination account
-	return dst.Users.Messages.Insert(dst.UserID, msg).Do()
+	return ExecuteWithRetries(func() (*gmail.Message, error) {
+		return dst.Users.Messages.Insert(dst.UserID, msg).Do()
+	})
 }

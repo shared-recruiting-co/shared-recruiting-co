@@ -2,13 +2,11 @@ package cloudfunctions
 
 import (
 	"encoding/base64"
-	"errors"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
-	"golang.org/x/oauth2"
 
 	"google.golang.org/api/gmail/v1"
 
@@ -85,9 +83,8 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 			log.Printf("error getting gmail profile: %v", err)
 
 			// check for oauth token expiration or revocation
-			oauth2Err := &oauth2.RetrieveError{}
-			if errors.As(err, &oauth2Err) {
-				log.Printf("error oauth error: %v", oauth2Err)
+			if mail.IsOAuth2Error(err) {
+				log.Printf("error oauth error: %v", err)
 				// update the user's oauth token
 				err = queries.UpsertUserOAuthToken(ctx, client.UpsertUserOAuthTokenParams{
 					UserID:   userToken.UserID,

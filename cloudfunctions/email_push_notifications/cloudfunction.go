@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -13,7 +12,6 @@ import (
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
-	"golang.org/x/oauth2"
 	"google.golang.org/api/idtoken"
 
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/db/client"
@@ -145,9 +143,8 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	if err != nil {
 		// first request, so check if the error is an oauth error
 		// if so, update the database
-		oauth2Err := &oauth2.RetrieveError{}
-		if errors.As(err, &oauth2Err) {
-			log.Printf("error oauth error: %v", oauth2Err)
+		if mail.IsOAuth2Error(err) {
+			log.Printf("error oauth error: %v", err)
 			// update the user's oauth token
 			err = queries.UpsertUserOAuthToken(ctx, client.UpsertUserOAuthTokenParams{
 				UserID:   userToken.UserID,
