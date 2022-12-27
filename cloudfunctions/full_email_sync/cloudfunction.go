@@ -184,7 +184,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 		examples := map[string]*PredictRequest{}
 		for _, message := range messages {
 			// payload isn't included in the list endpoint responses
-			message, err := srv.Users.Messages.Get(srv.UserID, message.Id).Do()
+			message, err := srv.GetMessage(message.Id)
 
 			// for now, abort on error
 			if err != nil {
@@ -289,12 +289,16 @@ func handleRecruitingEmails(srv *mail.Service, profile client.UserProfile, label
 		removeLabels = append(removeLabels, "INBOX", "UNREAD")
 	}
 
-	err := srv.Users.Messages.BatchModify(srv.UserID, &gmail.BatchModifyMessagesRequest{
-		Ids: messageIDs,
-		// Add job opportunity label and parent folder labels
-		AddLabelIds:    []string{labels.SRC.Id, labels.Jobs.Id, labels.JobsOpportunity.Id},
-		RemoveLabelIds: removeLabels,
-	}).Do()
+	_, err := mail.ExecuteWithRetries(func() (interface{}, error) {
+		err := srv.Users.Messages.BatchModify(srv.UserID, &gmail.BatchModifyMessagesRequest{
+			Ids: messageIDs,
+			// Add job opportunity label and parent folder labels
+			AddLabelIds:    []string{labels.SRC.Id, labels.Jobs.Id, labels.JobsOpportunity.Id},
+			RemoveLabelIds: removeLabels,
+		}).Do()
+		// hack to make compatible with ExecuteWithRetries requirements
+		return nil, err
+	})
 
 	if err != nil {
 		return fmt.Errorf("error modifying recruiting emails: %v", err)

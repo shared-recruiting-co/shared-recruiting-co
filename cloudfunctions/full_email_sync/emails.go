@@ -18,12 +18,14 @@ func fetchEmailsSinceDate(srv *mail.Service, date time.Time, pageToken string) (
 	// get all (including archived) emails after the start date, ignore sent emails and emails already processed by SRC
 	q := fmt.Sprintf("-label:sent -label:%s after:%s", srclabel.SRC.Name, date.Format("2006/01/02"))
 
-	r, err := srv.Users.Messages.
-		List(srv.UserID).
-		PageToken(pageToken).
-		Q(q).
-		MaxResults(maxResults).
-		Do()
+	r, err := mail.ExecuteWithRetries(func() (*gmail.ListMessagesResponse, error) {
+		return srv.Users.Messages.
+			List(srv.UserID).
+			PageToken(pageToken).
+			Q(q).
+			MaxResults(maxResults).
+			Do()
+	})
 
 	if err != nil {
 		return nil, "", err
