@@ -8,6 +8,10 @@ For candidates, SRC is a recruiting AI assistant that lives in your inbox. No mo
 
 For companies, SRC stops you from wasting time sourcing candidates that aren't actively looking for a new role. SRC integrates into your existing recruiting stack and automatically re-engages interested candidates once they are ready for a new role.
 
+## Become a Member of SRC
+
+Right now, SRC is invite only. If you are interesting in joining, sign up at (sharedrecruiting.co)[https://sharedrecruiting.co/].
+
 ## 🕍 Project Layout
 
 ### 📱 `/app`
