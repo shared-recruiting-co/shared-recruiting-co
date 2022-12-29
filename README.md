@@ -10,7 +10,7 @@ For companies, SRC stops you from wasting time sourcing candidates that aren't a
 
 ## 😎 Become a Member
 
-Right now, SRC is invite only. If you are interesting in joining, sign up at (sharedrecruiting.co)[https://sharedrecruiting.co/].
+Right now, SRC is invite only. If you are interesting in joining, sign up at [sharedrecruiting.co](https://sharedrecruiting.co/).
 
 ## 🕍 Project Layout
 
