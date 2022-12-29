@@ -63,4 +63,4 @@ Shared `go` libraries
 
 SRC is open source to empower candidates and companies to contribute and collaborate on building an ideal and efficient recruiting experience for all.
 
-Have a feature idea? Create an [issue](https://github.com/shared-recruiting-co/shared-recruiting-co/issues). Want to fix a bug? Create a [pull request](https://github.com/shared-recruiting-co/shared-recruiting-co/pulls)
+Have a feature idea? Create an [issue](https://github.com/shared-recruiting-co/shared-recruiting-co/issues). Want to fix a bug? Create a [pull request](https://github.com/shared-recruiting-co/shared-recruiting-co/pulls). Have a question? Start a [discussion](https://github.com/shared-recruiting-co/shared-recruiting-co/discussions).
