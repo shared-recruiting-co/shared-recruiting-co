@@ -16,7 +16,7 @@ Right now, SRC is invite only. If you are interesting in joining, sign up at (sh
 
 ### 📱 `/app`
 
-The SRC web app ([sharedrecruiting.co](https://sharedrecruiting.co)) built via Sveltkit + Tailwind + Supabase and deployed with Vercel
+The SRC web app ([sharedrecruiting.co](https://sharedrecruiting.co)) built via Sveltekit + Tailwind + Supabase and deployed with Vercel
 
 #### Development
 
