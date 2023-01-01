@@ -59,6 +59,10 @@ The SRC Google Cloud Functions. The cloud functions are responsible for managing
 
 Shared `go` libraries
 
+### 📑 `/scripts`
+
+Scripts for common manual tasks
+
 ## 👩‍💻 Contributing
 
 SRC is open source to empower candidates and companies to contribute and collaborate on building an ideal and efficient recruiting experience for all.
