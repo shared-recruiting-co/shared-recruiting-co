@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/shared-recruiting-co/shared-recruiting-co/actions/workflows/ci.yml/badge.svg)](https://github.com/shared-recruiting-co/shared-recruiting-co/actions/workflows/ci.yml) [![CodeQL](https://github.com/shared-recruiting-co/shared-recruiting-co/actions/workflows/codeql.yml/badge.svg)](https://github.com/shared-recruiting-co/shared-recruiting-co/actions/workflows/codeql.yml) [![Database Migrations](https://github.com/shared-recruiting-co/shared-recruiting-co/actions/workflows/migrations.yml/badge.svg)](https://github.com/shared-recruiting-co/shared-recruiting-co/actions/workflows/migrations.yml)
 
+Welcome to to the SRC monorepo 👋
+
 The Shared Recruiting Company, SRC (pronounced "source"), is an open source, candidate-centric recruiting platform. SRC promotes two-way, opt-in communication between candidates and companies. 🤝
 
 For candidates, SRC is a recruiting AI assistant that lives in your inbox. No more recruiting spam emails vying for your attention. SRC manages your inbound job opportunities when you aren't looking for a new role and supercharges your job search once you are.
