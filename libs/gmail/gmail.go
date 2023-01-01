@@ -1,3 +1,6 @@
+// Package gmail is a wrapper Go library for working with the Google gmail API.
+// It is in active development and makes no guarantees about API stability. The long-term goal is to create a standard mail client interface we can use across all email clients, like Gmail and Outlook.
+
 package gmail
 
 import (
