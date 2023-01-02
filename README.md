@@ -70,3 +70,7 @@ Scripts for common manual tasks
 SRC is open source to empower candidates and companies to contribute and collaborate on building an ideal and efficient recruiting experience for all.
 
 Have a feature idea? Create an [issue](https://github.com/shared-recruiting-co/shared-recruiting-co/issues). Want to fix a bug? Create a [pull request](https://github.com/shared-recruiting-co/shared-recruiting-co/pulls). Have a question? Start a [discussion](https://github.com/shared-recruiting-co/shared-recruiting-co/discussions).
+
+### Contribute Recruiting Emails
+
+We want to build the best candidates experience possible. To do so, SRC needs examples of all types of inbound recruiting emails. If you have inbound recruiting emails you want to contribute to our dataset please forward them to [examples@sharedrecruiting.co](mailto:examples@sharedrecruiting.co) 
