@@ -77,4 +77,4 @@ We want to build the best candidates experience possible. To do so, SRC needs ex
 
 ## 🖼️ Architecture
 
-![SRC Architecture Diagram](architecture.svg "Architecture")
+![SRC Architecture Diagram](architecture.png "Architecture")
