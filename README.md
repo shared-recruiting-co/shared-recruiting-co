@@ -74,3 +74,7 @@ Have a feature idea? Create an [issue](https://github.com/shared-recruiting-co/s
 ### Contribute Recruiting Emails
 
 We want to build the best candidates experience possible. To do so, SRC needs examples of all types of inbound recruiting emails. If you have inbound recruiting emails you want to contribute to our dataset please forward them to [examples@sharedrecruiting.co](mailto:examples@sharedrecruiting.co) 
+
+## 🖼️ Architecture
+
+![SRC Architecture Diagram](architecture.png "Architecture")
