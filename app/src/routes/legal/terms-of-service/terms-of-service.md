@@ -80,7 +80,7 @@ You agree not to import, export, re-export, or transfer, directly or indirectly,
 
 ### 15. Notices
 
-All legal notices to SRC must be addressed in writing, and sent by registered or certified mail, to: Shared Recruiting Company, LLC., 2648 Bryant St SF, CA 94110 Attn: Legal. If you have general questions regarding this Agreement or the Service, you may also email us at contact@sharedrecruiting.co. SRC may provide notices to you via email and to any other address you provide.
+All legal notices to SRC must be addressed in writing, and sent by registered or certified mail, to: Shared Recruiting Company, LLC., 2648 Bryant St SF, CA 94110 Attn: Legal. If you have general questions regarding this Agreement or the Service, you may also email us at [contact@sharedrecruiting.co](mailto:contact@sharedrecruiting.co). SRC may provide notices to you via email and to any other address you provide.
 
 ### 16. Dispute Resolution
 
