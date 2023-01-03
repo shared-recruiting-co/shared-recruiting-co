@@ -8,12 +8,12 @@
 		{
 			title: 'Summarize & Standardize',
 			description:
-				'SRC does the heavy lifting of summarizing all your job opportunities into a single, standardize format. '
+				'SRC does the heavy lifting of summarizing all your job opportunities into a single, standardized format. '
 		},
 		{
 			title: 'Review & Engage',
 			description:
-				'SRC does the heavy lifting of summarizing all your job opportunities into a single, standardize format. '
+				'SRC does the heavy lifting of summarizing all your job opportunities into a single, standardized format. '
 		}
 	];
 </script>
