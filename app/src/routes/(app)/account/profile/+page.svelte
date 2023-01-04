@@ -184,7 +184,7 @@
 
 <div class="sm:my-18 my-12 lg:grid lg:grid-cols-12 lg:gap-x-5">
 	<!-- Empty space for now -->
-	<aside class="block py-6 px-2 sm:px-6 lg:col-span-2 lg:py-0 lg:px-0" />
+	<aside class="block py-6 px-2 sm:px-6 lg:col-span-1 lg:py-0 lg:px-0" />
 	<div class="space-y-6 sm:px-6 lg:col-span-9 lg:px-0">
 		<div class="px-4 sm:px-0">
 			<h1 class="text-3xl sm:text-4xl">Account</h1>
@@ -336,8 +336,8 @@
 				{/if}
 				<div class="space-y-6 bg-white py-6 px-4 sm:p-6">
 					<div>
-						<h3 class="text-lg font-medium leading-6 text-slate-900">Settings</h3>
-						<p class="mt-1 text-sm text-slate-500">Manage your account settings and preferences.</p>
+						<h3 class="text-lg font-medium leading-6 text-slate-900">Email Settings</h3>
+						<p class="mt-1 text-sm text-slate-500">Manage your email settings and preferences.</p>
 					</div>
 					<ul class="mt-2 divide-y divide-slate-200">
 						<li class="flex items-center justify-between py-4">
