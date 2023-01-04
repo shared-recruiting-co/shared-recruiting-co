@@ -16,8 +16,6 @@
 		}
 	}
 
-	// TODO: always set isOpen to false when page changes
-
 	const handleLogout = async () => {
 		await supabaseClient.auth.signOut();
 	};
@@ -28,24 +26,21 @@
 			href: '/account/profile',
 			icon: `
   <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clip-rule="evenodd" />
-			`,
-			current: $page.url.pathname === '/account/profile'
+			`
 		},
 		{
 			name: 'Jobs',
 			href: '/account/jobs',
 			icon: `
   <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z" />
-			`,
-			current: $page.url.pathname === '/account/jobs'
+			`
 		},
 		{
 			name: 'Settings',
 			href: '/account/settings',
 			icon: `
   <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0015 0m-15 0a7.5 7.5 0 1115 0m-15 0H3m16.5 0H21m-1.5 0H12m-8.457 3.077l1.41-.513m14.095-5.13l1.41-.513M5.106 17.785l1.15-.964m11.49-9.642l1.149-.964M7.501 19.795l.75-1.3m7.5-12.99l.75-1.3m-6.063 16.658l.26-1.477m2.605-14.772l.26-1.477m0 17.726l-.26-1.477M10.698 4.614l-.26-1.477M16.5 19.794l-.75-1.299M7.5 4.205L12 12m6.894 5.785l-1.149-.964M6.256 7.178l-1.15-.964m15.352 8.864l-1.41-.513M4.954 9.435l-1.41-.514M12.002 12l-3.75 6.495" />
-			`,
-			current: $page.url.pathname === '/account/settings'
+			`
 		}
 	];
 
@@ -138,15 +133,16 @@
 					<nav class="mt-5 flex h-full flex-col px-2 pb-12">
 						<div class="h-full flex-1 space-y-1">
 							{#each nav as item}
+								{@const current = $page.url.pathname === item.href}
 								<a
 									href={item.href}
 									class="group flex items-center rounded-md px-2 py-2 text-base font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-									class:bg-slate-100={item.current}
-									class:text-slate-900={item.current}
+									class:bg-slate-100={current}
+									class:text-slate-900={current}
 								>
 									<svg
 										class="mr-4 h-6 w-6 flex-shrink-0 text-slate-400 group-hover:text-slate-500"
-										class:text-slate-500={item.current}
+										class:text-slate-500={current}
 										xmlns="http://www.w3.org/2000/svg"
 										fill="none"
 										viewBox="0 0 24 24"
@@ -235,12 +231,13 @@
 				<nav class="mt-5 flex h-full flex-col px-2">
 					<div class="flex-1 space-y-1">
 						{#each nav as item}
+							{@const current = $page.url.pathname === item.href}
 							<!-- Current: "bg-slate-100 text-slate-900", Default: "text-slate-600 hover:bg-slate-50 hover:text-slate-900" -->
 							<a
 								href={item.href}
 								class="group flex items-center rounded-md px-2 py-2 text-base font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-								class:bg-slate-100={item.current}
-								class:text-slate-900={item.current}
+								class:bg-slate-100={current}
+								class:text-slate-900={current}
 							>
 								<!--
                 Heroicon name: outline/home
@@ -249,7 +246,7 @@
               -->
 								<svg
 									class="mr-4 h-6 w-6 flex-shrink-0 text-slate-400 group-hover:text-slate-500"
-									class:text-slate-500={item.current}
+									class:text-slate-500={current}
 									xmlns="http://www.w3.org/2000/svg"
 									fill="none"
 									viewBox="0 0 24 24"
