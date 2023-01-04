@@ -33,5 +33,5 @@ export const load: PageLoad = async (event) => {
 	}
 
 	// send to profile creation page
-	throw redirect(303, '/account/profile/create');
+	throw redirect(303, '/account/create');
 };
