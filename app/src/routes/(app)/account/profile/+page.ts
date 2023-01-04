@@ -26,14 +26,18 @@ export const load: PageLoad<Data> = async (event) => {
 		]);
 
 	//TODO: Move this aggregation to the database
-	const numEmailsProcessed = emailStats?.reduce(
-		(acc, stat) => (stat.stat_id === UserEmailStats.EmailsProcessed ? acc + stat.stat_value : acc),
-		0
-	);
-	const numJobsDetected = emailStats?.reduce(
-		(acc, stat) => (stat.stat_id === UserEmailStats.JobsDetected ? acc + stat.stat_value : acc),
-		0
-	);
+	const numEmailsProcessed =
+		emailStats?.reduce(
+			(acc, stat) =>
+				stat.stat_id === UserEmailStats.EmailsProcessed ? acc + stat.stat_value : acc,
+			0
+		) || 0;
+
+	const numJobsDetected =
+		emailStats?.reduce(
+			(acc, stat) => (stat.stat_id === UserEmailStats.JobsDetected ? acc + stat.stat_value : acc),
+			0
+		) || 0;
 
 	return {
 		lastSyncedAt: emailSyncHistory?.synced_at as string | undefined,
