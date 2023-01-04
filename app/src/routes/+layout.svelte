@@ -9,6 +9,12 @@
 	import Footer from '$lib/components/Footer.svelte';
 
 	onMount(() => {
+		// Add note to developers that open the console
+		console.log('Greetings Developer 🖖');
+		console.log(
+			'Something wrong? Report it at https://github.com/shared-recruiting-co/shared-recruiting-co/issues'
+		);
+
 		const {
 			data: { subscription }
 		} = supabaseClient.auth.onAuthStateChange((_event, _session) => {
