@@ -5,9 +5,6 @@
 
 	import { supabaseClient } from '$lib/supabase/client';
 
-	import Header from '$lib/components/Header.svelte';
-	import Footer from '$lib/components/Footer.svelte';
-
 	onMount(() => {
 		// Add note to developers that open the console
 		console.log('Greetings Developer 🖖');
@@ -28,9 +25,5 @@
 </script>
 
 <body class="flex min-h-screen flex-col text-slate-900">
-	<Header />
-	<main class="flex-1">
-		<slot />
-	</main>
-	<Footer />
+	<slot />
 </body>
