@@ -1,20 +1,30 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
+	import { supabaseClient } from '$lib/supabase/client';
 	import ConnectGoogleAccountButton from '$lib/components/ConnectGoogleAccountButton.svelte';
 
 	const onConnect = () => {
 		goto('/account/profile');
 	};
-	// TODOs
-	//
-	// Design
-	// Create separate layouts for (marketing) and (account) pages
-	// Create account header
-	// Create account sidebar
-	// Create background slate or blue
+
+	const handleLogout = async () => {
+		await supabaseClient.auth.signOut();
+	};
 </script>
 
+<header
+	class="sticky top-0 z-10 flex flex-row flex-nowrap items-center justify-between space-x-4 bg-blue-100  px-4 py-4 text-lg sm:text-xl"
+>
+	<div class="flex w-96 flex-row items-center space-x-4">
+		<img src="/logo.svg" alt="Shared Recruiting Co" class="h-6 md:h-10" />
+	</div>
+	<div class="flex w-96 items-center justify-end space-x-4">
+		<button class="text-base hover:underline active:underline sm:text-lg" on:click={handleLogout}
+			>Log Out</button
+		>
+	</div>
+</header>
 <div class="m-2 flex flex-row items-center justify-center sm:mx-auto sm:my-16">
 	<div class="flex max-w-xl flex-col space-y-8 rounded-md p-8">
 		<h1 class="text-center text-3xl">Welcome to the SRC {$page.data.profile.firstName}!</h1>
