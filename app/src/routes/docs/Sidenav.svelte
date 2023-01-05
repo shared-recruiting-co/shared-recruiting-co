@@ -13,7 +13,7 @@
 		{
 			title: 'Core Concepts',
 			links: [
-				{ title: 'Connect Email', href: '/docs/connect-email' },
+				{ title: 'Email Setup', href: '/docs/connect-email' },
 				{
 					title: 'Email Labels',
 					href: '/docs/email-labels'

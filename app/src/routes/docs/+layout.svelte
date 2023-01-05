@@ -4,8 +4,11 @@
 </script>
 
 <Header />
-<div class="relative mx-auto flex max-w-8xl flex-1 justify-center py-16 sm:px-2 lg:px-8 xl:px-12">
-	<Sidenav />
+<div class="relative mx-auto flex max-w-8xl flex-1 justify-center sm:px-2 lg:px-8 xl:px-12">
+	<div class="hidden lg:relative lg:block lg:flex-none">
+		<div class="absolute inset-y-0 right-0 w-[50vw] bg-slate-50 dark:hidden" />
+		<Sidenav />
+	</div>
 	<main class="flex-1">
 		<slot />
 	</main>

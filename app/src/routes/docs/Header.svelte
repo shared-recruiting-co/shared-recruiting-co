@@ -3,11 +3,11 @@
 </script>
 
 <header
-	class="sticky top-0 z-10 flex flex-row flex-nowrap items-center justify-between space-x-4 bg-white px-4  py-4 text-lg sm:text-xl"
+	class="darK:bg-transparent sticky top-0 z-10 flex flex-row flex-nowrap items-center justify-between space-x-4 bg-white  px-4 py-4 text-lg shadow-md shadow-slate-900/5 transition duration-500 dark:shadow-none sm:text-xl"
 >
 	<div class="flex w-96 flex-row items-center space-x-4">
 		<img src="/logo.svg" alt="Shared Recruiting Co" class="h-6 md:h-10" />
-		<a href="/" class="text-xl text-slate-900 sm:text-2xl md:min-w-[150px]">SRC Documentation</a>
+		<a href="/" class="text-xl text-slate-900 sm:text-2xl md:min-w-[150px]">Documentation</a>
 	</div>
 	<div class="flex w-96 items-center justify-end space-x-4">
 		{#if $page.data.session}
