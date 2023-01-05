@@ -13,8 +13,8 @@ export const load: PageLoad = async (event) => {
 	// dynamically load file
 	const importFile = files[`./${file}.md`];
 
-	// if file doesn't exist, redirect to /
-	if (!importFile) throw redirect(303, '/');
+	// if file doesn't exist, redirect to /docs/welcome
+	if (!importFile) throw redirect(303, '/docs/welcome');
 
 	const raw = await importFile();
 
