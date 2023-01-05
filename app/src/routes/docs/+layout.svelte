@@ -4,7 +4,7 @@
 </script>
 
 <Header />
-<div class="flex flex-1">
+<div class="relative mx-auto flex max-w-8xl flex-1 justify-center py-16 sm:px-2 lg:px-8 xl:px-12">
 	<Sidenav />
 	<main class="flex-1">
 		<slot />
