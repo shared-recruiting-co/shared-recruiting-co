@@ -1,6 +1,6 @@
 <script lang="ts">
+	import type { SvelteComponent } from 'svelte';
 	import type { RenderableTreeNodes } from '@markdoc/markdoc';
-	import type { ComponentsMap } from './types';
 	import type { Tag } from '@markdoc/markdoc';
 
 	const isTag = (tag: any): tag is Tag => {
@@ -8,7 +8,7 @@
 	};
 
 	export let content: RenderableTreeNodes;
-	export let components: ComponentsMap = {};
+	export let components: Record<string, SvelteComponent> = {};
 
 	if (
 		!Array.isArray(content) &&

@@ -1,4 +1,9 @@
-# Welcome
+---
+title: Welcome
+description: Welcome to the SRC documentation
+---
+
+# {% $frontmatter.title %}
 
 Welcome to the SRC documentation!
 

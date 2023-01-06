@@ -43,6 +43,7 @@
 		"@markdoc/markdoc": "^0.2.1",
 		"@neoconfetti/svelte": "^1.0.0",
 		"@supabase/auth-helpers-sveltekit": "^0.8.6",
-		"@supabase/supabase-js": "^2.0.5"
+		"@supabase/supabase-js": "^2.0.5",
+		"js-yaml": "^4.1.0"
 	}
 }
