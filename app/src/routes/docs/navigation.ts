@@ -24,7 +24,7 @@ export const nav = [
 			{ title: 'Community', href: '/docs/contributing#contributing' },
 			{ title: 'Code', href: '/docs/contributing#code' },
 			{ title: 'Architecture', href: '/docs/contributing#architecture' },
-			{ title: 'Data', href: '/docs/contributing#email' }
+			{ title: 'Data', href: '/docs/contributing#emails' }
 		]
 	}
 ];
