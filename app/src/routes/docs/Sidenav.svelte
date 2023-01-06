@@ -1,8 +1,15 @@
 <script lang="ts">
 	import { fly } from 'svelte/transition';
+	import { afterNavigate } from '$app/navigation';
+
 	import Navigation from './Navigation.svelte';
 
 	let isOpen = false;
+
+	// close navigation on mobile when the route changes
+	afterNavigate(() => {
+		isOpen = false;
+	});
 </script>
 
 <!-- Desktop Menu -->
@@ -41,7 +48,7 @@
 	{#if isOpen}
 		<div
 			class="fixed inset-0 z-50 flex items-start overflow-y-auto bg-slate-900/50 pr-10 backdrop-blur lg:hidden"
-			transition:fly={{ y: -100, duration: 200 }}
+			transition:fly={{ x: -100, duration: 200 }}
 		>
 			<div class="min-h-full w-full max-w-xs bg-white px-4 pt-4 pb-12 dark:bg-slate-900 sm:px-6">
 				<div class="flex items-center space-x-4">
