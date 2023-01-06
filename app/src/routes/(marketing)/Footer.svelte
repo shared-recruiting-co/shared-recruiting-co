@@ -19,7 +19,11 @@
 			</div>
 		</nav>
 		<div class="mt-8 flex justify-center space-x-6">
-			<a href="/docs/welcome" class="text-slate-400 hover:text-gray-500">
+			<a
+				data-sveltekit-preload-data="hover"
+				href="/docs/welcome"
+				class="text-slate-400 hover:text-gray-500"
+			>
 				<span class="sr-only">Documentation</span>
 				<svg
 					class="h-6 w-6 text-slate-400 group-hover:text-slate-500"
@@ -74,6 +78,7 @@
 		</p>
 		<div class="mt-6 flex justify-center space-x-6 text-sm text-slate-400">
 			<a
+				data-sveltekit-preload-data="hover"
 				class="hover:text-slate-900"
 				href="/legal/terms-of-service"
 				target="_blank"
@@ -82,6 +87,7 @@
 				Terms of Service
 			</a>
 			<a
+				data-sveltekit-preload-data="hover"
 				class="hover:text-slate-900"
 				href="/legal/privacy-policy"
 				target="_blank"
