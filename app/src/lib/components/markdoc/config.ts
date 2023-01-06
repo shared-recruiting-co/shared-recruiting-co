@@ -16,6 +16,9 @@ const config = (ast: Node): Config => {
 						type: String,
 						default: 'note',
 						matches: ['caution', 'check', 'note', 'warning']
+					},
+					title: {
+						type: String
 					}
 				}
 			}
