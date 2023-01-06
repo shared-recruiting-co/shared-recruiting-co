@@ -3,27 +3,44 @@
 	<div class="mx-auto max-w-7xl overflow-hidden py-12 px-4 sm:px-6 lg:px-8">
 		<nav class="-mx-5 -my-2 hidden flex-wrap justify-center" aria-label="Footer">
 			<div class="px-5 py-2">
-				<a href="/#main" class="text-base text-gray-500 hover:text-gray-900"> Home </a>
+				<a href="/#main" class="text-base text-slate-500 hover:text-gray-900"> Home </a>
 			</div>
 
 			<div class="px-5 py-2">
-				<a href="/#product" class="text-base text-gray-500 hover:text-gray-900"> Product </a>
+				<a href="/#product" class="text-base text-slate-500 hover:text-gray-900"> Product </a>
 			</div>
 
 			<div class="px-5 py-2">
-				<a href="/#features" class="text-base text-gray-500 hover:text-gray-900"> Features </a>
+				<a href="/#features" class="text-base text-slate-500 hover:text-gray-900"> Features </a>
 			</div>
 
 			<div class="px-5 py-2">
-				<a href="/#faqs" class="text-base text-gray-500 hover:text-gray-900"> FAQs </a>
+				<a href="/#faqs" class="text-base text-slate-500 hover:text-gray-900"> FAQs </a>
 			</div>
 		</nav>
 		<div class="mt-8 flex justify-center space-x-6">
+			<a href="/docs/welcome" class="text-slate-400 hover:text-gray-500">
+				<span class="sr-only">Documentation</span>
+				<svg
+					class="h-6 w-6 text-slate-400 group-hover:text-slate-500"
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke-width="1.5"
+					stroke="currentColor"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z"
+					/>
+				</svg>
+			</a>
 			<a
 				href="https://github.com/shared-recruiting-co/shared-recruiting-co"
 				rel="noopener noreferrer"
 				target="_blank"
-				class="text-gray-400 hover:text-gray-500"
+				class="text-slate-400 hover:text-gray-500"
 			>
 				<span class="sr-only">GitHub</span>
 				<svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -34,7 +51,7 @@
 					/>
 				</svg>
 			</a>
-			<a href="mailto:contact@sharedrecruiting.co" class="text-gray-400 hover:text-gray-500">
+			<a href="mailto:contact@sharedrecruiting.co" class="text-slate-400 hover:text-gray-500">
 				<span class="sr-only">Email</span>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -52,12 +69,12 @@
 				</svg>
 			</a>
 		</div>
-		<p class="mt-8 text-center text-base text-gray-400">
+		<p class="mt-8 text-center text-base text-slate-400">
 			&copy; 2022 Shared Recruiting Company, LLC. All rights reserved.
 		</p>
-		<div class="mt-6 flex justify-center space-x-6 text-sm text-gray-400">
+		<div class="mt-6 flex justify-center space-x-6 text-sm text-slate-400">
 			<a
-				class="hover:text-gray-900"
+				class="hover:text-slate-900"
 				href="/legal/terms-of-service"
 				target="_blank"
 				rel="noopener noreferrer"
@@ -65,7 +82,7 @@
 				Terms of Service
 			</a>
 			<a
-				class="hover:text-gray-900"
+				class="hover:text-slate-900"
 				href="/legal/privacy-policy"
 				target="_blank"
 				rel="noopener noreferrer"

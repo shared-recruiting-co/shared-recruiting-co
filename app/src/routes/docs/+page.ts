@@ -1,7 +1,7 @@
 import type { PageLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 
-// Note: Redirect until docs are implemented
+// Redirect to welcome
 export const load: PageLoad = async (event) => {
-	throw redirect(303, '/');
+	throw redirect(303, '/docs/welcome');
 };
