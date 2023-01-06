@@ -1,68 +1,79 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { fly } from 'svelte/transition';
+	import Navigation from './Navigation.svelte';
 
-	const nav = [
-		{
-			title: 'Introduction',
-			links: [
-				{ title: 'Welcome', href: '/docs/welcome' },
-				{ title: 'Open Source', href: '/docs/open-source' },
-				{ title: 'Security & Privacy', href: '/docs/security-privacy' }
-			]
-		},
-		{
-			title: 'Core Concepts',
-			links: [
-				{ title: 'Email Setup', href: '/docs/connect-email' },
-				{
-					title: 'Email Labels',
-					href: '/docs/email-labels'
-				},
-				{ title: 'Email Settings', href: '/docs/email-settings' }
-			]
-		},
-		{
-			title: 'Contributing',
-			links: [
-				{ title: 'Community', href: '/docs/contributing' },
-				{ title: 'Code', href: '/docs/contributing#code' },
-				{ title: 'Architecture', href: '/docs/contributing#architecture' },
-				{ title: 'Data', href: '/docs/contributing#email' }
-			]
-		}
-	];
+	let isOpen = false;
 </script>
 
+<!-- Desktop Menu -->
 <aside
-	class="sticky top-[4.5rem] -ml-0.5 h-[calc(100vh-4.5rem)] overflow-y-auto overflow-x-hidden py-16 pl-0.5"
+	class="sticky top-[4.5rem] -ml-0.5 hidden h-[calc(100vh-4.5rem)] overflow-y-auto overflow-x-hidden py-16 pl-0.5 lg:block"
 >
-	<nav class="w-64 pr-8 text-base lg:text-sm xl:w-72 xl:pr-16">
-		<ul class="space-y-9">
-			{#each nav as section}
-				<li>
-					<h2 class="font-display font-medium text-slate-900 dark:text-white">
-						{section.title}
-					</h2>
-					<ul
-						class="mt-2 space-y-2 border-l-2 border-slate-100 dark:border-slate-800 lg:mt-4 lg:space-y-4 lg:border-slate-200"
+	<Navigation />
+</aside>
+<!-- Mobile Menu -->
+<aside class="flex lg:hidden">
+	<div class="relative">
+		<button
+			type="button"
+			class="flex items-center justify-center rounded-md text-slate-500 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-sky-500"
+			on:click={() => (isOpen = true)}
+		>
+			<span class="sr-only">Open sidebar</span>
+			<!-- Heroicon name: outline/bars-3 -->
+			<svg
+				class="h-8 w-8"
+				xmlns="http://www.w3.org/2000/svg"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke-width="1.5"
+				stroke="currentColor"
+				aria-hidden={isOpen ? 'true' : 'false'}
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+				/>
+			</svg>
+		</button>
+	</div>
+	{#if isOpen}
+		<div
+			class="fixed inset-0 z-50 flex items-start overflow-y-auto bg-slate-900/50 pr-10 backdrop-blur lg:hidden"
+			transition:fly={{ y: -100, duration: 200 }}
+		>
+			<div class="min-h-full w-full max-w-xs bg-white px-4 pt-4 pb-12 dark:bg-slate-900 sm:px-6">
+				<div class="flex items-center space-x-4">
+					<button
+						type="button"
+						class="mr-4 flex items-center justify-center rounded-md text-slate-500 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-sky-500"
+						on:click={() => (isOpen = false)}
 					>
-						{#each section.links as link}
-							<li class="relative">
-								<a
-									href={link.href}
-									class={`block w-full pl-3.5 before:pointer-events-none before:absolute before:-left-1 before:top-1/2 before:h-1.5 before:w-1.5 before:-translate-y-1/2 before:rounded-full ${
-										link.href === $page.url.pathname
-											? 'font-semibold text-sky-500 before:bg-sky-500'
-											: 'text-slate-500 before:hidden before:bg-slate-300 hover:text-slate-600 hover:before:block dark:text-slate-400 dark:before:bg-slate-700 dark:hover:text-slate-300'
-									}`}
-								>
-									{link.title}
-								</a>
-							</li>
-						{/each}
-					</ul>
-				</li>
-			{/each}
-		</ul>
-	</nav>
+						<span class="sr-only">Close sidebar</span>
+						<!-- Heroicon name: outline/x-mark -->
+						<svg
+							class="h-8 w-8 text-slate-500"
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke-width="1.5"
+							stroke="currentColor"
+							aria-hidden={!isOpen}
+						>
+							<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+						</svg>
+					</button>
+					<a href="/" class="block">
+						<img src="/logo.svg" alt="Shared Recruiting Co" class="h-10 w-10" />
+					</a>
+				</div>
+				<div class="mt-8 px-1">
+					<Navigation />
+				</div>
+			</div>
+		</div>
+	{/if}
+	<!-- </Dialog.Panel> -->
+	<!-- </Dialog> -->
 </aside>
