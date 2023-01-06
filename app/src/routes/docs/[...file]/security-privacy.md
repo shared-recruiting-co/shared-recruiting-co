@@ -1,4 +1,9 @@
-# Security and Privacy
+---
+title: Security and Privacy
+description: How SRC keeps your data safe and secure
+---
+
+# {% $frontmatter.title %}
 
 ## Open Source
 

@@ -1,4 +1,9 @@
-# Open Source
+---
+title: Open Source
+description: Why we chose to open source SRC
+---
+
+# {% $frontmatter.title %}
 
 ## Why is SRC Open Source?
 
