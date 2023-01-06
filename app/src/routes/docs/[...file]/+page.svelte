@@ -1,9 +1,14 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import type { PageData } from './$types';
+
+	import Markdoc from '$lib/components/markdoc/Markdoc.svelte';
+
+	import { getSectionTitle } from '../navigation';
 
 	export let data: PageData;
 
-	import Markdoc from '$lib/components/markdoc/Markdoc.svelte';
+	$: section = getSectionTitle($page.url.pathname);
 </script>
 
 <div class="min-w-0 max-w-2xl flex-auto px-4 py-16 lg:max-w-none lg:pr-0 lg:pl-8 xl:px-16">
@@ -19,6 +24,9 @@ dark:prose-a:shadow-[inset_0_calc(-1*var(--tw-prose-underline-size,2px))_0_0_var
 lg:prose-headings:scroll-mt-[8.5rem]
 		"
 	>
+		{#if section}
+			<p class="text-sm font-semibold text-sky-500">{section}</p>
+		{/if}
 		<Markdoc source={data.markdown.source} />
 	</article>
 </div>

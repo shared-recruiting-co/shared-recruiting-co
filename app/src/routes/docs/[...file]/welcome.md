@@ -1,11 +1,11 @@
 ---
 title: Welcome
-description: Welcome to the SRC documentation
+description: Welcome to the SRC documentation!
 ---
 
 # {% $frontmatter.title %}
 
-Welcome to the SRC documentation!
+{% $frontmatter.description %}
 
 The Shared Recruiting Co., or SRC (pronounced "source"), is an open source, candidate-centric recruiting platform that promotes two-way opt-in communication between candidates and companies.
 
