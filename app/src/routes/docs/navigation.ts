@@ -48,3 +48,14 @@ export const getSectionTitle = (pathname: string): string => {
 	}
 	return '';
 };
+
+export const getLinkTitle = (pathname: string): string => {
+	for (const section of nav) {
+		for (const link of section.links) {
+			if (link.href === pathname) {
+				return link.title;
+			}
+		}
+	}
+	return '';
+};

@@ -4,12 +4,19 @@
 
 	import Markdoc from '$lib/components/markdoc/Markdoc.svelte';
 
-	import { getSectionTitle } from '../navigation';
+	import { getSectionTitle, getLinkTitle } from '../navigation';
 
 	export let data: PageData;
 
 	$: section = getSectionTitle($page.url.pathname);
+	$: title = getLinkTitle($page.url.pathname);
+
+	// TODO: Truncate document title if too long for SEO
 </script>
+
+<svelte:head>
+	<title>{title} | {section}</title>
+</svelte:head>
 
 <div class="min-w-0 max-w-2xl flex-auto px-4 py-16 lg:max-w-none lg:pr-0 lg:pl-8 xl:px-16">
 	<!-- omitted: prose-headings:font-display -->
