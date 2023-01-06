@@ -5,10 +5,13 @@
 
 	import config from './config';
 	import Tag from './Tag.svelte';
+
 	import Callout from './Callout.svelte';
+	import EmailLabel from './EmailLabel.svelte';
 
 	const components = {
-		Callout
+		Callout,
+		EmailLabel
 	};
 
 	// props

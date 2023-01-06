@@ -21,6 +21,19 @@ const config = (ast: Node): Config => {
 						type: String
 					}
 				}
+			},
+			emailLabel: {
+				render: 'EmailLabel',
+				attributes: {
+					color: {
+						type: String,
+						default: 'blue',
+						matches: ['blue', 'green', 'red']
+					},
+					title: {
+						type: String
+					}
+				}
 			}
 		},
 		variables: {
