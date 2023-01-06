@@ -8,7 +8,7 @@
 	};
 
 	export let content: RenderableTreeNodes;
-	export let components: Record<string, SvelteComponent> = {};
+	export let components: Record<string, typeof SvelteComponent> = {};
 
 	if (
 		!Array.isArray(content) &&
