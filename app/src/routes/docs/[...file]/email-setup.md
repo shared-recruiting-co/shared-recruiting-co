@@ -12,5 +12,5 @@ You only need to connect an account once to install SRC. If SRC loses a connecti
 You can also pause SRC at any time by clicking the `Deactivate` button it in your account settings.
 
 {% callout title="Feature Alert" type="note" %}
-Want to install SRC on multiple emails? Let us know by upvoting this [Github issue](https://github.com/shared-recruiting-co/shared-recruiting-co/issues/49)
+Want to install SRC on multiple emails? Let us know by 👍 this [Github issue](https://github.com/shared-recruiting-co/shared-recruiting-co/issues/49)
 {% /callout %}
