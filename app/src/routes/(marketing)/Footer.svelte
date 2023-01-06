@@ -3,23 +3,23 @@
 	<div class="mx-auto max-w-7xl overflow-hidden py-12 px-4 sm:px-6 lg:px-8">
 		<nav class="-mx-5 -my-2 hidden flex-wrap justify-center" aria-label="Footer">
 			<div class="px-5 py-2">
-				<a href="/#main" class="text-base text-gray-500 hover:text-gray-900"> Home </a>
+				<a href="/#main" class="text-base text-slate-500 hover:text-gray-900"> Home </a>
 			</div>
 
 			<div class="px-5 py-2">
-				<a href="/#product" class="text-base text-gray-500 hover:text-gray-900"> Product </a>
+				<a href="/#product" class="text-base text-slate-500 hover:text-gray-900"> Product </a>
 			</div>
 
 			<div class="px-5 py-2">
-				<a href="/#features" class="text-base text-gray-500 hover:text-gray-900"> Features </a>
+				<a href="/#features" class="text-base text-slate-500 hover:text-gray-900"> Features </a>
 			</div>
 
 			<div class="px-5 py-2">
-				<a href="/#faqs" class="text-base text-gray-500 hover:text-gray-900"> FAQs </a>
+				<a href="/#faqs" class="text-base text-slate-500 hover:text-gray-900"> FAQs </a>
 			</div>
 		</nav>
 		<div class="mt-8 flex justify-center space-x-6">
-			<a href="/docs/welcome" class="text-gray-400 hover:text-gray-500">
+			<a href="/docs/welcome" class="text-slate-400 hover:text-gray-500">
 				<span class="sr-only">Documentation</span>
 				<svg
 					class="h-6 w-6 text-slate-400 group-hover:text-slate-500"
@@ -40,7 +40,7 @@
 				href="https://github.com/shared-recruiting-co/shared-recruiting-co"
 				rel="noopener noreferrer"
 				target="_blank"
-				class="text-gray-400 hover:text-gray-500"
+				class="text-slate-400 hover:text-gray-500"
 			>
 				<span class="sr-only">GitHub</span>
 				<svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -51,7 +51,7 @@
 					/>
 				</svg>
 			</a>
-			<a href="mailto:contact@sharedrecruiting.co" class="text-gray-400 hover:text-gray-500">
+			<a href="mailto:contact@sharedrecruiting.co" class="text-slate-400 hover:text-gray-500">
 				<span class="sr-only">Email</span>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -69,12 +69,12 @@
 				</svg>
 			</a>
 		</div>
-		<p class="mt-8 text-center text-base text-gray-400">
+		<p class="mt-8 text-center text-base text-slate-400">
 			&copy; 2022 Shared Recruiting Company, LLC. All rights reserved.
 		</p>
-		<div class="mt-6 flex justify-center space-x-6 text-sm text-gray-400">
+		<div class="mt-6 flex justify-center space-x-6 text-sm text-slate-400">
 			<a
-				class="hover:text-gray-900"
+				class="hover:text-slate-900"
 				href="/legal/terms-of-service"
 				target="_blank"
 				rel="noopener noreferrer"
@@ -82,7 +82,7 @@
 				Terms of Service
 			</a>
 			<a
-				class="hover:text-gray-900"
+				class="hover:text-slate-900"
 				href="/legal/privacy-policy"
 				target="_blank"
 				rel="noopener noreferrer"
