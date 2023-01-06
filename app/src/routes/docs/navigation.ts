@@ -10,7 +10,7 @@ export const nav = [
 	{
 		title: 'Core Concepts',
 		links: [
-			{ title: 'Email Setup', href: '/docs/connect-email' },
+			{ title: 'Email Setup', href: '/docs/email-setup' },
 			{
 				title: 'Email Labels',
 				href: '/docs/email-labels'
