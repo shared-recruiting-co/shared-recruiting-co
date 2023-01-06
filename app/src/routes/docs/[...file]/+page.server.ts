@@ -1,13 +1,18 @@
-import type { PageLoad } from './$types';
+import type { PageServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 
 const files = import.meta.glob('./*.md', {
 	as: 'raw'
 });
 
+type Data = {
+	markdown: {
+		source: string;
+	};
+};
+
 // Note: Redirect until docs are implemented
-export const load: PageLoad = async (event) => {
-	const { params } = event;
+export const load: PageServerLoad<Data> = async ({ params }) => {
 	const { file } = params;
 
 	// dynamically load file
@@ -16,9 +21,13 @@ export const load: PageLoad = async (event) => {
 	// if file doesn't exist, redirect to /docs/welcome
 	if (!importFile) throw redirect(303, '/docs/welcome');
 
-	const raw = await importFile();
+	const source = await importFile();
 
 	return {
-		raw
+		markdown: {
+			source
+		}
 	};
 };
+
+export const prerender = true;

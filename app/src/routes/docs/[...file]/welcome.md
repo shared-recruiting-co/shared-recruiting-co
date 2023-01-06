@@ -8,8 +8,11 @@ For candidates, SRC keeps your inbox distraction free when you aren't looking fo
 
 For companies, SRC stops you from wasting time sourcing candidates that aren't actively looking for a new role. SRC integrates into your existing recruiting stack and automatically re-engages _interested_ candidates once they are ready for a new role.
 
+{% callout type="note" %}
 **Invite Only** 
+
 SRC is currently invite only. If you know SRC member, have them refer you. If not, join the waitlist. You'll receive an email once you can create an account! 
+{% /callout %}
 
 If you have any questions or just want to chat, feel free to reach out to [team@sharedrecruiting.co](mailto:team@sharedrecruiting.co)
 
