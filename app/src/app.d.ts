@@ -13,6 +13,9 @@ declare namespace App {
 	interface PageData {
 		session: import('@supabase/supabase-js').Session | null;
 	}
-	// interface Error {}
+	interface Error {
+		message: string;
+		code: string;
+	}
 	// interface Platform {}
 }
