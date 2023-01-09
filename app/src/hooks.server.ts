@@ -1,12 +1,19 @@
 import type { HandleServerError } from '@sveltejs/kit';
 import '$lib/supabase/client';
-// import * as Sentry from '@sentry/node';
+import * as Sentry from '@sentry/node';
 
-// Sentry.init({/*...*/})
+import { SENTRY_DSN } from '$env/static/private';
 
-export const handleError = (({ error, event }) => {
+Sentry.init({
+	dsn: SENTRY_DSN,
+	// We recommend adjusting this value in production, or using tracesSampler
+	// for finer control
+	tracesSampleRate: 1.0
+});
+
+export const handleError: HandleServerError = ({ error, event }) => {
 	// example integration with https://sentry.io/
-	// Sentry.captureException(error, { event });
+	Sentry.captureException(error, { event });
 
 	return {
 		message:
@@ -14,4 +21,4 @@ export const handleError = (({ error, event }) => {
 			'Something went wrong. If this error persists, please contact us at team@sharedrecruiting.co',
 		code: error?.code ?? 'UNKNOWN'
 	};
-}) satisfies HandleServerError;
+};
