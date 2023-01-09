@@ -3,5 +3,5 @@
 </script>
 
 <div class="flex min-h-screen items-center justify-center">
-	<PageError />
+	<PageError home="/docs/welcome" />
 </div>
