@@ -2,7 +2,7 @@ import type { HandleServerError } from '@sveltejs/kit';
 import '$lib/supabase/client';
 import * as Sentry from '@sentry/node';
 
-import { SENTRY_DSN } from '$env/static/private';
+import { SENTRY_DSN } from '$env/dynamic/private';
 
 Sentry.init({
 	dsn: SENTRY_DSN,
