@@ -1,5 +1,5 @@
+import markdoc from '@markdoc/markdoc';
 import type { Config, Node, RenderableTreeNode } from '@markdoc/markdoc';
-import { Tag } from '@markdoc/markdoc';
 
 const headingID = (children: RenderableTreeNode[], attributes: Record<string, unknown>) => {
 	if (attributes.id && typeof attributes.id === 'string') {
@@ -26,7 +26,7 @@ export const heading = {
 
 		const id = headingID(children, attributes);
 
-		return new Tag(`h${node.attributes['level']}`, { ...attributes, id }, children);
+		return new markdoc.Tag(`h${node.attributes['level']}`, { ...attributes, id }, children);
 	}
 };
 
