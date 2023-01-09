@@ -17,11 +17,11 @@
 		<main class="sm:flex">
 			<p class="text-4xl font-bold tracking-tight text-blue-600 sm:text-5xl">{$page.status}</p>
 			<div class="sm:ml-6">
-				<div class="sm:border-l sm:border-gray-200 sm:pl-6">
-					<h1 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+				<div class="sm:border-l sm:border-slate-200 sm:pl-6">
+					<h1 class="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
 						{title}
 					</h1>
-					<p class="mt-1 text-base text-gray-500">
+					<p class="mt-1 text-base text-slate-500">
 						{message}
 					</p>
 				</div>
