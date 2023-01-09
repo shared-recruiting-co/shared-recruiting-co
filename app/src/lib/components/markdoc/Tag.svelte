@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { SvelteComponent } from 'svelte';
-	import type { RenderableTreeNodes } from '@markdoc/markdoc';
-	import type { Tag } from '@markdoc/markdoc';
+	import type { Tag, RenderableTreeNodes } from '@markdoc/markdoc';
 
 	const isTag = (tag: any): tag is Tag => {
 		return !!(tag?.$$mdtype === 'Tag');

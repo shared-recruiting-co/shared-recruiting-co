@@ -1,7 +1,8 @@
 <script lang="ts">
 	// Adapted from
 	// https://github.com/yuchengkuo/sveltejs-markdoc
-	import { parse, transform } from '@markdoc/markdoc';
+	import markdoc from '@markdoc/markdoc';
+	const { parse, transform } = markdoc;
 
 	import config from './config';
 	import Tag from './Tag.svelte';
