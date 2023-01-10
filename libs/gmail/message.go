@@ -2,10 +2,19 @@ package gmail
 
 import (
 	"encoding/base64"
+	"sort"
 	"strings"
 
 	"google.golang.org/api/gmail/v1"
 )
+
+// SortMessagesByDate sorts messages by date received by gmail (ascending)
+// The messages are sorted in place.
+func SortMessagesByDate(messages []*gmail.Message) {
+	sort.Slice(messages, func(i, j int) bool {
+		return messages[i].InternalDate < messages[j].InternalDate
+	})
+}
 
 func MessageHeader(m *gmail.Message, header string) string {
 	header = strings.ToLower(header)
