@@ -97,6 +97,9 @@ func getTextContentFromMessageParts(m *gmail.MessagePart) string {
 
 // MessageHasLabel returns true if the message contains the given label id
 func MessageHasLabel(m *gmail.Message, id string) bool {
+	if m.LabelIds == nil {
+		return false
+	}
 	for _, l := range m.LabelIds {
 		if l == id {
 			return true

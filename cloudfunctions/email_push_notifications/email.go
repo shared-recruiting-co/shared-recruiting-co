@@ -40,3 +40,17 @@ func fetchNewEmailsSinceHistoryID(srv *mail.Service, historyID uint64, labelID s
 
 	return messages, r.NextPageToken, nil
 }
+
+// skipThread if the thread
+// - thread was started by the user or the user has replied
+// - thread has a job label
+func skipThread(messages []*gmail.Message, labelID string) bool {
+	for _, m := range messages {
+		if m.LabelIds != nil {
+			if mail.MessageHasLabel(m, "SENT") || mail.MessageHasLabel(m, labelID) {
+				return true
+			}
+		}
+	}
+	return false
+}
