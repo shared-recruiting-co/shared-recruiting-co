@@ -373,6 +373,20 @@ func (s *Service) GetMessage(id string) (*gmail.Message, error) {
 	return ExecuteWithRetries(f)
 }
 
+// Threads
+
+// GetThread() fetches a thread by ID with messages in the given format
+// See https://developers.google.com/gmail/api/reference/rest/v1/users.threads/get#Format for format values
+//
+// It is a convenience method that wraps the gmail API call
+// It opens opportunities for caching and rate-limiting handling
+func (s *Service) GetThread(id, format string) (*gmail.Thread, error) {
+	f := func() (*gmail.Thread, error) {
+		return s.Users.Threads.Get(s.UserID, id).Format(format).Do()
+	}
+	return ExecuteWithRetries(f)
+}
+
 // Ideas for future
 // ListMessages()
 // cache GetMessage calls until next ListMessages call
