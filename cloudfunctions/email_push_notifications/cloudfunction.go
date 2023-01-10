@@ -12,6 +12,7 @@ import (
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
+	"github.com/getsentry/sentry-go"
 	"google.golang.org/api/idtoken"
 
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/db/client"
@@ -72,11 +73,33 @@ func contains[T comparable](list []T, item T) bool {
 	return false
 }
 
+// naive error handler for now
+func handleError(msg string, err error) error {
+	err = fmt.Errorf("%s: %w", msg, err)
+	sentry.CaptureException(err)
+	return err
+}
+
 // emailPushNotificationHandler consumes a CloudEvent message and extracts the Pub/Sub message.
 func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	var msg MessagePublishedData
+
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: os.Getenv("SENTRY_DSN"),
+		// Set TracesSampleRate to 1.0 to capture 100%
+		// of transactions for performance monitoring.
+		// We recommend adjusting this value in production,
+		TracesSampleRate: 1.0,
+	})
+	if err != nil {
+		return fmt.Errorf("sentry.Init: %v", err)
+	}
+	// Flush buffered events before the program terminates.
+	defer sentry.Flush(2 * time.Second)
+	defer sentry.RecoverWithContext(ctx)
+
 	if err := e.DataAs(&msg); err != nil {
-		return fmt.Errorf("event.DataAs: %v", err)
+		return handleError("error parsing Pub/Sub message", err)
 	}
 
 	data := msg.Message.Data
@@ -84,7 +107,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 	var emailPushNotification EmailPushNotification
 	if err := json.Unmarshal(data, &emailPushNotification); err != nil {
-		return fmt.Errorf("json.Unmarshal: %v", err)
+		return handleError("error parsing email push notification", err)
 	}
 
 	email := emailPushNotification.Email
@@ -92,7 +115,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 	creds, err := jsonFromEnv("GOOGLE_OAUTH2_CREDENTIALS")
 	if err != nil {
-		return fmt.Errorf("error fetching google app credentials: %v", err)
+		return handleError("error parsing GOOGLE_OAUTH2_CREDENTIALS", err)
 	}
 
 	// 0, Create SRC client
@@ -103,16 +126,16 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	// 1. Get User from email address
 	user, err := queries.GetUserProfileByEmail(ctx, email)
 	if err != nil {
-		return fmt.Errorf("error getting user profile by email: %v", err)
+		return handleError("error getting user profile by email", err)
 	}
 	if user.AutoContribute {
 		auth, err := jsonFromEnv("EXAMPLES_GMAIL_OAUTH_TOKEN")
 		if err != nil {
-			return fmt.Errorf("error reading examples@sharedrecruiting.co credentials: %v", err)
+			return handleError("error parsing EXAMPLES_GMAIL_OAUTH_TOKEN", err)
 		}
 		examplesCollectorSrv, err = mail.NewService(ctx, creds, auth)
 		if err != nil {
-			return fmt.Errorf("error creating example collector service: %v", err)
+			return handleError("error creating examples collector service", err)
 		}
 	}
 
@@ -122,7 +145,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		Provider: provider,
 	})
 	if err != nil {
-		return fmt.Errorf("error getting user oauth token: %v", err)
+		return handleError("error getting user oauth token", err)
 	}
 
 	// stop early if user token is marked invalid
@@ -135,7 +158,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	auth := []byte(userToken.Token)
 	srv, err := mail.NewService(ctx, creds, auth)
 	if err != nil {
-		return fmt.Errorf("error creating gmail service: %v", err)
+		return handleError("error creating gmail service", err)
 	}
 
 	// 4. Get or Create SRC Labels
@@ -158,18 +181,18 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 				log.Printf("marked user oauth token as invalid")
 			}
 		}
-		return fmt.Errorf("error getting or creating the SRC label: %v", err)
+		return handleError("error getting or creating SRC labels", err)
 	}
 	// Create recruiting detector client
 	classifierBaseURL := os.Getenv("CLASSIFIER_URL")
 	idTokenSource, err := idtoken.NewTokenSource(ctx, classifierBaseURL)
 	if err != nil {
-		return fmt.Errorf("error creating id token source: %v", err)
+		return handleError("error creating id token source", err)
 	}
 
 	idToken, err := idTokenSource.Token()
 	if err != nil {
-		return fmt.Errorf("error getting id token: %v", err)
+		return handleError("error getting id token", err)
 	}
 
 	classifier := NewClassifierClient(ctx, ClassifierClientArgs{
@@ -187,7 +210,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		startDate := time.Now().AddDate(-1, 0, 0)
 		err = triggerBackgroundfFullEmailSync(ctx, email, startDate)
 		if err != nil {
-			return fmt.Errorf("error triggering background full email sync: %v", err)
+			return handleError("error triggering background full email sync", err)
 		}
 
 		// save the current history ID
@@ -197,14 +220,14 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 			SyncedAt:  time.Now(),
 		})
 		if err != nil {
-			return fmt.Errorf("error upserting email sync history: %v", err)
+			return handleError("error upserting user email sync history", err)
 		}
 		// success
 		log.Printf("done.")
 		return nil
 
 	} else if err != nil {
-		return fmt.Errorf("error getting user email sync history: %v", err)
+		return handleError("error getting user email sync history", err)
 	}
 
 	err = queries.UpsertUserEmailSyncHistory(ctx, client.UpsertUserEmailSyncHistoryParams{
@@ -213,7 +236,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		SyncedAt:  time.Now(),
 	})
 	if err != nil {
-		return fmt.Errorf("error upserting email sync history: %v", err)
+		return handleError("error upserting user email sync history", err)
 	}
 
 	// on any errors after this, we want to reset the history ID to the previous one
@@ -249,7 +272,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	)
 	if err != nil {
 		revertSynctHistory()
-		return fmt.Errorf("error processing messages: %v", err)
+		return handleError("error syncing new emails", err)
 	}
 
 	log.Printf("done.")
