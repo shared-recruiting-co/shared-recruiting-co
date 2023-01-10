@@ -90,6 +90,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		// of transactions for performance monitoring.
 		// We recommend adjusting this value in production,
 		TracesSampleRate: 1.0,
+		ServerName:       "email-push-notifications",
 	})
 	if err != nil {
 		return fmt.Errorf("sentry.Init: %v", err)
