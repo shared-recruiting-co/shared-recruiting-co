@@ -181,19 +181,41 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 		AuthToken: idToken.AccessToken,
 	})
 
-	var messages []*gmail.Message
+	var threads []*gmail.Thread
 	pageToken := ""
 
 	// batch process messages to reduce memory usage
 	for {
 		// get next set of messages
 		// if this is the first notification, trigger a one-time sync
-		messages, pageToken, err = fetchEmailsSinceDate(srv, startDate, pageToken)
+		threads, pageToken, err = fetchThreadsSinceDate(srv, startDate, pageToken)
 
 		// for now, abort on error
 		if err != nil {
 			handleError(w, "error fetching emails", err)
 			return
+		}
+
+		// get the messages for each thread
+		var messages []*gmail.Message
+		for _, t := range threads {
+			thread, err := srv.GetThread(t.Id, "minimal")
+			if err != nil {
+				// for now abort on error
+				handleError(w, "error fetching thread", err)
+				return
+			}
+
+			// check if we already processed this thread
+			if skipThread(thread.Messages, labels.JobsOpportunity.Id) {
+				continue
+			}
+			// get messages before the first reply
+			filtered := filterMessagesAfterReply(thread.Messages)
+			// save for processing
+			// TODO consider mimicing real-time sync and process messages sequentially
+			// (i.e do not label second email if the first is positive)
+			messages = append(messages, filtered...)
 		}
 
 		// process messages
@@ -274,9 +296,10 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 			err = queries.IncrementUserEmailStat(
 				ctx,
 				client.IncrementUserEmailStatParams{
-					UserID:    user.UserID,
-					Email:     user.Email,
-					StatID:    "jobs_detected",
+					UserID: user.UserID,
+					Email:  user.Email,
+					StatID: "jobs_detected",
+					// TOOD: Use number of threads instead of number of messages
 					StatValue: int32(len(recruitingEmailIDs)),
 				},
 			)
