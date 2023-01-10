@@ -21,7 +21,7 @@ commit;
 
 -- User OAuth Token Table
 create table public.user_oauth_token (
-    user_id uuid references auth.users(id) not null,
+    user_id uuid references auth.users(id) on delete cascade not null,
     provider text not null,
     token jsonb not null,
     is_valid boolean not null default true,
@@ -50,7 +50,7 @@ create policy "Users can update own oauth tokens."
 
 -- User Email Sync History Table
 create table public.user_email_sync_history (
-    user_id uuid references auth.users(id) not null,
+    user_id uuid references auth.users(id) on delete cascade not null,
     history_id int8 not null,
     -- track successful sync attempts
     synced_at timestamp with time zone not null default now(),
@@ -76,7 +76,7 @@ alter publication supabase_realtime add table user_email_sync_history;
 
 -- Waitlist table
 create table public.waitlist (
-    user_id uuid references auth.users(id) not null,
+    user_id uuid references auth.users(id) on delete cascade not null,
     -- duplicate email for convenience
     email text not null,
     first_name text not null,
@@ -102,7 +102,7 @@ create policy "Users can view their own waitlist entry"
 
 -- user_profile table
 create table public.user_profile (
-    user_id uuid references auth.users(id) not null,
+    user_id uuid references auth.users(id) on delete cascade not null,
     -- duplicate email for convenience
     email text not null,
     first_name text not null,
@@ -134,7 +134,7 @@ create policy "Users can update their own profile"
 -- user_email_stat table
 -- simple table to keep track of realtime user facing statistics
 create table public.user_email_stat (
-    user_id uuid references auth.users(id) not null,
+    user_id uuid references auth.users(id) on delete cascade not null,
     -- in future, user can have multiple emails
     email text not null,
     -- free form stat id
