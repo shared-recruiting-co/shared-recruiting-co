@@ -2,11 +2,21 @@ package gmail
 
 import (
 	"encoding/base64"
+	"sort"
 	"strings"
 
 	"google.golang.org/api/gmail/v1"
 )
 
+// SortMessagesByDate sorts messages by date received by gmail (ascending)
+// The messages are sorted in place.
+func SortMessagesByDate(messages []*gmail.Message) {
+	sort.Slice(messages, func(i, j int) bool {
+		return messages[i].InternalDate < messages[j].InternalDate
+	})
+}
+
+// MessageHeader returns the value of the header with the given name
 func MessageHeader(m *gmail.Message, header string) string {
 	header = strings.ToLower(header)
 	for _, h := range m.Payload.Headers {
@@ -17,14 +27,21 @@ func MessageHeader(m *gmail.Message, header string) string {
 	return ""
 }
 
+// MessageSender returns the sender of the message
+// The sender is the email address of the first "From" header
 func MessageSender(m *gmail.Message) string {
 	return MessageHeader(m, "From")
 }
 
+// MessageSubject returns the subject of the message
 func MessageSubject(m *gmail.Message) string {
 	return MessageHeader(m, "Subject")
 }
 
+// MessageBody returns the body of the message as a string
+//
+// It first checks for a text/plain body.
+// If none is found, it checks for a text/html body.
 func MessageBody(m *gmail.Message) string {
 	// try to get native text content first
 	body := getTextContentFromMessageParts(m.Payload)
@@ -76,4 +93,22 @@ func getTextContentFromMessageParts(m *gmail.MessagePart) string {
 	}
 
 	return ""
+}
+
+// MessageHasLabel returns true if the message contains the given label id
+func MessageHasLabel(m *gmail.Message, id string) bool {
+	for _, l := range m.LabelIds {
+		if l == id {
+			return true
+		}
+	}
+	return false
+}
+
+// IsMessageSent returns true if the message was sent by the current user
+//
+// There are a number of ways to check if a message was sent by a user.
+// This function checks if the message contains the system "SENT" label, which allows us to only fetch the minimal message information (no headers) from a thread.
+func IsMessageSent(m *gmail.Message) bool {
+	return MessageHasLabel(m, "SENT")
 }
