@@ -56,18 +56,32 @@ func fetchThreadsSinceDate(srv *mail.Service, date time.Time, pageToken string) 
 	return r.Threads, r.NextPageToken, nil
 }
 
-// SkipThread if
-// // a. started by the current user (i.e. first message is sent by the current user)
-// // b. already labeled has @src label
+// SkipThread if the messages already labeled with SRC label
 func skipThread(messages []*gmail.Message, srcLabelId string) bool {
-	mail.SortMessagesByDate(messages)
-	if messages[0] == nil {
-		return true
-	} else if mail.MessageHasLabel(messages[0], srcLabelId) {
-		return true
-	} else if mail.IsMessageSent(messages[0]) {
+	if len(messages) == 0 {
 		return true
 	}
 
+	// for each message in the thread, check if it has the @src label
+	for _, m := range messages {
+		if mail.MessageHasLabel(m, srcLabelId) {
+			return true
+		}
+	}
+
 	return false
+}
+
+func filterMessagesAfterReply(messages []*gmail.Message) []*gmail.Message {
+	filtered := []*gmail.Message{}
+	// ensure messages are sorted by ascending date
+	mail.SortMessagesByDate(messages)
+
+	for _, m := range messages {
+		if mail.IsMessageSent(m) {
+			break
+		}
+		filtered = append(filtered, m)
+	}
+	return filtered
 }
