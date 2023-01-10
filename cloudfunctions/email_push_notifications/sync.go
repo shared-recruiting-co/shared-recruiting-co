@@ -120,7 +120,6 @@ func syncNewEmails(
 			}
 
 			// filter out messages with the sent or already have a job label
-			// TODO: Handle new messages with the job label differently
 			if contains(message.LabelIds, "SENT") || contains(message.LabelIds, labels.JobsOpportunity.Id) {
 				continue
 			}
@@ -151,6 +150,16 @@ func syncNewEmails(
 				}
 				log.Printf("blocked message: %s", message.Id)
 				continue
+			}
+
+			// get the message thread
+			thread, err := srv.GetThread(message.ThreadId, "minimal")
+			if err != nil {
+				log.Printf("error getting thread: %v", err)
+			} else {
+				if skipThread(thread.Messages, labels.JobsOpportunity.Id) {
+					continue
+				}
 			}
 
 			example := &PredictRequest{
