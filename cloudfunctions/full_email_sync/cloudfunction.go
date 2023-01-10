@@ -213,7 +213,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 			// get messages before the first reply
 			filtered := filterMessagesAfterReply(thread.Messages)
 			// save for processing
-			// TODO consider mimicing real-time sync and process messages sequentially
+			// TODO consider mimicking real-time sync and process messages sequentially
 			// (i.e do not label second email if the first is positive)
 			messages = append(messages, filtered...)
 		}

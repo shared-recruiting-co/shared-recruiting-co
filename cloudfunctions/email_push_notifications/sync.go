@@ -158,6 +158,7 @@ func syncNewEmails(
 				log.Printf("error getting thread: %v", err)
 			} else {
 				if skipThread(thread.Messages, labels.JobsOpportunity.Id) {
+					log.Printf("skipping thread: %s", message.ThreadId)
 					continue
 				}
 			}
