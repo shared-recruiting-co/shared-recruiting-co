@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
+	"github.com/getsentry/sentry-go"
 
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/idtoken"
@@ -41,6 +42,14 @@ func jsonFromEnv(env string) ([]byte, error) {
 	return decoded, err
 }
 
+// generic error handler
+func handleError(w http.ResponseWriter, msg string, err error) {
+	err = fmt.Errorf("%s: %w", msg, err)
+	log.Print(err)
+	sentry.CaptureException(err)
+	http.Error(w, err.Error(), http.StatusInternalServerError)
+}
+
 type FullEmailSyncRequest struct {
 	Email     string    `json:"email"`
 	StartDate time.Time `json:"start_date"`
@@ -50,18 +59,33 @@ type FullEmailSyncRequest struct {
 func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: os.Getenv("SENTRY_DSN"),
+		// Set TracesSampleRate to 1.0 to capture 100%
+		// of transactions for performance monitoring.
+		// We recommend adjusting this value in production,
+		TracesSampleRate: 1.0,
+	})
+	if err != nil {
+		log.Printf("sentry.Init: %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Flush buffered events before the program terminates.
+	defer sentry.Flush(2 * time.Second)
+	defer sentry.RecoverWithContext(ctx)
+
 	// Get the request body
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Printf("Error reading request body: %v", err)
-		http.Error(w, "Error reading request body", http.StatusInternalServerError)
+		handleError(w, "error reading request body", err)
 		return
 	}
 	var data FullEmailSyncRequest
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		log.Printf("Error unmarshalling request body: %v", err)
-		http.Error(w, "Error unmarshalling request body", http.StatusInternalServerError)
+		handleError(w, "error unmarshalling request body", err)
 		return
 	}
 	email := data.Email
@@ -71,8 +95,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 
 	creds, err := jsonFromEnv("GOOGLE_OAUTH2_CREDENTIALS")
 	if err != nil {
-		log.Printf("error fetching google app credentials: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		handleError(w, "error fetching google app credentials", err)
 		return
 	}
 
@@ -84,22 +107,19 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 	// 1. Get User from email address
 	user, err := queries.GetUserProfileByEmail(ctx, email)
 	if err != nil {
-		log.Printf("error getting user profile by email: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		handleError(w, "error getting user profile by email", err)
 		return
 	}
 	// if auto contribute is on, create the collector service
 	if user.AutoContribute {
 		auth, err := jsonFromEnv("EXAMPLES_GMAIL_OAUTH_TOKEN")
 		if err != nil {
-			log.Printf("error reading examples@sharedrecruiting.co credentials: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
+			handleError(w, "error reading examples@sharedrecruiting.co credentials", err)
 			return
 		}
 		examplesCollectorSrv, err = mail.NewService(ctx, creds, auth)
 		if err != nil {
-			log.Printf("error creating example collector service: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
+			handleError(w, "error creating example collector service", err)
 			return
 		}
 	}
@@ -110,8 +130,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 		Provider: provider,
 	})
 	if err != nil {
-		log.Printf("error getting user oauth token: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		handleError(w, "error getting user oauth token", err)
 		return
 	}
 
@@ -139,8 +158,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 				log.Printf("marked user oauth token as invalid")
 			}
 		}
-		log.Printf("error getting or creating the SRC label: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		handleError(w, "error getting or creating the SRC label", err)
 		return
 	}
 
@@ -148,14 +166,12 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 	classifierBaseURL := os.Getenv("CLASSIFIER_URL")
 	idTokenSource, err := idtoken.NewTokenSource(ctx, classifierBaseURL)
 	if err != nil {
-		log.Printf("error creating id token source: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		handleError(w, "error creating id token source", err)
 		return
 	}
 	idToken, err := idTokenSource.Token()
 	if err != nil {
-		log.Printf("error getting id token: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		handleError(w, "error getting id token", err)
 		return
 	}
 
@@ -175,8 +191,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 
 		// for now, abort on error
 		if err != nil {
-			log.Printf("error fetching emails: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
+			handleError(w, "error fetching emails", err)
 			return
 		}
 
@@ -188,8 +203,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 
 			// for now, abort on error
 			if err != nil {
-				log.Printf("error getting message: %v", err)
-				w.WriteHeader(http.StatusInternalServerError)
+				handleError(w, "error getting message", err)
 				return
 			}
 
@@ -214,8 +228,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 		// Batch predict on new emails
 		results, err := classifier.PredictBatch(examples)
 		if err != nil {
-			log.Printf("error predicting on examples: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
+			handleError(w, "error predicting on examples", err)
 			return
 		}
 
@@ -234,8 +247,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 		err = handleRecruitingEmails(srv, user, labels, recruitingEmailIDs)
 		// for now, abort on error
 		if err != nil {
-			log.Printf("error modifying recruiting emails: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
+			handleError(w, "error modifying recruiting emails", err)
 			return
 		}
 
@@ -252,7 +264,9 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 			)
 			if err != nil {
 				// print error, but don't abort
-				log.Printf("error incrementing user email stat: %v", err)
+				err = fmt.Errorf("error incrementing user email stat: %w", err)
+				log.Print(err)
+				sentry.CaptureException(err)
 			}
 		}
 		if len(recruitingEmailIDs) > 0 {
@@ -267,7 +281,9 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 			)
 			if err != nil {
 				// print error, but don't abort
-				log.Printf("error incrementing user email stat: %v", err)
+				err = fmt.Errorf("error incrementing user email stat: %w", err)
+				log.Print(err)
+				sentry.CaptureException(err)
 			}
 		}
 

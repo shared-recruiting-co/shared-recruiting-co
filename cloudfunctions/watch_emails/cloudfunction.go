@@ -33,7 +33,7 @@ func jsonFromEnv(env string) ([]byte, error) {
 // generic error handler
 func handleError(w http.ResponseWriter, msg string, err error) {
 	err = fmt.Errorf("%s: %w", msg, err)
-	log.Print(err.Error())
+	log.Print(err)
 	sentry.CaptureException(err)
 	w.WriteHeader(http.StatusInternalServerError)
 }
