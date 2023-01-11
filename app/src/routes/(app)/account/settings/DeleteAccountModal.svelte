@@ -1,22 +1,47 @@
 <script lang="ts">
 	import { fly, fade } from 'svelte/transition';
 
+	import { supabaseClient } from '$lib/supabase/client';
+
 	export let show: boolean = false;
 	let reason: string;
 
 	let error: string = '';
+	let loading: boolean = false;
 
-	const onConfirm = () => {
-		if (!reason) {
+	const onConfirm = async () => {
+		if (!reason || !reason.trim()) {
 			error = 'Please enter a reason for deleting your account.';
 			return;
 		}
 		// clear error
+		reason = reason.trim();
 		error = '';
+		loading = true;
 
 		// wait deletion
+		const resp = await fetch('/api/account', {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				reason
+			})
+		});
 
-		// redirect to /join
+		loading = false;
+		if (resp.ok) {
+			try {
+				await supabaseClient.auth.signOut();
+			} catch {}
+			// use window.location instead of goto to force browser refresh, which will invalidate session
+			window.location.href = '/join';
+		} else {
+			// show error
+			const { message } = await resp.json();
+			error = message;
+		}
 	};
 
 	const close = () => {
@@ -112,8 +137,16 @@
 						<button
 							type="button"
 							class="inline-flex w-full justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
-							on:click={onConfirm}>Delete Account</button
+							disabled={loading}
+							class:animate-pulse={loading}
+							on:click={onConfirm}
 						>
+							{#if loading}
+								Deleting...
+							{:else}
+								Delete Account
+							{/if}
+						</button>
 						<button
 							type="button"
 							class="mt-3 inline-flex w-full justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-base font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
