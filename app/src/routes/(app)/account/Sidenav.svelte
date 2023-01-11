@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { fade } from 'svelte/transition';
+	import { afterNavigate } from '$app/navigation';
 
 	import { supabaseClient } from '$lib/supabase/client';
 
@@ -15,6 +16,11 @@
 			isOpen = false;
 		}
 	}
+
+	// close navigation on mobile when the route changes
+	afterNavigate(() => {
+		isOpen = false;
+	});
 
 	const handleLogout = async () => {
 		await supabaseClient.auth.signOut();
