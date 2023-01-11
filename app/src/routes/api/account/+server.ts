@@ -21,7 +21,7 @@ export const DELETE: RequestHandler = async (event) => {
 	if (!reason || !reason.trim()) throw error(400, 'Reason is required');
 	reason = reason.trim();
 
-	// unsubscribe (if oauth is valid and not paused)
+	// unsubscribe
 	// get google refresh token
 	let accessToken = '';
 	try {

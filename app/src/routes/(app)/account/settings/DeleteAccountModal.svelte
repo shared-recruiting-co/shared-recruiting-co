@@ -2,6 +2,7 @@
 	import { fly, fade } from 'svelte/transition';
 
 	import { supabaseClient } from '$lib/supabase/client';
+	import { goto } from '$app/navigation';
 
 	export let show: boolean = false;
 	let reason: string;
@@ -14,8 +15,8 @@
 			error = 'Please enter a reason for deleting your account.';
 			return;
 		}
-		// clear error
 		reason = reason.trim();
+		// clear error
 		error = '';
 		loading = true;
 
@@ -35,8 +36,7 @@
 			try {
 				await supabaseClient.auth.signOut();
 			} catch {}
-			// use window.location instead of goto to force browser refresh, which will invalidate session
-			window.location.href = '/join';
+			goto('/join');
 		} else {
 			// show error
 			const { message } = await resp.json();
