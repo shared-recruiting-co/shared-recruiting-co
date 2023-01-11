@@ -11,12 +11,10 @@ export const supabaseClient = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE
 
 // get a refreshed google access token
 // tbd where the best location for this function is
-export const getRefreshedGoogleAccessToken = async (
-	supabaseClient: SupabaseClient
-): Promise<string> => {
+export const getRefreshedGoogleAccessToken = async (client: SupabaseClient): Promise<string> => {
 	// get google refresh token
 	// relies on RLS to only return the refresh token for the current user
-	const { data } = await supabaseClient
+	const { data } = await client
 		.from('user_oauth_token')
 		.select('token')
 		.eq('provider', 'google')
