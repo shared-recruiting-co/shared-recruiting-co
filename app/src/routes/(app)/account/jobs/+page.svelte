@@ -9,9 +9,7 @@
 	<p class="mt-1 text-sm text-slate-500">Coming soon!</p>
 </div>
 <div>
-	<div
-		class="-mx-4 mt-8 overflow-hidden rounded-lg shadow ring-1 ring-black ring-opacity-5 sm:-mx-6 md:mx-0"
-	>
+	<div class="mt-8 overflow-hidden rounded-lg shadow ring-1 ring-black ring-opacity-5 md:mx-0">
 		<table class="min-w-full divide-y divide-slate-300">
 			<thead class="bg-slate-50 text-left text-sm">
 				<tr>
