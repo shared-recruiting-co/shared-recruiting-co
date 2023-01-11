@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { page } from '$app/stores';
 	import { slide, draw, fade } from 'svelte/transition';
+	import type { PageData } from './$types';
 
 	import { supabaseClient, UserEmailStats } from '$lib/supabase/client';
 
@@ -8,20 +8,22 @@
 	import AlertModal from '$lib/components/AlertModal.svelte';
 	import ConnectGoogleAccountButton from '$lib/components/ConnectGoogleAccountButton.svelte';
 
+	export let data: PageData;
+
 	// ui state
 	let profileSaved = false;
 	let settingsSaved = false;
 	let errors: Record<string, string> = {};
 	// settings
-	let isActive = $page.data.profile.isActive;
-	let isSetup = $page.data.isSetup;
-	let autoContribute = $page.data.profile.autoContribute;
-	let autoArchive = $page.data.profile.autoArchive;
+	let isActive = data.profile.isActive;
+	let isSetup = data.isSetup;
+	let autoContribute = data.profile.autoContribute;
+	let autoArchive = data.profile.autoArchive;
 	let showDeactivateEmailModal = false;
 	// stats
-	let lastSyncedAt = $page.data.lastSyncedAt;
-	let numEmailsProcessed = $page.data.numEmailsProcessed;
-	let numJobsDetected = $page.data.numJobsDetected;
+	let lastSyncedAt = data.lastSyncedAt;
+	let numEmailsProcessed = data.numEmailsProcessed;
+	let numJobsDetected = data.numJobsDetected;
 
 	supabaseClient
 		.channel('table-db-changes')
@@ -93,13 +95,13 @@
 		// clear errors
 		errors[name] = '';
 
-		const { data, error } = await supabaseClient
+		const { data: profileData, error } = await supabaseClient
 			.from('user_profile')
 			.update({ [name]: value })
-			.eq('user_id', $page.data.session?.user.id)
+			.eq('user_id', data.session?.user.id)
 			.select()
 			.maybeSingle();
-		if (!error && data && data[name as keyof typeof data] === value) {
+		if (!error && profileData && profileData[name as keyof typeof profileData] === value) {
 			profileSaved = true;
 			setTimeout(() => {
 				profileSaved = false;
@@ -114,13 +116,13 @@
 
 	const saveSettings = async () => {
 		settingsSaved = false;
-		const { data, error } = await supabaseClient
+		const { data: profileData, error } = await supabaseClient
 			.from('user_profile')
 			.update({ auto_contribute: autoContribute, auto_archive: autoArchive })
-			.eq('user_id', $page.data.session?.user.id)
+			.eq('user_id', data.session?.user.id)
 			.select()
 			.maybeSingle();
-		if (!error && data) {
+		if (!error && profileData) {
 			settingsSaved = true;
 			setTimeout(() => {
 				settingsSaved = false;
@@ -185,7 +187,7 @@
 <div>
 	<h1 class="text-3xl sm:text-4xl">Account</h1>
 	<p class="mt-1 text-sm text-slate-500">
-		Member since {new Date($page.data.profile.createdAt).toLocaleDateString()}
+		Member since {new Date(data.profile.createdAt).toLocaleDateString()}
 	</p>
 </div>
 {#if lastSyncedAt}
@@ -258,7 +260,7 @@
 					id="email-address"
 					autocomplete="email"
 					disabled
-					value={$page.data.profile.email}
+					value={data.profile.email}
 					class="mt-1 block w-full rounded-md border border-slate-300 py-2 px-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-indigo-500 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500 sm:text-sm"
 				/>
 			</div>
@@ -270,7 +272,7 @@
 					id="first_name"
 					autocomplete="given-name"
 					on:input={debouncedHandleInput}
-					value={$page.data.profile.firstName}
+					value={data.profile.firstName}
 					class="mt-1 block w-full rounded-md border border-slate-300 py-2 px-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
 				/>
 				{#if formError(errors, 'first_name')}
@@ -285,7 +287,7 @@
 					name="last_name"
 					id="last_name"
 					autocomplete="family-name"
-					value={$page.data.profile.lastName}
+					value={data.profile.lastName}
 					on:input={debouncedHandleInput}
 					class="mt-1 block w-full rounded-md border border-slate-300 py-2 px-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
 				/>
@@ -436,7 +438,7 @@
 					active.
 				</p>
 			</div>
-			<ConnectGoogleAccountButton {onConnect} email={$page.data.profile?.email} />
+			<ConnectGoogleAccountButton {onConnect} email={data.profile?.email} />
 		</div>
 	</div>
 	<!-- else not active -->
