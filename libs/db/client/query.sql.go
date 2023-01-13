@@ -13,6 +13,19 @@ import (
 	"github.com/google/uuid"
 )
 
+const countUserEmailJobs = `-- name: CountUserEmailJobs :one
+select count(*) as cnt
+from public.user_email_job
+where user_id = $1
+`
+
+func (q *Queries) CountUserEmailJobs(ctx context.Context, userID uuid.UUID) (int64, error) {
+	row := q.queryRow(ctx, q.countUserEmailJobsStmt, countUserEmailJobs, userID)
+	var cnt int64
+	err := row.Scan(&cnt)
+	return cnt, err
+}
+
 const getUserEmailJob = `-- name: GetUserEmailJob :one
 select
     job_id,
@@ -202,10 +215,18 @@ select
 from public.user_email_job
 where user_id = $1
 order by emailed_at desc
+limit $2
+offset $3
 `
 
-func (q *Queries) ListUserEmailJobs(ctx context.Context, userID uuid.UUID) ([]UserEmailJob, error) {
-	rows, err := q.query(ctx, q.listUserEmailJobsStmt, listUserEmailJobs, userID)
+type ListUserEmailJobsParams struct {
+	UserID uuid.UUID `json:"user_id"`
+	Limit  int32     `json:"limit"`
+	Offset int32     `json:"offset"`
+}
+
+func (q *Queries) ListUserEmailJobs(ctx context.Context, arg ListUserEmailJobsParams) ([]UserEmailJob, error) {
+	rows, err := q.query(ctx, q.listUserEmailJobsStmt, listUserEmailJobs, arg.UserID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

@@ -9,6 +9,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -51,6 +53,7 @@ func (q *HTTPQueries) DoRequest(ctx context.Context, method, path string, body i
 	req.Header.Set("apikey", q.APIKey)
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", q.APIKey))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Range-Unit", "items")
 	// always upsert on POST (aka insert)
 	if method == http.MethodPost {
 		req.Header.Set("Prefer", "resolution=merge-duplicates")
@@ -284,10 +287,10 @@ func (q *HTTPQueries) GetUserEmailJob(ctx context.Context, jobID uuid.UUID) (Use
 }
 
 // ListUserEmailJobs lists a user's email jobs.
-func (q *HTTPQueries) ListUserEmailJobs(ctx context.Context, userID uuid.UUID) ([]UserEmailJob, error) {
+func (q *HTTPQueries) ListUserEmailJobs(ctx context.Context, arg ListUserEmailJobsParams) ([]UserEmailJob, error) {
 	basePath := "/user_email_job"
 	query := "select=*&order=emailed_at.desc"
-	query = fmt.Sprintf("%s&user_id=eq.%s", query, userID.String())
+	query = fmt.Sprintf("%s&user_id=eq.%s&limit=%d&offset=%d", query, arg.UserID.String(), arg.Limit, arg.Offset)
 
 	path := fmt.Sprintf("%s?%s", basePath, query)
 	var result []UserEmailJob
@@ -334,4 +337,29 @@ func (q *HTTPQueries) InsertUserEmailJob(ctx context.Context, arg InsertUserEmai
 	}
 
 	return nil
+}
+
+// CountUserEmailJobs counts the number of user's email jobs.
+func (q *HTTPQueries) CountUserEmailJobs(ctx context.Context, userID uuid.UUID) (int64, error) {
+	basePath := "/user_email_job"
+	query := fmt.Sprintf("user_id=eq.%s", userID.String())
+	path := fmt.Sprintf("%s?%s", basePath, query)
+
+	resp, err := q.DoRequest(ctx, http.MethodHead, path, nil)
+	if err != nil {
+		return 0, err
+	}
+
+	if resp.StatusCode != http.StatusPartialContent {
+		return 0, fmt.Errorf("error counting user email jobs: %s", resp.Status)
+	}
+
+	// parse count from header
+	contentedRange := resp.Header.Get("Content-Range")
+	parts := strings.Split(contentedRange, "/")
+	if len(parts) != 2 {
+		return 0, fmt.Errorf("error parsing count from Content-Range header: %s", contentedRange)
+	}
+	count, err := strconv.ParseInt(parts[1], 10, 64)
+	return count, err
 }

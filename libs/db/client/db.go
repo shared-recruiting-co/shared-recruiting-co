@@ -24,6 +24,9 @@ func New(db DBTX) *Queries {
 func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	q := Queries{db: db}
 	var err error
+	if q.countUserEmailJobsStmt, err = db.PrepareContext(ctx, countUserEmailJobs); err != nil {
+		return nil, fmt.Errorf("error preparing query CountUserEmailJobs: %w", err)
+	}
 	if q.getUserEmailJobStmt, err = db.PrepareContext(ctx, getUserEmailJob); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserEmailJob: %w", err)
 	}
@@ -59,6 +62,11 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 
 func (q *Queries) Close() error {
 	var err error
+	if q.countUserEmailJobsStmt != nil {
+		if cerr := q.countUserEmailJobsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing countUserEmailJobsStmt: %w", cerr)
+		}
+	}
 	if q.getUserEmailJobStmt != nil {
 		if cerr := q.getUserEmailJobStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getUserEmailJobStmt: %w", cerr)
@@ -148,6 +156,7 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 type Queries struct {
 	db                             DBTX
 	tx                             *sql.Tx
+	countUserEmailJobsStmt         *sql.Stmt
 	getUserEmailJobStmt            *sql.Stmt
 	getUserEmailSyncHistoryStmt    *sql.Stmt
 	getUserOAuthTokenStmt          *sql.Stmt
@@ -164,6 +173,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
 		db:                             tx,
 		tx:                             tx,
+		countUserEmailJobsStmt:         q.countUserEmailJobsStmt,
 		getUserEmailJobStmt:            q.getUserEmailJobStmt,
 		getUserEmailSyncHistoryStmt:    q.getUserEmailSyncHistoryStmt,
 		getUserOAuthTokenStmt:          q.getUserOAuthTokenStmt,

@@ -81,7 +81,9 @@ select
     updated_at
 from public.user_email_job
 where user_id = $1
-order by emailed_at desc;
+order by emailed_at desc
+limit $2
+offset $3;
 
 -- name: GetUserEmailJob :one
 select
@@ -101,3 +103,8 @@ where job_id = $1;
 -- name: InsertUserEmailJob :exec
 insert into public.user_email_job(user_id, user_email, email_thread_id, emailed_at, company, job_title, data)
 values ($1, $2, $3, $4, $5, $6, $7);
+
+-- name: CountUserEmailJobs :one
+select count(*) as cnt
+from public.user_email_job
+where user_id = $1;
