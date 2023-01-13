@@ -13,6 +13,53 @@ import (
 	"github.com/google/uuid"
 )
 
+const countUserEmailJobs = `-- name: CountUserEmailJobs :one
+select count(*) as cnt
+from public.user_email_job
+where user_id = $1
+`
+
+func (q *Queries) CountUserEmailJobs(ctx context.Context, userID uuid.UUID) (int64, error) {
+	row := q.queryRow(ctx, q.countUserEmailJobsStmt, countUserEmailJobs, userID)
+	var cnt int64
+	err := row.Scan(&cnt)
+	return cnt, err
+}
+
+const getUserEmailJob = `-- name: GetUserEmailJob :one
+select
+    job_id,
+    user_id,
+    user_email,
+    email_thread_id,
+    emailed_at,
+    company,
+    job_title,
+    data,
+    created_at,
+    updated_at
+from public.user_email_job
+where job_id = $1
+`
+
+func (q *Queries) GetUserEmailJob(ctx context.Context, jobID uuid.UUID) (UserEmailJob, error) {
+	row := q.queryRow(ctx, q.getUserEmailJobStmt, getUserEmailJob, jobID)
+	var i UserEmailJob
+	err := row.Scan(
+		&i.JobID,
+		&i.UserID,
+		&i.UserEmail,
+		&i.EmailThreadID,
+		&i.EmailedAt,
+		&i.Company,
+		&i.JobTitle,
+		&i.Data,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getUserEmailSyncHistory = `-- name: GetUserEmailSyncHistory :one
 select
     user_id,
@@ -125,6 +172,93 @@ func (q *Queries) IncrementUserEmailStat(ctx context.Context, arg IncrementUserE
 	return err
 }
 
+const insertUserEmailJob = `-- name: InsertUserEmailJob :exec
+insert into public.user_email_job(user_id, user_email, email_thread_id, emailed_at, company, job_title, data)
+values ($1, $2, $3, $4, $5, $6, $7)
+`
+
+type InsertUserEmailJobParams struct {
+	UserID        uuid.UUID       `json:"user_id"`
+	UserEmail     string          `json:"user_email"`
+	EmailThreadID string          `json:"email_thread_id"`
+	EmailedAt     time.Time       `json:"emailed_at"`
+	Company       string          `json:"company"`
+	JobTitle      string          `json:"job_title"`
+	Data          json.RawMessage `json:"data"`
+}
+
+func (q *Queries) InsertUserEmailJob(ctx context.Context, arg InsertUserEmailJobParams) error {
+	_, err := q.exec(ctx, q.insertUserEmailJobStmt, insertUserEmailJob,
+		arg.UserID,
+		arg.UserEmail,
+		arg.EmailThreadID,
+		arg.EmailedAt,
+		arg.Company,
+		arg.JobTitle,
+		arg.Data,
+	)
+	return err
+}
+
+const listUserEmailJobs = `-- name: ListUserEmailJobs :many
+select
+    job_id,
+    user_id,
+    user_email,
+    email_thread_id,
+    emailed_at,
+    company,
+    job_title,
+    data,
+    created_at,
+    updated_at
+from public.user_email_job
+where user_id = $1
+order by emailed_at desc
+limit $2
+offset $3
+`
+
+type ListUserEmailJobsParams struct {
+	UserID uuid.UUID `json:"user_id"`
+	Limit  int32     `json:"limit"`
+	Offset int32     `json:"offset"`
+}
+
+func (q *Queries) ListUserEmailJobs(ctx context.Context, arg ListUserEmailJobsParams) ([]UserEmailJob, error) {
+	rows, err := q.query(ctx, q.listUserEmailJobsStmt, listUserEmailJobs, arg.UserID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserEmailJob
+	for rows.Next() {
+		var i UserEmailJob
+		if err := rows.Scan(
+			&i.JobID,
+			&i.UserID,
+			&i.UserEmail,
+			&i.EmailThreadID,
+			&i.EmailedAt,
+			&i.Company,
+			&i.JobTitle,
+			&i.Data,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUserOAuthTokens = `-- name: ListUserOAuthTokens :many
 select
     user_id,
@@ -175,8 +309,8 @@ func (q *Queries) ListUserOAuthTokens(ctx context.Context, arg ListUserOAuthToke
 const upsertUserEmailSyncHistory = `-- name: UpsertUserEmailSyncHistory :exec
 insert into public.user_email_sync_history(user_id, history_id, synced_at)
 values ($1, $2, $3)
-on conflict (user_id) 
-do update set 
+on conflict (user_id)
+do update set
     history_id = excluded.history_id,
     synced_at = excluded.synced_at
 `
@@ -195,7 +329,7 @@ func (q *Queries) UpsertUserEmailSyncHistory(ctx context.Context, arg UpsertUser
 const upsertUserOAuthToken = `-- name: UpsertUserOAuthToken :exec
 insert into public.user_oauth_token (user_id, provider, token, is_valid)
 values ($1, $2, $3, $4)
-on conflict (user_id, provider) 
+on conflict (user_id, provider)
 do update set
     token = excluded.token,
     is_valid = excluded.is_valid

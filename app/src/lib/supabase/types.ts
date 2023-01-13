@@ -3,6 +3,44 @@ export type Json = string | number | boolean | null | { [key: string]: Json } | 
 export interface Database {
 	public: {
 		Tables: {
+			user_email_job: {
+				Row: {
+					job_id: string;
+					user_id: string;
+					user_email: string;
+					email_thread_id: string;
+					emailed_at: string;
+					company: string;
+					job_title: string;
+					data: Json;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: {
+					job_id?: string;
+					user_id: string;
+					user_email: string;
+					email_thread_id: string;
+					emailed_at: string;
+					company: string;
+					job_title: string;
+					data?: Json;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					job_id?: string;
+					user_id?: string;
+					user_email?: string;
+					email_thread_id?: string;
+					emailed_at?: string;
+					company?: string;
+					job_title?: string;
+					data?: Json;
+					created_at?: string;
+					updated_at?: string;
+				};
+			};
 			user_email_stat: {
 				Row: {
 					user_id: string;
@@ -56,26 +94,26 @@ export interface Database {
 				Row: {
 					user_id: string;
 					provider: string;
+					token: Json;
 					created_at: string;
 					updated_at: string;
 					is_valid: boolean;
-					token: Json;
 				};
 				Insert: {
 					user_id: string;
 					provider: string;
+					token: Json;
 					created_at?: string;
 					updated_at?: string;
 					is_valid?: boolean;
-					token: Json;
 				};
 				Update: {
 					user_id?: string;
 					provider?: string;
+					token?: Json;
 					created_at?: string;
 					updated_at?: string;
 					is_valid?: boolean;
-					token?: Json;
 				};
 			};
 			user_profile: {
@@ -84,8 +122,8 @@ export interface Database {
 					email: string;
 					first_name: string;
 					last_name: string;
-					updated_at: string;
 					created_at: string;
+					updated_at: string;
 					auto_archive: boolean;
 					auto_contribute: boolean;
 					is_active: boolean;
@@ -95,8 +133,8 @@ export interface Database {
 					email: string;
 					first_name: string;
 					last_name: string;
-					updated_at?: string;
 					created_at?: string;
+					updated_at?: string;
 					auto_archive?: boolean;
 					auto_contribute?: boolean;
 					is_active?: boolean;
@@ -106,8 +144,8 @@ export interface Database {
 					email?: string;
 					first_name?: string;
 					last_name?: string;
-					updated_at?: string;
 					created_at?: string;
+					updated_at?: string;
 					auto_archive?: boolean;
 					auto_contribute?: boolean;
 					is_active?: boolean;
@@ -153,7 +191,15 @@ export interface Database {
 			[_ in never]: never;
 		};
 		Functions: {
-			[_ in never]: never;
+			increment_user_email_stat: {
+				Args: {
+					user_id: string;
+					email: string;
+					stat_id: string;
+					stat_value: number;
+				};
+				Returns: undefined;
+			};
 		};
 		Enums: {
 			[_ in never]: never;

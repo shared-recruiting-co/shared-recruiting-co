@@ -9,9 +9,7 @@
 	<p class="mt-1 text-sm text-slate-500">Coming soon!</p>
 </div>
 <div>
-	<div
-		class="-mx-4 mt-8 overflow-hidden rounded-lg shadow ring-1 ring-black ring-opacity-5 sm:-mx-6 md:mx-0"
-	>
+	<div class="mt-8 overflow-hidden rounded-lg shadow ring-1 ring-black ring-opacity-5 md:mx-0">
 		<table class="min-w-full divide-y divide-slate-300">
 			<thead class="bg-slate-50 text-left text-sm">
 				<tr>
@@ -39,7 +37,7 @@
 							{job.company}
 						</td>
 						<td class="table-cell py-4 pl-4 pr-3 font-medium text-slate-900 lg:px-3">
-							{job.role}
+							{job.job_title}
 							<dl class="font-normal lg:hidden">
 								<dt class="sr-only">Company</dt>
 								<dd class="mt-1 truncate text-xs">{job.company}</dd>

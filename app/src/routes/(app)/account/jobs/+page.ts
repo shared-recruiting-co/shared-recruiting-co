@@ -5,14 +5,23 @@ import { redirect } from '@sveltejs/kit';
 type Job = {
 	job_id: string;
 	company: string;
-	role: string;
+	job_title: string;
+	emailed_at: string;
 	recruiter: string;
 	recruiter_email: string;
-	emailed_at: string;
 };
 
 type Data = {
 	jobs: Job[];
+};
+
+const defaultJob: Job = {
+	job_id: '1',
+	company: 'Shared Recruiting Co.',
+	job_title: 'Founding Engineer',
+	recruiter: 'Devin Stein',
+	recruiter_email: 'devin@sharedrecruiting.co',
+	emailed_at: new Date().toLocaleDateString()
 };
 
 export const load: PageLoad<Data> = async (event) => {
@@ -24,15 +33,6 @@ export const load: PageLoad<Data> = async (event) => {
 	}
 
 	return {
-		jobs: [
-			{
-				job_id: '1',
-				company: 'Shared Recruiting Co.',
-				role: 'Founding Engineer',
-				recruiter: 'Devin Stein',
-				recruiter_email: 'devin@sharedrecruiting.co',
-				emailed_at: new Date().toLocaleDateString()
-			}
-		]
+		jobs: [defaultJob]
 	};
 };

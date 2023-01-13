@@ -328,7 +328,7 @@
 	<!-- END: Static sidebar for desktop -->
 
 	<!-- Open Sidebar button on Mobile -->
-	<div class="flex flex-1 flex-col md:pl-64">
+	<div class="relative -mr-10 flex flex-1 flex-col md:mr-0 md:pl-64">
 		<div class="sticky top-0 z-10 bg-white pl-1 pt-1 sm:pl-3 sm:pt-3 md:hidden">
 			<button
 				type="button"

@@ -169,3 +169,42 @@ $$
       stat_value = user_email_stat.stat_value + excluded.stat_value;
 $$ 
 language sql volatile;
+
+
+-- user_email_job
+create table public.user_email_job (
+  job_id uuid not null default uuid_generate_v4(),
+  user_id uuid references auth.users(id) on delete cascade not null,
+  user_email text not null,
+  -- thread id of the recruiting email
+  email_thread_id text not null,
+  -- time when the email was delivered to user
+  emailed_at timestamp with time zone not null,
+  company text not null,
+  job_title text not null,
+  -- use catch-all jsonb for everything else while we figure out the job schema
+  data jsonb not null default '{}'::jsonb,
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now(),
+
+  -- prevent duplicate email_thread_id processing
+  unique (user_email, email_thread_id),
+  -- prevent duplicate job posting
+  -- for now consider, (user_id, company, job_title) to be a unique job posting
+  unique (user_id, company, job_title),
+  primary key (job_id)
+);
+
+create trigger handle_updated_at_user_email_job before update on public.user_email_job
+  for each row execute procedure moddatetime (updated_at);
+
+-- enable realtime
+alter publication supabase_realtime add table user_email_job;
+
+-- enable RLS
+alter table public.user_email_job enable row level security;
+create policy "Users can view their own jobs"
+  on public.user_email_job for select
+  using ( auth.uid() = user_id );
+
+-- for now jobs are read only
