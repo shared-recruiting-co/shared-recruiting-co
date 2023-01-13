@@ -178,6 +178,8 @@ create table public.user_email_job (
   user_email text not null,
   -- thread id of the recruiting email
   email_thread_id text not null,
+  -- time when the email was delivered to user
+  emailed_at timestamp with time zone not null,
   company text not null,
   job_title text not null,
   -- use catch-all jsonb for everything else while we figure out the job schema

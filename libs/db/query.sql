@@ -73,13 +73,15 @@ select
     user_id,
     user_email,
     email_thread_id,
+    emailed_at,
     company,
     job_title,
     data,
     created_at,
     updated_at
 from public.user_email_job
-where user_id = $1;
+where user_id = $1
+order by emailed_at desc;
 
 -- name: GetUserEmailJob :one
 select
@@ -87,6 +89,7 @@ select
     user_id,
     user_email,
     email_thread_id,
+    emailed_at,
     company,
     job_title,
     data,
@@ -96,5 +99,5 @@ from public.user_email_job
 where job_id = $1;
 
 -- name: InsertUserEmailJob :exec
-insert into public.user_email_job(user_id, user_email, email_thread_id, company, job_title, data)
-values ($1, $2, $3, $4, $5, $6);
+insert into public.user_email_job(user_id, user_email, email_thread_id, emailed_at, company, job_title, data)
+values ($1, $2, $3, $4, $5, $6, $7);

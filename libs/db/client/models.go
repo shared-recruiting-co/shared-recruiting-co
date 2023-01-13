@@ -21,6 +21,7 @@ type UserEmailJob struct {
 	UserID        uuid.UUID       `json:"user_id"`
 	UserEmail     string          `json:"user_email"`
 	EmailThreadID string          `json:"email_thread_id"`
+	EmailedAt     time.Time       `json:"emailed_at"`
 	Company       string          `json:"company"`
 	JobTitle      string          `json:"job_title"`
 	Data          json.RawMessage `json:"data"`

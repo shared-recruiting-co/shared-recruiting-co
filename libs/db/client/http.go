@@ -286,7 +286,7 @@ func (q *HTTPQueries) GetUserEmailJob(ctx context.Context, jobID uuid.UUID) (Use
 // ListUserEmailJobs lists a user's email jobs.
 func (q *HTTPQueries) ListUserEmailJobs(ctx context.Context, userID uuid.UUID) ([]UserEmailJob, error) {
 	basePath := "/user_email_job"
-	query := "select=*"
+	query := "select=*&order=emailed_at.desc"
 	query = fmt.Sprintf("%s&user_id=eq.%s", query, userID.String())
 
 	path := fmt.Sprintf("%s?%s", basePath, query)

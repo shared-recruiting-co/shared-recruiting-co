@@ -19,6 +19,7 @@ select
     user_id,
     user_email,
     email_thread_id,
+    emailed_at,
     company,
     job_title,
     data,
@@ -36,6 +37,7 @@ func (q *Queries) GetUserEmailJob(ctx context.Context, jobID uuid.UUID) (UserEma
 		&i.UserID,
 		&i.UserEmail,
 		&i.EmailThreadID,
+		&i.EmailedAt,
 		&i.Company,
 		&i.JobTitle,
 		&i.Data,
@@ -158,14 +160,15 @@ func (q *Queries) IncrementUserEmailStat(ctx context.Context, arg IncrementUserE
 }
 
 const insertUserEmailJob = `-- name: InsertUserEmailJob :exec
-insert into public.user_email_job(user_id, user_email, email_thread_id, company, job_title, data)
-values ($1, $2, $3, $4, $5, $6)
+insert into public.user_email_job(user_id, user_email, email_thread_id, emailed_at, company, job_title, data)
+values ($1, $2, $3, $4, $5, $6, $7)
 `
 
 type InsertUserEmailJobParams struct {
 	UserID        uuid.UUID       `json:"user_id"`
 	UserEmail     string          `json:"user_email"`
 	EmailThreadID string          `json:"email_thread_id"`
+	EmailedAt     time.Time       `json:"emailed_at"`
 	Company       string          `json:"company"`
 	JobTitle      string          `json:"job_title"`
 	Data          json.RawMessage `json:"data"`
@@ -176,6 +179,7 @@ func (q *Queries) InsertUserEmailJob(ctx context.Context, arg InsertUserEmailJob
 		arg.UserID,
 		arg.UserEmail,
 		arg.EmailThreadID,
+		arg.EmailedAt,
 		arg.Company,
 		arg.JobTitle,
 		arg.Data,
@@ -189,6 +193,7 @@ select
     user_id,
     user_email,
     email_thread_id,
+    emailed_at,
     company,
     job_title,
     data,
@@ -196,6 +201,7 @@ select
     updated_at
 from public.user_email_job
 where user_id = $1
+order by emailed_at desc
 `
 
 func (q *Queries) ListUserEmailJobs(ctx context.Context, userID uuid.UUID) ([]UserEmailJob, error) {
@@ -212,6 +218,7 @@ func (q *Queries) ListUserEmailJobs(ctx context.Context, userID uuid.UUID) ([]Us
 			&i.UserID,
 			&i.UserEmail,
 			&i.EmailThreadID,
+			&i.EmailedAt,
 			&i.Company,
 			&i.JobTitle,
 			&i.Data,
