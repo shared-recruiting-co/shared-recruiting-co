@@ -5,10 +5,10 @@ import { redirect } from '@sveltejs/kit';
 type Job = {
 	job_id: string;
 	company: string;
-	title: string;
+	job_title: string;
+	emailed_at: string;
 	recruiter: string;
 	recruiter_email: string;
-	emailed_at: string;
 };
 
 type Data = {
@@ -18,7 +18,7 @@ type Data = {
 const defaultJob: Job = {
 	job_id: '1',
 	company: 'Shared Recruiting Co.',
-	title: 'Founding Engineer',
+	job_title: 'Founding Engineer',
 	recruiter: 'Devin Stein',
 	recruiter_email: 'devin@sharedrecruiting.co',
 	emailed_at: new Date().toLocaleDateString()
