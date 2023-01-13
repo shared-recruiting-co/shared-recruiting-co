@@ -16,6 +16,18 @@ type AuthUser struct {
 	Email string    `json:"email"`
 }
 
+type UserEmailJob struct {
+	JobID         uuid.UUID       `json:"job_id"`
+	UserID        uuid.UUID       `json:"user_id"`
+	UserEmail     string          `json:"user_email"`
+	EmailThreadID string          `json:"email_thread_id"`
+	Company       string          `json:"company"`
+	JobTitle      string          `json:"job_title"`
+	Data          json.RawMessage `json:"data"`
+	CreatedAt     time.Time       `json:"created_at"`
+	UpdatedAt     time.Time       `json:"updated_at"`
+}
+
 type UserEmailStat struct {
 	UserID    uuid.UUID `json:"user_id"`
 	Email     string    `json:"email"`

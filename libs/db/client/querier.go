@@ -11,10 +11,13 @@ import (
 )
 
 type Querier interface {
+	GetUserEmailJob(ctx context.Context, jobID uuid.UUID) (UserEmailJob, error)
 	GetUserEmailSyncHistory(ctx context.Context, userID uuid.UUID) (UserEmailSyncHistory, error)
 	GetUserOAuthToken(ctx context.Context, arg GetUserOAuthTokenParams) (UserOauthToken, error)
 	GetUserProfileByEmail(ctx context.Context, email string) (UserProfile, error)
 	IncrementUserEmailStat(ctx context.Context, arg IncrementUserEmailStatParams) error
+	InsertUserEmailJob(ctx context.Context, arg InsertUserEmailJobParams) error
+	ListUserEmailJobs(ctx context.Context, userID uuid.UUID) ([]UserEmailJob, error)
 	ListUserOAuthTokens(ctx context.Context, arg ListUserOAuthTokensParams) ([]UserOauthToken, error)
 	UpsertUserEmailSyncHistory(ctx context.Context, arg UpsertUserEmailSyncHistoryParams) error
 	UpsertUserOAuthToken(ctx context.Context, arg UpsertUserOAuthTokenParams) error

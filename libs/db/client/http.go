@@ -256,3 +256,82 @@ func (q *HTTPQueries) IncrementUserEmailStat(ctx context.Context, arg IncrementU
 
 	return nil
 }
+
+// GetUserEmailJob fetches a user's email job by job ID
+func (q *HTTPQueries) GetUserEmailJob(ctx context.Context, jobID uuid.UUID) (UserEmailJob, error) {
+	basePath := "/user_email_job"
+	query := fmt.Sprintf("select=*&job_id=eq.%s", jobID.String())
+	path := fmt.Sprintf("%s?%s", basePath, query)
+	var result UserEmailJob
+
+	resp, err := q.DoRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return result, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return result, fmt.Errorf("error fetching user email job: %s", resp.Status)
+	}
+
+	var data []UserEmailJob
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return result, err
+	}
+
+	result, err = singleOrError(data)
+	return result, err
+}
+
+// ListUserEmailJobs lists a user's email jobs.
+func (q *HTTPQueries) ListUserEmailJobs(ctx context.Context, userID uuid.UUID) ([]UserEmailJob, error) {
+	basePath := "/user_email_job"
+	query := "select=*"
+	query = fmt.Sprintf("%s&user_id=eq.%s", query, userID.String())
+
+	path := fmt.Sprintf("%s?%s", basePath, query)
+	var result []UserEmailJob
+
+	resp, err := q.DoRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return result, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return result, fmt.Errorf("error listing user email jobs: %s", resp.Status)
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return result, err
+	}
+
+	if result == nil || len(result) == 0 {
+		// for now, return same error as database client
+		return result, sql.ErrNoRows
+	}
+
+	return result, nil
+}
+
+// InsertUserEmailJob inserts a user's email job.
+func (q *HTTPQueries) InsertUserEmailJob(ctx context.Context, arg InsertUserEmailJobParams) error {
+	basePath := "/user_email_job"
+	path := fmt.Sprintf("%s", basePath)
+	body, err := json.Marshal(arg)
+	if err != nil {
+		return err
+	}
+
+	resp, err := q.DoRequest(ctx, http.MethodPost, path, bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		return fmt.Errorf("error inserting user email job: %s", resp.Status)
+	}
+
+	return nil
+}

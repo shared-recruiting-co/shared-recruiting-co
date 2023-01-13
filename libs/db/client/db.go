@@ -24,6 +24,9 @@ func New(db DBTX) *Queries {
 func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	q := Queries{db: db}
 	var err error
+	if q.getUserEmailJobStmt, err = db.PrepareContext(ctx, getUserEmailJob); err != nil {
+		return nil, fmt.Errorf("error preparing query GetUserEmailJob: %w", err)
+	}
 	if q.getUserEmailSyncHistoryStmt, err = db.PrepareContext(ctx, getUserEmailSyncHistory); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserEmailSyncHistory: %w", err)
 	}
@@ -35,6 +38,12 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.incrementUserEmailStatStmt, err = db.PrepareContext(ctx, incrementUserEmailStat); err != nil {
 		return nil, fmt.Errorf("error preparing query IncrementUserEmailStat: %w", err)
+	}
+	if q.insertUserEmailJobStmt, err = db.PrepareContext(ctx, insertUserEmailJob); err != nil {
+		return nil, fmt.Errorf("error preparing query InsertUserEmailJob: %w", err)
+	}
+	if q.listUserEmailJobsStmt, err = db.PrepareContext(ctx, listUserEmailJobs); err != nil {
+		return nil, fmt.Errorf("error preparing query ListUserEmailJobs: %w", err)
 	}
 	if q.listUserOAuthTokensStmt, err = db.PrepareContext(ctx, listUserOAuthTokens); err != nil {
 		return nil, fmt.Errorf("error preparing query ListUserOAuthTokens: %w", err)
@@ -50,6 +59,11 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 
 func (q *Queries) Close() error {
 	var err error
+	if q.getUserEmailJobStmt != nil {
+		if cerr := q.getUserEmailJobStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getUserEmailJobStmt: %w", cerr)
+		}
+	}
 	if q.getUserEmailSyncHistoryStmt != nil {
 		if cerr := q.getUserEmailSyncHistoryStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getUserEmailSyncHistoryStmt: %w", cerr)
@@ -68,6 +82,16 @@ func (q *Queries) Close() error {
 	if q.incrementUserEmailStatStmt != nil {
 		if cerr := q.incrementUserEmailStatStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing incrementUserEmailStatStmt: %w", cerr)
+		}
+	}
+	if q.insertUserEmailJobStmt != nil {
+		if cerr := q.insertUserEmailJobStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing insertUserEmailJobStmt: %w", cerr)
+		}
+	}
+	if q.listUserEmailJobsStmt != nil {
+		if cerr := q.listUserEmailJobsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listUserEmailJobsStmt: %w", cerr)
 		}
 	}
 	if q.listUserOAuthTokensStmt != nil {
@@ -124,10 +148,13 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 type Queries struct {
 	db                             DBTX
 	tx                             *sql.Tx
+	getUserEmailJobStmt            *sql.Stmt
 	getUserEmailSyncHistoryStmt    *sql.Stmt
 	getUserOAuthTokenStmt          *sql.Stmt
 	getUserProfileByEmailStmt      *sql.Stmt
 	incrementUserEmailStatStmt     *sql.Stmt
+	insertUserEmailJobStmt         *sql.Stmt
+	listUserEmailJobsStmt          *sql.Stmt
 	listUserOAuthTokensStmt        *sql.Stmt
 	upsertUserEmailSyncHistoryStmt *sql.Stmt
 	upsertUserOAuthTokenStmt       *sql.Stmt
@@ -137,10 +164,13 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
 		db:                             tx,
 		tx:                             tx,
+		getUserEmailJobStmt:            q.getUserEmailJobStmt,
 		getUserEmailSyncHistoryStmt:    q.getUserEmailSyncHistoryStmt,
 		getUserOAuthTokenStmt:          q.getUserOAuthTokenStmt,
 		getUserProfileByEmailStmt:      q.getUserProfileByEmailStmt,
 		incrementUserEmailStatStmt:     q.incrementUserEmailStatStmt,
+		insertUserEmailJobStmt:         q.insertUserEmailJobStmt,
+		listUserEmailJobsStmt:          q.listUserEmailJobsStmt,
 		listUserOAuthTokensStmt:        q.listUserOAuthTokensStmt,
 		upsertUserEmailSyncHistoryStmt: q.upsertUserEmailSyncHistoryStmt,
 		upsertUserOAuthTokenStmt:       q.upsertUserOAuthTokenStmt,
