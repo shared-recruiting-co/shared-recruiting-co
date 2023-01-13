@@ -37,7 +37,7 @@
 							{job.company}
 						</td>
 						<td class="table-cell py-4 pl-4 pr-3 font-medium text-slate-900 lg:px-3">
-							{job.role}
+							{job.title}
 							<dl class="font-normal lg:hidden">
 								<dt class="sr-only">Company</dt>
 								<dd class="mt-1 truncate text-xs">{job.company}</dd>
