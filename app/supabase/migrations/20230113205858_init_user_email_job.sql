@@ -53,4 +53,4 @@ CREATE TRIGGER handle_updated_at_user_email_job
     EXECUTE FUNCTION extensions.moddatetime('updated_at');
 
 -- manually added
-ALTER PUBLICATION IF EXISTS supabase_realtime ADD TABLE user_email_job;
+ALTER PUBLICATION supabase_realtime ADD TABLE user_email_job;
