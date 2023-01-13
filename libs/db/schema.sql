@@ -192,7 +192,7 @@ create table public.user_email_job (
   -- prevent duplicate job posting
   -- for now consider, (user_id, company, job_title) to be a unique job posting
   unique (user_id, company, job_title),
-  primary key (user_id, email, stat_id)
+  primary key (job_id)
 );
 
 create trigger handle_updated_at_user_email_job before update on public.user_email_job
