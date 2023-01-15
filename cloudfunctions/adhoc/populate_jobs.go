@@ -129,7 +129,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// get the messages for each thread
-		var messages map[string]*gmail.Message
+		messages := map[string]*gmail.Message{}
 
 		for _, t := range threads {
 			thread, err := srv.GetThread(t.Id, "minimal")
