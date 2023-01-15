@@ -230,10 +230,10 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 				Data:          b,
 			})
 
-			// for now, abort on error
+			// for now, continue on error
 			if err != nil {
-				handleError(w, "error inserting job", err)
-				return
+				log.Printf("error inserting job (%v): %v", job, err)
+				continue
 			}
 		}
 
