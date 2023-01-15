@@ -206,7 +206,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 			message := messages[id]
 			recruiterEmail := mail.MessageSenderEmail(message)
 			data := map[string]interface{}{
-				"recruiter":       job.Company,
+				"recruiter":       job.Recruiter,
 				"recruiter_email": recruiterEmail,
 			}
 
