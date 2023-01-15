@@ -1,32 +1,17 @@
 package cloudfunctions
 
 import (
-	"encoding/base64"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
-	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"google.golang.org/api/gmail/v1"
 
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/db/client"
 	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
 	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail/label"
 )
-
-const provider = "google"
-
-func init() {
-	functions.HTTP("MigrateLabels", migrateLabels)
-}
-
-func jsonFromEnv(env string) ([]byte, error) {
-	encoded := os.Getenv(env)
-	decoded, err := base64.URLEncoding.DecodeString(encoded)
-
-	return decoded, err
-}
 
 func migrateLabels(w http.ResponseWriter, r *http.Request) {
 	log.Println("running labels migration")

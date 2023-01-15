@@ -33,6 +33,27 @@ func MessageSender(m *gmail.Message) string {
 	return MessageHeader(m, "From")
 }
 
+// MessageSenderEmail returns the email address of the sender
+// It uses MessageSender to get the sender string, and then extracts the email address from it.
+//
+// Example: "John Doe" <john.doe@example.com>" -> "john.doe@example.com"
+func MessageSenderEmail(m *gmail.Message) string {
+	sender := MessageSender(m)
+	if sender == "" {
+		return ""
+	}
+
+	start := strings.Index(sender, "<")
+	end := strings.Index(sender, ">")
+
+	// no display name, just email
+	if start == -1 || end == -1 {
+		return strings.TrimSpace(sender)
+	}
+
+	return strings.TrimSpace(sender[start+1 : end])
+}
+
 // MessageSubject returns the subject of the message
 func MessageSubject(m *gmail.Message) string {
 	return MessageHeader(m, "Subject")
