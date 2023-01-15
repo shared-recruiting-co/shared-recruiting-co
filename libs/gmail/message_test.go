@@ -158,6 +158,82 @@ func TestMessageBody(t *testing.T) {
 	}
 }
 
+func TestMessageSenderEmail(t *testing.T) {
+	tests := []struct {
+		name    string
+		message *gmail.Message
+		want    string
+	}{
+		{
+			name: "Only Email",
+			message: &gmail.Message{
+				Payload: &gmail.MessagePart{
+					Headers: []*gmail.MessagePartHeader{
+						{
+							Name:  "from",
+							Value: "test@example.com",
+						},
+					},
+				},
+			},
+			want: "test@example.com",
+		},
+		{
+			name: "Display Name",
+			message: &gmail.Message{
+				Payload: &gmail.MessagePart{
+					Headers: []*gmail.MessagePartHeader{
+						{
+							Name:  "From",
+							Value: "Test Test <test@example.com>",
+						},
+					},
+				},
+			},
+			want: "test@example.com",
+		},
+		{
+			name: "Whitespace",
+			message: &gmail.Message{
+				Payload: &gmail.MessagePart{
+					Headers: []*gmail.MessagePartHeader{
+						{
+							Name:  "from",
+							Value: "Test Test < test@example.com>",
+						},
+					},
+				},
+			},
+			want: "test@example.com",
+		},
+		{
+			name: "Empty",
+			message: &gmail.Message{
+				Payload: &gmail.MessagePart{
+					Headers: []*gmail.MessagePartHeader{
+						{
+							Name:  "from",
+							Value: "",
+						},
+					},
+				},
+			},
+			want: "",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := mail.MessageSenderEmail(tc.message)
+			if got != tc.want {
+				t.Fail()
+			}
+		})
+	}
+}
+
 func TestMessageHasLabel(t *testing.T) {
 	label := "label"
 	message := &gmail.Message{
