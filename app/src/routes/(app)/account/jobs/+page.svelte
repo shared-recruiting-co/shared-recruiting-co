@@ -131,13 +131,15 @@
 				<nav class="flex flex-1 justify-end md:hidden" data-sveltekit-noscroll>
 					<a
 						href="/account/jobs?page={prevPage}"
-						class="relative inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-						>Previous</a
+						class="relative inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700"
+						class:hover:bg-slate-50={data.pagination.hasPrev}
+						class:cursor-not-allowed={!data.pagination.hasPrev}>Previous</a
 					>
 					<a
 						href="/account/jobs?page={nextPage}"
-						class="relative ml-3 inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-						>Next</a
+						class="relative ml-3 inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700"
+						class:hover:bg-slate-50={data.pagination.hasNext}
+						class:cursor-not-allowed={!data.pagination.hasNext}>Next</a
 					>
 				</nav>
 				<div class="hidden sm:flex-1 sm:items-center sm:justify-between md:flex">
