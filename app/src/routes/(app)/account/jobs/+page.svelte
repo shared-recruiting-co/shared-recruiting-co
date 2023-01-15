@@ -3,13 +3,13 @@
 
 	export let data: PageData;
 
-	const showingStart = (data.pagination.page - 1) * data.pagination.perPage + 1;
-	const showingEnd = Math.min(
+	$: showingStart = (data.pagination.page - 1) * data.pagination.perPage + 1;
+	$: showingEnd = Math.min(
 		data.pagination.page * data.pagination.perPage,
 		data.pagination.numResults
 	);
-	const prevPage = data.pagination.hasPrev ? data.pagination.page - 1 : data.pagination.page;
-	const nextPage = data.pagination.hasNext ? data.pagination.page + 1 : data.pagination.page;
+	$: prevPage = data.pagination.hasPrev ? data.pagination.page - 1 : data.pagination.page;
+	$: nextPage = data.pagination.hasNext ? data.pagination.page + 1 : data.pagination.page;
 
 	const getPages = (current: number, total: number): string[] => {
 		if (total <= 5) {
@@ -58,7 +58,7 @@
 				];
 		}
 	};
-	const pages = getPages(data.pagination.page, data.pagination.numPages);
+	$: pages = getPages(data.pagination.page, data.pagination.numPages);
 
 	// TOOD:
 	// Error state (icon + No jobs + Description)
