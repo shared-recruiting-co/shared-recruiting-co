@@ -197,7 +197,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// if fields are missing, skip
-			if job.Company == "" || job.Title == "" && job.Recruiter == "" {
+			if job.Company == "" || job.Title == "" || job.Recruiter == "" {
 				// print sender and subject
 				log.Printf("skipping job: %v", job)
 				continue
