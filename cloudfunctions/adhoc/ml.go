@@ -96,7 +96,7 @@ func (c *MLClient) BatchClassify(inputs *BatchClassifyRequest) (*BatchClassifyRe
 
 func (c *MLClient) ParseJob(input *ParseJobRequest) (*ParseJobResponse, error) {
 	resp := &ParseJobResponse{}
-	err := c.doRequest("POST", "/v1/classify", input, resp)
+	err := c.doRequest("POST", "/v1/parse", input, resp)
 	if err != nil {
 		return resp, err
 	}
@@ -105,7 +105,7 @@ func (c *MLClient) ParseJob(input *ParseJobRequest) (*ParseJobResponse, error) {
 
 func (c *MLClient) BatchParseJob(inputs *BatchParseJobRequest) (*BatchParseJobResponse, error) {
 	resp := &BatchParseJobResponse{}
-	err := c.doRequest("POST", "/v1/classify/batch", inputs, resp)
+	err := c.doRequest("POST", "/v1/parse/batch", inputs, resp)
 	if err != nil {
 		return nil, err
 	}
