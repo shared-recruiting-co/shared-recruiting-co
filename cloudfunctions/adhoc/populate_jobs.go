@@ -156,7 +156,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 
 		// process messages
 		inputs := map[string]*ParseJobRequest{}
-		for id, _ := range messages {
+		for id := range messages {
 			// payload isn't included in the list endpoint responses
 			message, err := srv.GetMessage(id)
 
