@@ -128,7 +128,7 @@
 			<div
 				class="flex items-center justify-between border-t border-slate-200 bg-white px-4 py-3.5 sm:px-6"
 			>
-				<div class="flex flex-1 justify-end md:hidden">
+				<nav class="flex flex-1 justify-end md:hidden" data-sveltekit-noscroll>
 					<a
 						href="/account/jobs?page={prevPage}"
 						class="relative inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
@@ -139,7 +139,7 @@
 						class="relative ml-3 inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
 						>Next</a
 					>
-				</div>
+				</nav>
 				<div class="hidden sm:flex-1 sm:items-center sm:justify-between md:flex">
 					<div>
 						<p class="text-sm text-slate-700">
@@ -156,6 +156,7 @@
 						<nav
 							class="isolate inline-flex -space-x-px rounded-md shadow-sm"
 							aria-label="Pagination"
+							data-sveltekit-noscroll
 						>
 							<a
 								href="/account/jobs?page={prevPage}"
