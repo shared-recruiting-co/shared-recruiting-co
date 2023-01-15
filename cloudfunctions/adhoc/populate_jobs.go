@@ -36,7 +36,7 @@ func handleError(w http.ResponseWriter, msg string, err error) {
 }
 
 func populateJobs(w http.ResponseWriter, r *http.Request) {
-	log.Println("running labels migration")
+	log.Println("running populate jobs")
 	ctx := r.Context()
 	creds, err := jsonFromEnv("GOOGLE_OAUTH2_CREDENTIALS")
 	if err != nil {
@@ -188,6 +188,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 
 		// predict one at a time for now
 		for id, input := range inputs {
+			log.Printf("parsing email: %s", id)
 			job, err := ml.ParseJob(input)
 			// for now, abort on error
 			if err != nil {
@@ -221,7 +222,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 
 			err = queries.InsertUserEmailJob(ctx, client.InsertUserEmailJobParams{
 				UserID:        user.UserID,
-				UserEmail:     user.Email,
+				UserEmail:     email,
 				EmailThreadID: message.ThreadId,
 				EmailedAt:     emailedAt,
 				Company:       job.Company,
