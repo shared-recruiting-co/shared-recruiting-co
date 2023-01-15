@@ -58,9 +58,8 @@ export const load: PageLoad<Data> = async (event) => {
 		count: 'exact'
 	});
 
-	if (countError || !count) {
-		console.error(countError);
-		throw error(500, countError.message);
+	if (countError || count === null) {
+		throw error(500, countError?.message);
 	}
 
 	const formattedJobs = jobs.map(({ data, ...job }) => ({
