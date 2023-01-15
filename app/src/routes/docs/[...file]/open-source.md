@@ -7,7 +7,8 @@ description: Why we chose to open source SRC
 
 ## Why is SRC Open Source?
 
-###  Trust 
+### Trust
+
 In the tech world today, trust isn't cheap. Privacy scandal after privacy scandal has left scars on consumers. We believe great companies are built on trust and members of SRC trust us with some of their most sensitive information, their emails and job status. Open sourcing SRC solidifies our commitment to trust, transparency, and privacy and keeps us accountable to our end users.
 
 ### Empower Candidates
@@ -32,4 +33,4 @@ Yes! There are many ways to contribute to SRC beyond code. Read more in the [con
 
 ## Is Any Part of SRC Closed Source?
 
-Yes, the only closed sourced part of SRC is our classification model. At the moment, we believe it's more valuable to candidates to keep the model closed source and make it more difficult for  companies to bypass the model than to make the model open source.  Our hope is to open source this in the future, so will continue to revisit this assumption as we grow!
+Yes, the only closed sourced part of SRC is our classification model. At the moment, we believe it's more valuable to candidates to keep the model closed source and make it more difficult for companies to bypass the model than to make the model open source. Our hope is to open source this in the future, so will continue to revisit this assumption as we grow!

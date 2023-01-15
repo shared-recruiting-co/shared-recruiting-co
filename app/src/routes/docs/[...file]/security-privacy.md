@@ -26,10 +26,10 @@ By open sourcing SRC, we are making more then a promise of privacy. All the ways
 
 The Cloud Application Security Assessment (CASA) is built upon the industry-recognized standards of the [OWASP's Application Security Verification Standard (ASVS)](https://owasp.org/www-project-application-security-verification-standard/) to provide a consistent set of requirements to harden security for any application. CASA provides a uniform way to perform trusted assurance assessments of these requirements when such assessments are required for applications with potential access to sensitive data.
 
-SRC is Tier-2 CASA compliant. SRC's CASA compliance has been verified by an independent lab partner as part of the Google OAuth approval process. 
+SRC is Tier-2 CASA compliant. SRC's CASA compliance has been verified by an independent lab partner as part of the Google OAuth approval process.
 
 ## Privacy Policy & Terms of Service
 
-SRC's [privacy policy](/legal/privacy-policy) and [terms of service](/legal-terms-of-service) are available on the SRC website. Like the rest of SRC, the privacy policy and terms of service are [open source](https://github.com/shared-recruiting-co/shared-recruiting-co/tree/main/app/src/routes/(marketing)/legal) too.
+SRC's [privacy policy](/legal/privacy-policy) and [terms of service](/legal-terms-of-service) are available on the SRC website. Like the rest of SRC, the privacy policy and terms of service are [open source](<https://github.com/shared-recruiting-co/shared-recruiting-co/tree/main/app/src/routes/(marketing)/legal>) too.
 
 We want to make the privacy policy and terms of service as interpretable and user-friendly as possible. If you find the language confusing or ambiguous, please let us know!

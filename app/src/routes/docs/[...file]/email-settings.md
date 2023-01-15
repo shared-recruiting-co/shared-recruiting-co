@@ -12,9 +12,9 @@ description: Use email settings to tune SRC to your preferences.
 Keep your inbox distraction free when you aren't actively looking for a new role.
 
 When this setting is enabled, all recruiting emails will be automatically marked as read, archived, and moved under the {% emailLabel title="@SRC/Jobs/Opportunity" color="blue" %}{% /emailLabel %}
- folder.
+folder.
 
-## Block Automated Email Sequences  (Coming Soon)
+## Block Automated Email Sequences (Coming Soon)
 
 Block automated recruiting sequences by automatically replying to recruiters with a standard message.
 
