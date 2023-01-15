@@ -129,7 +129,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// get the messages for each thread
-		var messages map[string]*gmail.Message
+		messages := map[string]*gmail.Message{}
 
 		for _, t := range threads {
 			thread, err := srv.GetThread(t.Id, "minimal")
@@ -156,7 +156,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 
 		// process messages
 		inputs := map[string]*ParseJobRequest{}
-		for id, _ := range messages {
+		for id := range messages {
 			// payload isn't included in the list endpoint responses
 			message, err := srv.GetMessage(id)
 
@@ -197,7 +197,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// if fields are missing, skip
-			if job.Company == "" || job.Title == "" && job.Recruiter == "" {
+			if job.Company == "" || job.Title == "" || job.Recruiter == "" {
 				// print sender and subject
 				log.Printf("skipping job: %v", job)
 				continue
@@ -206,7 +206,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 			message := messages[id]
 			recruiterEmail := mail.MessageSenderEmail(message)
 			data := map[string]interface{}{
-				"recruiter":       job.Company,
+				"recruiter":       job.Recruiter,
 				"recruiter_email": recruiterEmail,
 			}
 
@@ -230,10 +230,10 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 				Data:          b,
 			})
 
-			// for now, abort on error
+			// for now, continue on error
 			if err != nil {
-				handleError(w, "error inserting job", err)
-				return
+				log.Printf("error inserting job (%v): %v", job, err)
+				continue
 			}
 		}
 
