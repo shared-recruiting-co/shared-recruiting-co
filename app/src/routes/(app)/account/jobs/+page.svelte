@@ -62,7 +62,6 @@
 
 	// TOOD:
 	// Error state (icon + No jobs + Description)
-	// Empty state
 	// Realtime
 	// move get pages to utils
 </script>
