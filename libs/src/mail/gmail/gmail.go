@@ -17,7 +17,7 @@ import (
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/option"
 
-	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail/label"
+	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/label"
 )
 
 // scopes required for the SRC service

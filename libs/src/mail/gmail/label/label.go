@@ -1,4 +1,4 @@
-package labels
+package label
 
 import (
 	"google.golang.org/api/gmail/v1"
