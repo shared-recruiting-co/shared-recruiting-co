@@ -94,7 +94,7 @@
 						<th scope="col" class="hidden px-3 py-3.5 font-semibold text-slate-900 lg:table-cell"
 							>Email</th
 						>
-						<th scope="col" class="px-3 py-3.5 font-semibold text-slate-900">Emailed At</th>
+						<th scope="col" class="px-3 py-3.5 font-semibold text-slate-900">Date</th>
 					</tr>
 				</thead>
 				<tbody class="divide-y divide-slate-200 bg-white">
