@@ -11,11 +11,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/shared-recruiting-co/shared-recruiting-co/libs/db/client"
-	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
-	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail/label"
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/idtoken"
+
+	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/db"
+	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
+	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/label"
+	srcmessage "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/message"
 )
 
 type FullEmailSyncRequest struct {
@@ -59,11 +61,11 @@ func triggerBackgroundfFullEmailSync(ctx context.Context, email string, startDat
 }
 
 func syncNewEmails(
-	user client.UserProfile,
-	srv *mail.Service,
-	queries client.Querier,
+	user db.UserProfile,
+	srv *srcmail.Service,
+	queries db.Querier,
 	classifier Classifier,
-	syncHistory client.UserEmailSyncHistory,
+	syncHistory db.UserEmailSyncHistory,
 	labels *srclabel.Labels,
 ) error {
 	var err error
@@ -89,7 +91,7 @@ func syncNewEmails(
 		// for now, abort on error
 		if err != nil {
 			// check for a history not found error
-			if mail.IsNotFound(err) && !historyIDExpired {
+			if srcmail.IsNotFound(err) && !historyIDExpired {
 				log.Printf("expired history id: %v", err)
 				log.Printf("syncing from %s", syncHistory.SyncedAt.Format("2006/01/02"))
 				// set flag and continue iterating
@@ -105,7 +107,7 @@ func syncNewEmails(
 			// payload isn't included in the list endpoint responses
 			message, err := srv.GetMessage(m.Id)
 			if err != nil {
-				if mail.IsNotFound(err) {
+				if srcmail.IsNotFound(err) {
 					// message was deleted, skip
 					log.Printf("skipping message %s was deleted", m.Id)
 					continue
@@ -124,7 +126,7 @@ func syncNewEmails(
 				continue
 			}
 
-			sender := mail.MessageSender(message)
+			sender := srcmessage.Sender(message)
 			// check if message sender is on the allow list
 			allowed, err := srv.IsSenderAllowed(sender)
 			if err != nil {
@@ -164,9 +166,9 @@ func syncNewEmails(
 			}
 
 			example := &PredictRequest{
-				From:    mail.MessageSender(message),
-				Subject: mail.MessageSubject(message),
-				Body:    mail.MessageBody(message),
+				From:    srcmessage.Sender(message),
+				Subject: srcmessage.Subject(message),
+				Body:    srcmessage.Body(message),
 			}
 			examples[message.Id] = example
 		}
@@ -205,7 +207,7 @@ func syncNewEmails(
 		if len(examples) > 0 {
 			err = queries.IncrementUserEmailStat(
 				context.Background(),
-				client.IncrementUserEmailStatParams{
+				db.IncrementUserEmailStatParams{
 					UserID:    user.UserID,
 					Email:     user.Email,
 					StatID:    "emails_processed",
@@ -220,7 +222,7 @@ func syncNewEmails(
 		if len(recruitingEmailIDs) > 0 {
 			err = queries.IncrementUserEmailStat(
 				context.Background(),
-				client.IncrementUserEmailStatParams{
+				db.IncrementUserEmailStatParams{
 					UserID:    user.UserID,
 					Email:     user.Email,
 					StatID:    "jobs_detected",
@@ -240,7 +242,7 @@ func syncNewEmails(
 	return nil
 }
 
-func handleRecruitingEmails(srv *mail.Service, profile client.UserProfile, labels *srclabel.Labels, messageIDs []string) error {
+func handleRecruitingEmails(srv *srcmail.Service, profile db.UserProfile, labels *srclabel.Labels, messageIDs []string) error {
 	if len(messageIDs) == 0 {
 		return nil
 	}
@@ -250,7 +252,7 @@ func handleRecruitingEmails(srv *mail.Service, profile client.UserProfile, label
 		removeLabels = append(removeLabels, "INBOX", "UNREAD")
 	}
 
-	_, err := mail.ExecuteWithRetries(func() (interface{}, error) {
+	_, err := srcmail.ExecuteWithRetries(func() (interface{}, error) {
 		err := srv.Users.Messages.BatchModify(srv.UserID, &gmail.BatchModifyMessagesRequest{
 			Ids: messageIDs,
 			// Add job opportunity label and parent folder labels
@@ -273,7 +275,7 @@ func handleRecruitingEmails(srv *mail.Service, profile client.UserProfile, label
 				break
 			}
 			// clone the message to the examples inbox
-			_, err := mail.CloneMessage(srv, examplesCollectorSrv, id, collectedExampleLabels)
+			_, err := srcmail.CloneMessage(srv, examplesCollectorSrv, id, collectedExampleLabels)
 
 			if err != nil {
 				// don't abort on error

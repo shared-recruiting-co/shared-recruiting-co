@@ -15,8 +15,8 @@ import (
 	"github.com/getsentry/sentry-go"
 	"google.golang.org/api/idtoken"
 
-	"github.com/shared-recruiting-co/shared-recruiting-co/libs/db/client"
-	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
+	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/db"
+	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
 )
 
 const (
@@ -25,7 +25,7 @@ const (
 
 var (
 	// global variable to share across functions...simplest approach for now
-	examplesCollectorSrv   *mail.Service
+	examplesCollectorSrv   *srcmail.Service
 	collectedExampleLabels = []string{"INBOX", "UNREAD"}
 )
 
@@ -122,7 +122,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	// 0, Create SRC client
 	apiURL := os.Getenv("SUPABASE_API_URL")
 	apiKey := os.Getenv("SUPABASE_API_KEY")
-	queries := client.NewHTTP(apiURL, apiKey)
+	queries := db.NewHTTP(apiURL, apiKey)
 
 	// 1. Get User from email address
 	user, err := queries.GetUserProfileByEmail(ctx, email)
@@ -134,14 +134,14 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		if err != nil {
 			return handleError("error parsing EXAMPLES_GMAIL_OAUTH_TOKEN", err)
 		}
-		examplesCollectorSrv, err = mail.NewService(ctx, creds, auth)
+		examplesCollectorSrv, err = srcmail.NewService(ctx, creds, auth)
 		if err != nil {
 			return handleError("error creating examples collector service", err)
 		}
 	}
 
 	// 2. Get User' OAuth Token
-	userToken, err := queries.GetUserOAuthToken(ctx, client.GetUserOAuthTokenParams{
+	userToken, err := queries.GetUserOAuthToken(ctx, db.GetUserOAuthTokenParams{
 		UserID:   user.UserID,
 		Provider: provider,
 	})
@@ -157,7 +157,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 	// 3. Create Gmail Service
 	auth := []byte(userToken.Token)
-	srv, err := mail.NewService(ctx, creds, auth)
+	srv, err := srcmail.NewService(ctx, creds, auth)
 	if err != nil {
 		return handleError("error creating gmail service", err)
 	}
@@ -167,10 +167,10 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	if err != nil {
 		// first request, so check if the error is an oauth error
 		// if so, update the database
-		if mail.IsOAuth2Error(err) {
+		if srcmail.IsOAuth2Error(err) {
 			log.Printf("error oauth error: %v", err)
 			// update the user's oauth token
-			err = queries.UpsertUserOAuthToken(ctx, client.UpsertUserOAuthTokenParams{
+			err = queries.UpsertUserOAuthToken(ctx, db.UpsertUserOAuthTokenParams{
 				UserID:   userToken.UserID,
 				Provider: provider,
 				Token:    userToken.Token,
@@ -215,7 +215,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		}
 
 		// save the current history ID
-		err = queries.UpsertUserEmailSyncHistory(ctx, client.UpsertUserEmailSyncHistoryParams{
+		err = queries.UpsertUserEmailSyncHistory(ctx, db.UpsertUserEmailSyncHistoryParams{
 			UserID:    user.UserID,
 			HistoryID: int64(historyID),
 			SyncedAt:  time.Now(),
@@ -231,7 +231,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		return handleError("error getting user email sync history", err)
 	}
 
-	err = queries.UpsertUserEmailSyncHistory(ctx, client.UpsertUserEmailSyncHistoryParams{
+	err = queries.UpsertUserEmailSyncHistory(ctx, db.UpsertUserEmailSyncHistoryParams{
 		UserID:    user.UserID,
 		HistoryID: int64(historyID),
 		SyncedAt:  time.Now(),
@@ -242,7 +242,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 
 	// on any errors after this, we want to reset the history ID to the previous one
 	revertSynctHistory := func() {
-		err := queries.UpsertUserEmailSyncHistory(ctx, client.UpsertUserEmailSyncHistoryParams{
+		err := queries.UpsertUserEmailSyncHistory(ctx, db.UpsertUserEmailSyncHistoryParams{
 			UserID:    user.UserID,
 			HistoryID: prevSyncHistory.HistoryID,
 			SyncedAt:  prevSyncHistory.SyncedAt,

@@ -12,9 +12,9 @@ import (
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/idtoken"
 
-	"github.com/shared-recruiting-co/shared-recruiting-co/libs/db/client"
-	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
-	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail/label"
+	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/db"
+	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
+	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/label"
 )
 
 // 1. Fetch all threads with srclabel.JobsOpportunity
@@ -65,7 +65,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 	// Create SRC client
 	apiURL := os.Getenv("SUPABASE_API_URL")
 	apiKey := os.Getenv("SUPABASE_API_KEY")
-	queries := client.NewHTTP(apiURL, apiKey)
+	queries := db.NewHTTP(apiURL, apiKey)
 
 	// 1. Fetch valid auth tokens for all users
 	user, err := queries.GetUserProfileByEmail(ctx, email)
@@ -75,7 +75,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get User' OAuth Token
-	userToken, err := queries.GetUserOAuthToken(ctx, client.GetUserOAuthTokenParams{
+	userToken, err := queries.GetUserOAuthToken(ctx, db.GetUserOAuthTokenParams{
 		UserID:   user.UserID,
 		Provider: provider,
 	})
@@ -86,7 +86,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 
 	// Create Gmail Service
 	auth := []byte(userToken.Token)
-	srv, err := mail.NewService(ctx, creds, auth)
+	srv, err := srcmail.NewService(ctx, creds, auth)
 
 	// Create recruiting detector client
 	mlServiceBaseURL := os.Getenv("ML_SERVICE_URL")
@@ -174,9 +174,9 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 			}
 
 			inputs[message.Id] = &ParseJobRequest{
-				From:    mail.MessageSender(message),
-				Subject: mail.MessageSubject(message),
-				Body:    mail.MessageBody(message),
+				From:    srcmail.MessageSender(message),
+				Subject: srcmail.MessageSubject(message),
+				Body:    srcmail.MessageBody(message),
 			}
 		}
 
@@ -204,7 +204,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 			}
 
 			message := messages[id]
-			recruiterEmail := mail.MessageSenderEmail(message)
+			recruiterEmail := srcmail.MessageSenderEmail(message)
 			data := map[string]interface{}{
 				"recruiter":       job.Recruiter,
 				"recruiter_email": recruiterEmail,
@@ -220,7 +220,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 			// convert epoch ms to time.Time
 			emailedAt := time.Unix(message.InternalDate/1000, 0)
 
-			err = queries.InsertUserEmailJob(ctx, client.InsertUserEmailJobParams{
+			err = queries.InsertUserEmailJob(ctx, db.InsertUserEmailJobParams{
 				UserID:        user.UserID,
 				UserEmail:     email,
 				EmailThreadID: message.ThreadId,
@@ -248,10 +248,10 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 func filterMessagesAfterReply(messages []*gmail.Message) []*gmail.Message {
 	filtered := []*gmail.Message{}
 	// ensure messages are sorted by ascending date
-	mail.SortMessagesByDate(messages)
+	srcmail.SortMessagesByDate(messages)
 
 	for _, m := range messages {
-		if mail.IsMessageSent(m) {
+		if srcmail.IsMessageSent(m) {
 			break
 		}
 		filtered = append(filtered, m)
@@ -260,10 +260,10 @@ func filterMessagesAfterReply(messages []*gmail.Message) []*gmail.Message {
 }
 
 // fetchJobThreadsSinceDate fetches all job threads since the start date
-func fetchJobThreadsSinceDate(srv *mail.Service, date time.Time, pageToken string) ([]*gmail.Thread, string, error) {
+func fetchJobThreadsSinceDate(srv *srcmail.Service, date time.Time, pageToken string) ([]*gmail.Thread, string, error) {
 	q := fmt.Sprintf("-label:sent label:%s after:%s", srclabel.JobsOpportunity.Name, date.Format("2006/01/02"))
 
-	r, err := mail.ExecuteWithRetries(func() (*gmail.ListThreadsResponse, error) {
+	r, err := srcmail.ExecuteWithRetries(func() (*gmail.ListThreadsResponse, error) {
 		return srv.Users.Threads.
 			List(srv.UserID).
 			PageToken(pageToken).

@@ -9,6 +9,7 @@ import (
 	"google.golang.org/api/gmail/v1"
 
 	"github.com/jaytaylor/html2text"
+	message "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/message"
 )
 
 const (
@@ -82,7 +83,7 @@ func (m ForwardMessage) References() string {
 // ParentBody returns the body of the parent message.
 // Note: We always convert to text/plain. It's simpler to do deal with and is sufficient for our purposes.
 func (m ForwardMessage) ParentBody() string {
-	body := MessageBody(m.Parent)
+	body := message.Body(m.Parent)
 	mime := http.DetectContentType([]byte(body))
 	// mime will be "text/html; charset=utf-8"
 	if strings.HasPrefix(mime, "text/html") {

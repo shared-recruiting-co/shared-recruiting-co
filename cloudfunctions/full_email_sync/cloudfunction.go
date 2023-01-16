@@ -16,9 +16,10 @@ import (
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/idtoken"
 
-	"github.com/shared-recruiting-co/shared-recruiting-co/libs/db/client"
-	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
-	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail/label"
+	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/db"
+	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
+	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/label"
+	srcmessage "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/message"
 )
 
 const (
@@ -27,7 +28,7 @@ const (
 
 var (
 	// global variable to share across functions...simplest approach for now
-	examplesCollectorSrv   *mail.Service
+	examplesCollectorSrv   *srcmail.Service
 	collectedExampleLabels = []string{"INBOX", "UNREAD"}
 )
 
@@ -103,7 +104,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 	// 0, Create SRC http client
 	apiURL := os.Getenv("SUPABASE_API_URL")
 	apiKey := os.Getenv("SUPABASE_API_KEY")
-	queries := client.NewHTTP(apiURL, apiKey)
+	queries := db.NewHTTP(apiURL, apiKey)
 
 	// 1. Get User from email address
 	user, err := queries.GetUserProfileByEmail(ctx, email)
@@ -118,7 +119,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 			handleError(w, "error reading examples@sharedrecruiting.co credentials", err)
 			return
 		}
-		examplesCollectorSrv, err = mail.NewService(ctx, creds, auth)
+		examplesCollectorSrv, err = srcmail.NewService(ctx, creds, auth)
 		if err != nil {
 			handleError(w, "error creating example collector service", err)
 			return
@@ -126,7 +127,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get User' OAuth Token
-	userToken, err := queries.GetUserOAuthToken(ctx, client.GetUserOAuthTokenParams{
+	userToken, err := queries.GetUserOAuthToken(ctx, db.GetUserOAuthTokenParams{
 		UserID:   user.UserID,
 		Provider: provider,
 	})
@@ -137,17 +138,17 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 
 	// Create Gmail Service
 	auth := []byte(userToken.Token)
-	srv, err := mail.NewService(ctx, creds, auth)
+	srv, err := srcmail.NewService(ctx, creds, auth)
 
 	// Create SRC Labels
 	labels, err := srv.GetOrCreateSRCLabels()
 	if err != nil {
 		// first request, so check if the error is an oauth error
 		// if so, update the database
-		if mail.IsOAuth2Error(err) {
+		if srcmail.IsOAuth2Error(err) {
 			log.Printf("error oauth error: %v", err)
 			// update the user's oauth token
-			err = queries.UpsertUserOAuthToken(ctx, client.UpsertUserOAuthTokenParams{
+			err = queries.UpsertUserOAuthToken(ctx, db.UpsertUserOAuthTokenParams{
 				UserID:   userToken.UserID,
 				Provider: provider,
 				Token:    userToken.Token,
@@ -235,9 +236,9 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 			example := &PredictRequest{
-				From:    mail.MessageSender(message),
-				Subject: mail.MessageSubject(message),
-				Body:    mail.MessageBody(message),
+				From:    srcmessage.Sender(message),
+				Subject: srcmessage.Subject(message),
+				Body:    srcmessage.Body(message),
 			}
 			examples[message.Id] = example
 		}
@@ -278,7 +279,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 		if len(examples) > 0 {
 			err = queries.IncrementUserEmailStat(
 				ctx,
-				client.IncrementUserEmailStatParams{
+				db.IncrementUserEmailStatParams{
 					UserID:    user.UserID,
 					Email:     user.Email,
 					StatID:    "emails_processed",
@@ -295,7 +296,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 		if len(recruitingEmailIDs) > 0 {
 			err = queries.IncrementUserEmailStat(
 				ctx,
-				client.IncrementUserEmailStatParams{
+				db.IncrementUserEmailStatParams{
 					UserID: user.UserID,
 					Email:  user.Email,
 					StatID: "jobs_detected",
@@ -319,7 +320,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 	log.Printf("done.")
 }
 
-func handleRecruitingEmails(srv *mail.Service, profile client.UserProfile, labels *srclabel.Labels, messageIDs []string) error {
+func handleRecruitingEmails(srv *srcmail.Service, profile db.UserProfile, labels *srclabel.Labels, messageIDs []string) error {
 	if len(messageIDs) == 0 {
 		return nil
 	}
@@ -329,7 +330,7 @@ func handleRecruitingEmails(srv *mail.Service, profile client.UserProfile, label
 		removeLabels = append(removeLabels, "INBOX", "UNREAD")
 	}
 
-	_, err := mail.ExecuteWithRetries(func() (interface{}, error) {
+	_, err := srcmail.ExecuteWithRetries(func() (interface{}, error) {
 		err := srv.Users.Messages.BatchModify(srv.UserID, &gmail.BatchModifyMessagesRequest{
 			Ids: messageIDs,
 			// Add job opportunity label and parent folder labels
@@ -352,7 +353,7 @@ func handleRecruitingEmails(srv *mail.Service, profile client.UserProfile, label
 				break
 			}
 			// clone the message to the examples inbox
-			_, err := mail.CloneMessage(srv, examplesCollectorSrv, id, collectedExampleLabels)
+			_, err := srcmail.CloneMessage(srv, examplesCollectorSrv, id, collectedExampleLabels)
 
 			if err != nil {
 				// don't abort on error
