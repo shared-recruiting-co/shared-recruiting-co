@@ -10,10 +10,10 @@ We also manually maintain a http database client that leverages Supabase's auto-
 
 2. Write and name your query in `query.sql`
 
-3. Re-generate the `/client` package
+3. Re-generate the `/db` package
 
 ```bash
 sqlc generate
 ```
 
-4. Manually update the http client in `/client/http`. For information on PostgREST's APIs, checkout their [documentation](https://postgrest.org/en/stable/).
+4. Manually update the http client in `http.go`. For information on PostgREST's APIs, checkout their [documentation](https://postgrest.org/en/stable/).

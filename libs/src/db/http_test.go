@@ -1,4 +1,4 @@
-package client_test
+package db_test
 
 import (
 	"bytes"
