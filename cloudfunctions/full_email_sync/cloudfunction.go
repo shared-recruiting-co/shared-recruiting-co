@@ -20,6 +20,7 @@ import (
 	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
 	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/label"
 	srcmessage "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/message"
+	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/ml"
 )
 
 const (
@@ -165,7 +166,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create recruiting detector client
-	classifierBaseURL := os.Getenv("CLASSIFIER_URL")
+	classifierBaseURL := os.Getenv("ML_SERVICE_URL")
 	idTokenSource, err := idtoken.NewTokenSource(ctx, classifierBaseURL)
 	if err != nil {
 		handleError(w, "error creating id token source", err)
@@ -177,7 +178,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	classifier := NewClassifierClient(ctx, ClassifierClientArgs{
+	classifier := ml.NewService(ctx, ml.NewServiceArg{
 		BaseURL:   classifierBaseURL,
 		AuthToken: idToken.AccessToken,
 	})
@@ -220,7 +221,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// process messages
-		examples := map[string]*PredictRequest{}
+		examples := map[string]*ml.ClassifyRequest{}
 		for _, message := range messages {
 			// payload isn't included in the list endpoint responses
 			message, err := srv.GetMessage(message.Id)
@@ -235,12 +236,11 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 			if message.Payload == nil {
 				continue
 			}
-			example := &PredictRequest{
+			examples[message.Id] = &ml.ClassifyRequest{
 				From:    srcmessage.Sender(message),
 				Subject: srcmessage.Subject(message),
 				Body:    srcmessage.Body(message),
 			}
-			examples[message.Id] = example
 		}
 
 		log.Printf("number of emails to classify: %d", len(examples))
@@ -250,7 +250,9 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Batch predict on new emails
-		results, err := classifier.PredictBatch(examples)
+		results, err := classifier.BatchClassify(&ml.BatchClassifyRequest{
+			Inputs: examples,
+		})
 		if err != nil {
 			handleError(w, "error predicting on examples", err)
 			return
@@ -258,7 +260,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 
 		// Get IDs of new recruiting emails
 		recruitingEmailIDs := []string{}
-		for id, result := range results {
+		for id, result := range results.Results {
 			if !result {
 				continue
 			}
