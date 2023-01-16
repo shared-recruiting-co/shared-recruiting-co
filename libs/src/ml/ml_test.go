@@ -13,7 +13,7 @@ import (
 	ml "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/ml"
 )
 
-func TestMLServiceClassify(t *testing.T) {
+func TestServiceClassify(t *testing.T) {
 	ctx := context.Background()
 	authToken := "xxx.yyy.zzz"
 	path := "/v1/classify"
@@ -71,7 +71,7 @@ func TestMLServiceClassify(t *testing.T) {
 	}
 }
 
-func TestClassifierClientPredictBatch(t *testing.T) {
+func TestServiceBatchClassify(t *testing.T) {
 	ctx := context.Background()
 	authToken := "xxx.yyy.zzz"
 	path := "/v1/classify/batch"
@@ -146,7 +146,7 @@ func TestClassifierClientPredictBatch(t *testing.T) {
 
 }
 
-func TestClassifierClientNon200(t *testing.T) {
+func TestSerivceNon200(t *testing.T) {
 	ctx := context.Background()
 	input := &ml.ClassifyRequest{
 		From:    "from",
