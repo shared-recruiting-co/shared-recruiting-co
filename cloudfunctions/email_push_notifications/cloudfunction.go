@@ -17,6 +17,7 @@ import (
 
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/db"
 	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
+	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/ml"
 )
 
 const (
@@ -196,7 +197,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		return handleError("error getting id token", err)
 	}
 
-	classifier := NewClassifierClient(ctx, ClassifierClientArgs{
+	classifier := ml.NewService(ctx, ml.NewServiceArg{
 		BaseURL:   classifierBaseURL,
 		AuthToken: idToken.AccessToken,
 	})
