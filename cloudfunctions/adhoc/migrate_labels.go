@@ -8,9 +8,9 @@ import (
 
 	"google.golang.org/api/gmail/v1"
 
-	"github.com/shared-recruiting-co/shared-recruiting-co/libs/db/client"
-	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
-	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail/label"
+	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/db"
+	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
+	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/label"
 )
 
 func migrateLabels(w http.ResponseWriter, r *http.Request) {
@@ -26,10 +26,10 @@ func migrateLabels(w http.ResponseWriter, r *http.Request) {
 	// Create SRC client
 	apiURL := os.Getenv("SUPABASE_API_URL")
 	apiKey := os.Getenv("SUPABASE_API_KEY")
-	queries := client.NewHTTP(apiURL, apiKey)
+	queries := db.NewHTTP(apiURL, apiKey)
 
 	// 1. Fetch valid auth tokens for all users
-	userTokens, err := queries.ListUserOAuthTokens(ctx, client.ListUserOAuthTokensParams{
+	userTokens, err := queries.ListUserOAuthTokens(ctx, db.ListUserOAuthTokensParams{
 		Provider: provider,
 		IsValid:  true,
 	})
@@ -40,12 +40,12 @@ func migrateLabels(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var srv *mail.Service
+	var srv *srcmail.Service
 	hasError := false
 
 	for _, userToken := range userTokens {
 		auth := []byte(userToken.Token)
-		srv, err = mail.NewService(ctx, creds, auth)
+		srv, err = srcmail.NewService(ctx, creds, auth)
 		if err != nil {
 			log.Printf("error creating gmail service: %v", err)
 			hasError = true
@@ -140,7 +140,7 @@ func migrateLabels(w http.ResponseWriter, r *http.Request) {
 }
 
 // Consider moving into shared lib if this becomes a common operation
-func syncLabels(srv *mail.Service, labels *srclabel.Labels) error {
+func syncLabels(srv *srcmail.Service, labels *srclabel.Labels) error {
 	// Update each label to update properties
 	_, err := srv.Users.Labels.Update(srv.UserID, labels.SRC.Id, &srclabel.SRC).Do()
 	if err != nil {

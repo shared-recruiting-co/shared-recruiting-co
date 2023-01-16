@@ -3,19 +3,20 @@ package cloudfunctions
 import (
 	"google.golang.org/api/gmail/v1"
 
-	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
+	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
+	srcmessage "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/message"
 )
 
 const maxResults = 250
 const historyTypeMessageAdded = "messageAdded"
 const defaultLabelID = "UNREAD"
 
-func fetchNewEmailsSinceHistoryID(srv *mail.Service, historyID uint64, labelID string, pageToken string) ([]*gmail.Message, string, error) {
+func fetchNewEmailsSinceHistoryID(srv *srcmail.Service, historyID uint64, labelID string, pageToken string) ([]*gmail.Message, string, error) {
 	if labelID == "" {
 		labelID = defaultLabelID
 	}
 
-	r, err := mail.ExecuteWithRetries(func() (*gmail.ListHistoryResponse, error) {
+	r, err := srcmail.ExecuteWithRetries(func() (*gmail.ListHistoryResponse, error) {
 		return srv.Users.History.
 			List(srv.UserID).
 			LabelId(labelID).
@@ -47,7 +48,7 @@ func fetchNewEmailsSinceHistoryID(srv *mail.Service, historyID uint64, labelID s
 func skipThread(messages []*gmail.Message, labelID string) bool {
 	for _, m := range messages {
 		if m.LabelIds != nil {
-			if mail.MessageHasLabel(m, "SENT") || mail.MessageHasLabel(m, labelID) {
+			if srcmessage.HasLabel(m, "SENT") || srcmessage.HasLabel(m, labelID) {
 				return true
 			}
 		}

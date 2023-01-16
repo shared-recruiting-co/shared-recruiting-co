@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
-	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail/label"
 	"google.golang.org/api/gmail/v1"
+
+	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
+	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/label"
+	srcmessage "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/message"
 )
 
 const maxResults = 250
@@ -14,11 +16,11 @@ const maxResults = 250
 // fetchEmailsSinceDate syncs all inbound emails from the start date to today.
 // It returns the messages fetched, the next page token, and an error.
 // Use the next page token to fetch the rest of the emails
-func fetchEmailsSinceDate(srv *mail.Service, date time.Time, pageToken string) ([]*gmail.Message, string, error) {
+func fetchEmailsSinceDate(srv *srcmail.Service, date time.Time, pageToken string) ([]*gmail.Message, string, error) {
 	// get all (including archived) emails after the start date, ignore sent emails and emails already processed by SRC
 	q := fmt.Sprintf("-label:sent -label:%s after:%s", srclabel.SRC.Name, date.Format("2006/01/02"))
 
-	r, err := mail.ExecuteWithRetries(func() (*gmail.ListMessagesResponse, error) {
+	r, err := srcmail.ExecuteWithRetries(func() (*gmail.ListMessagesResponse, error) {
 		return srv.Users.Messages.
 			List(srv.UserID).
 			PageToken(pageToken).
@@ -36,11 +38,11 @@ func fetchEmailsSinceDate(srv *mail.Service, date time.Time, pageToken string) (
 
 // fetchThreadsSinceDate fetches all threads since the start date
 // It ignores threads of only sent emails and threads already processed by SRC
-func fetchThreadsSinceDate(srv *mail.Service, date time.Time, pageToken string) ([]*gmail.Thread, string, error) {
+func fetchThreadsSinceDate(srv *srcmail.Service, date time.Time, pageToken string) ([]*gmail.Thread, string, error) {
 	// get all (including archived) emails after the start date, ignore sent emails and emails already processed by SRC
 	q := fmt.Sprintf("-label:sent -label:%s after:%s", srclabel.SRC.Name, date.Format("2006/01/02"))
 
-	r, err := mail.ExecuteWithRetries(func() (*gmail.ListThreadsResponse, error) {
+	r, err := srcmail.ExecuteWithRetries(func() (*gmail.ListThreadsResponse, error) {
 		return srv.Users.Threads.
 			List(srv.UserID).
 			PageToken(pageToken).
@@ -64,7 +66,7 @@ func skipThread(messages []*gmail.Message, srcLabelId string) bool {
 
 	// for each message in the thread, check if it has the @src label
 	for _, m := range messages {
-		if mail.MessageHasLabel(m, srcLabelId) {
+		if srcmessage.HasLabel(m, srcLabelId) {
 			return true
 		}
 	}
@@ -75,10 +77,10 @@ func skipThread(messages []*gmail.Message, srcLabelId string) bool {
 func filterMessagesAfterReply(messages []*gmail.Message) []*gmail.Message {
 	filtered := []*gmail.Message{}
 	// ensure messages are sorted by ascending date
-	mail.SortMessagesByDate(messages)
+	srcmessage.SortByDate(messages)
 
 	for _, m := range messages {
-		if mail.IsMessageSent(m) {
+		if srcmessage.IsSent(m) {
 			break
 		}
 		filtered = append(filtered, m)

@@ -13,8 +13,8 @@ import (
 
 	"google.golang.org/api/gmail/v1"
 
-	"github.com/shared-recruiting-co/shared-recruiting-co/libs/db/client"
-	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
+	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/db"
+	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
 )
 
 const provider = "google"
@@ -69,7 +69,7 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 	// Create SRC client
 	apiURL := os.Getenv("SUPABASE_API_URL")
 	apiKey := os.Getenv("SUPABASE_API_KEY")
-	queries := client.NewHTTP(apiURL, apiKey)
+	queries := db.NewHTTP(apiURL, apiKey)
 
 	// TODO
 	// v0 -> no pagination, no go routines
@@ -78,7 +78,7 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 	// 3. Wait for all goroutines to finish
 
 	// 1. Fetch valid auth tokens for all users
-	userTokens, err := queries.ListUserOAuthTokens(ctx, client.ListUserOAuthTokensParams{
+	userTokens, err := queries.ListUserOAuthTokens(ctx, db.ListUserOAuthTokensParams{
 		Provider: provider,
 		IsValid:  true,
 	})
@@ -88,7 +88,7 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var srv *mail.Service
+	var srv *srcmail.Service
 	user := "me"
 	label := "UNREAD"
 	topic := os.Getenv("PUBSUB_TOPIC")
@@ -98,7 +98,7 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 	for _, userToken := range userTokens {
 		auth := []byte(userToken.Token)
 
-		srv, err = mail.NewService(ctx, creds, auth)
+		srv, err = srcmail.NewService(ctx, creds, auth)
 		if err != nil {
 			err = fmt.Errorf("error creating gmail service: %w", err)
 			log.Print(err)
@@ -115,10 +115,10 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 			log.Print(err)
 
 			// check for oauth token expiration or revocation
-			if mail.IsOAuth2Error(err) {
+			if srcmail.IsOAuth2Error(err) {
 				log.Printf("error oauth error: %v", err)
 				// update the user's oauth token
-				err = queries.UpsertUserOAuthToken(ctx, client.UpsertUserOAuthTokenParams{
+				err = queries.UpsertUserOAuthToken(ctx, db.UpsertUserOAuthTokenParams{
 					UserID:   userToken.UserID,
 					Provider: provider,
 					Token:    userToken.Token,
@@ -151,7 +151,7 @@ func runWatchEmails(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Watch for changes in labelId
-		resp, err := mail.ExecuteWithRetries(func() (*gmail.WatchResponse, error) {
+		resp, err := srcmail.ExecuteWithRetries(func() (*gmail.WatchResponse, error) {
 			return srv.Users.Watch(user, &gmail.WatchRequest{
 				LabelIds:          []string{label},
 				LabelFilterAction: "include",
