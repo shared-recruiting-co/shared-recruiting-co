@@ -186,7 +186,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		return handleError("error getting or creating SRC labels", err)
 	}
 	// Create recruiting detector client
-	classifierBaseURL := os.Getenv("CLASSIFIER_URL")
+	classifierBaseURL := os.Getenv("ML_SERVICE_URL")
 	idTokenSource, err := idtoken.NewTokenSource(ctx, classifierBaseURL)
 	if err != nil {
 		return handleError("error creating id token source", err)
