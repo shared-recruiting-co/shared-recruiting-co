@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/GoogleCloudPlatform/functions-framework-go v1.6.1
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230116020326-6b312d22bb15
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230116173956-4420461ea0a2
 	google.golang.org/api v0.107.0
 )
 
@@ -25,8 +25,6 @@ require (
 	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/rivo/uniseg v0.4.3 // indirect
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/db v0.0.0-20230116001733-fc0497e7a193 // indirect
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20230116001733-fc0497e7a193 // indirect
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/atomic v1.4.0 // indirect
