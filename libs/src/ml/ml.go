@@ -1,4 +1,4 @@
-package cloudfunctions
+package ml
 
 import (
 	"bytes"
@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"net/http"
 )
-
-// Consider moving to share library in future
 
 type EmailInput struct {
 	From    string `json:"from"`
@@ -43,10 +41,10 @@ type BatchParseJobRequest struct {
 }
 
 type BatchParseJobResponse struct {
-	Results map[string]bool `json:"results"`
+	Results map[string]*ParseJobResponse `json:"results"`
 }
 
-type MLService interface {
+type Service interface {
 	// Classify if the input is a recruiting email or not
 	Classify(input *ClassifyRequest) (*ClassifyResponse, error)
 	// Classify if the inputs recruiting emails or not
@@ -57,26 +55,26 @@ type MLService interface {
 	BatchParseJob(req *BatchParseJobRequest) (*BatchParseJobResponse, error)
 }
 
-type MLClient struct {
+type client struct {
 	ctx       context.Context
 	baseURL   string
 	authToken string
 }
 
-type MLClientArgs struct {
+type NewServiceArg struct {
 	BaseURL   string
 	AuthToken string
 }
 
-func NewMLClient(ctx context.Context, args MLClientArgs) *MLClient {
-	return &MLClient{
+func NewService(ctx context.Context, arg NewServiceArg) *client {
+	return &client{
 		ctx:       ctx,
-		baseURL:   args.BaseURL,
-		authToken: args.AuthToken,
+		baseURL:   arg.BaseURL,
+		authToken: arg.AuthToken,
 	}
 }
 
-func (c *MLClient) Classify(input *ClassifyRequest) (*ClassifyResponse, error) {
+func (c *client) Classify(input *ClassifyRequest) (*ClassifyResponse, error) {
 	resp := &ClassifyResponse{}
 	err := c.doRequest("POST", "/v1/classify", input, resp)
 	if err != nil {
@@ -85,7 +83,7 @@ func (c *MLClient) Classify(input *ClassifyRequest) (*ClassifyResponse, error) {
 	return resp, nil
 }
 
-func (c *MLClient) BatchClassify(inputs *BatchClassifyRequest) (*BatchClassifyResponse, error) {
+func (c *client) BatchClassify(inputs *BatchClassifyRequest) (*BatchClassifyResponse, error) {
 	resp := &BatchClassifyResponse{}
 	err := c.doRequest("POST", "/v1/classify/batch", inputs, resp)
 	if err != nil {
@@ -94,7 +92,7 @@ func (c *MLClient) BatchClassify(inputs *BatchClassifyRequest) (*BatchClassifyRe
 	return resp, nil
 }
 
-func (c *MLClient) ParseJob(input *ParseJobRequest) (*ParseJobResponse, error) {
+func (c *client) ParseJob(input *ParseJobRequest) (*ParseJobResponse, error) {
 	resp := &ParseJobResponse{}
 	err := c.doRequest("POST", "/v1/parse", input, resp)
 	if err != nil {
@@ -103,7 +101,7 @@ func (c *MLClient) ParseJob(input *ParseJobRequest) (*ParseJobResponse, error) {
 	return resp, nil
 }
 
-func (c *MLClient) BatchParseJob(inputs *BatchParseJobRequest) (*BatchParseJobResponse, error) {
+func (c *client) BatchParseJob(inputs *BatchParseJobRequest) (*BatchParseJobResponse, error) {
 	resp := &BatchParseJobResponse{}
 	err := c.doRequest("POST", "/v1/parse/batch", inputs, resp)
 	if err != nil {
@@ -112,7 +110,7 @@ func (c *MLClient) BatchParseJob(inputs *BatchParseJobRequest) (*BatchParseJobRe
 	return resp, nil
 }
 
-func (c *MLClient) doRequest(method string, path string, req interface{}, resp interface{}) error {
+func (c *client) doRequest(method string, path string, req interface{}, resp interface{}) error {
 	url := c.baseURL + path
 	body, err := json.Marshal(req)
 	if err != nil {

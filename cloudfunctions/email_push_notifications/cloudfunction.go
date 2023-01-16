@@ -17,6 +17,7 @@ import (
 
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/db"
 	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
+	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/ml"
 )
 
 const (
@@ -185,7 +186,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		return handleError("error getting or creating SRC labels", err)
 	}
 	// Create recruiting detector client
-	classifierBaseURL := os.Getenv("CLASSIFIER_URL")
+	classifierBaseURL := os.Getenv("ML_SERVICE_URL")
 	idTokenSource, err := idtoken.NewTokenSource(ctx, classifierBaseURL)
 	if err != nil {
 		return handleError("error creating id token source", err)
@@ -196,7 +197,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 		return handleError("error getting id token", err)
 	}
 
-	classifier := NewClassifierClient(ctx, ClassifierClientArgs{
+	classifier := ml.NewService(ctx, ml.NewServiceArg{
 		BaseURL:   classifierBaseURL,
 		AuthToken: idToken.AccessToken,
 	})

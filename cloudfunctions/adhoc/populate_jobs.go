@@ -15,6 +15,8 @@ import (
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/db"
 	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
 	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/label"
+	srcmessage "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/message"
+	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/ml"
 )
 
 // 1. Fetch all threads with srclabel.JobsOpportunity
@@ -101,7 +103,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ml := NewMLClient(ctx, MLClientArgs{
+	mlSrv := ml.NewService(ctx, ml.NewServiceArg{
 		BaseURL:   mlServiceBaseURL,
 		AuthToken: idToken.AccessToken,
 	})
@@ -155,7 +157,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// process messages
-		inputs := map[string]*ParseJobRequest{}
+		inputs := map[string]*ml.ParseJobRequest{}
 		for id := range messages {
 			// payload isn't included in the list endpoint responses
 			message, err := srv.GetMessage(id)
@@ -173,10 +175,10 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 
-			inputs[message.Id] = &ParseJobRequest{
-				From:    srcmail.MessageSender(message),
-				Subject: srcmail.MessageSubject(message),
-				Body:    srcmail.MessageBody(message),
+			inputs[message.Id] = &ml.ParseJobRequest{
+				From:    srcmessage.Sender(message),
+				Subject: srcmessage.Subject(message),
+				Body:    srcmessage.Body(message),
 			}
 		}
 
@@ -189,7 +191,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 		// predict one at a time for now
 		for id, input := range inputs {
 			log.Printf("parsing email: %s", id)
-			job, err := ml.ParseJob(input)
+			job, err := mlSrv.ParseJob(input)
 			// for now, abort on error
 			if err != nil {
 				handleError(w, "error parsing job", err)
@@ -204,7 +206,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 			}
 
 			message := messages[id]
-			recruiterEmail := srcmail.MessageSenderEmail(message)
+			recruiterEmail := srcmessage.SenderEmail(message)
 			data := map[string]interface{}{
 				"recruiter":       job.Recruiter,
 				"recruiter_email": recruiterEmail,
@@ -248,10 +250,10 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 func filterMessagesAfterReply(messages []*gmail.Message) []*gmail.Message {
 	filtered := []*gmail.Message{}
 	// ensure messages are sorted by ascending date
-	srcmail.SortMessagesByDate(messages)
+	srcmessage.SortByDate(messages)
 
 	for _, m := range messages {
-		if srcmail.IsMessageSent(m) {
+		if srcmessage.IsSent(m) {
 			break
 		}
 		filtered = append(filtered, m)

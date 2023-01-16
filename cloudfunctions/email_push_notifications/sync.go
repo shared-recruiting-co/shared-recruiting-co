@@ -18,6 +18,7 @@ import (
 	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
 	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/label"
 	srcmessage "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/message"
+	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/ml"
 )
 
 type FullEmailSyncRequest struct {
@@ -64,7 +65,7 @@ func syncNewEmails(
 	user db.UserProfile,
 	srv *srcmail.Service,
 	queries db.Querier,
-	classifier Classifier,
+	classifier ml.Service,
 	syncHistory db.UserEmailSyncHistory,
 	labels *srclabel.Labels,
 ) error {
@@ -102,7 +103,7 @@ func syncNewEmails(
 		}
 
 		// process messages
-		examples := map[string]*PredictRequest{}
+		examples := map[string]*ml.ClassifyRequest{}
 		for _, m := range messages {
 			// payload isn't included in the list endpoint responses
 			message, err := srv.GetMessage(m.Id)
@@ -165,12 +166,11 @@ func syncNewEmails(
 				}
 			}
 
-			example := &PredictRequest{
+			examples[message.Id] = &ml.ClassifyRequest{
 				From:    srcmessage.Sender(message),
 				Subject: srcmessage.Subject(message),
 				Body:    srcmessage.Body(message),
 			}
-			examples[message.Id] = example
 		}
 
 		log.Printf("number of emails to classify: %d", len(examples))
@@ -180,14 +180,16 @@ func syncNewEmails(
 		}
 
 		// Batch predict on new emails
-		results, err := classifier.PredictBatch(examples)
+		results, err := classifier.BatchClassify(&ml.BatchClassifyRequest{
+			Inputs: examples,
+		})
 		if err != nil {
 			return fmt.Errorf("error predicting on examples: %v", err)
 		}
 
 		// Get IDs of new recruiting emails
 		recruitingEmailIDs := []string{}
-		for id, result := range results {
+		for id, result := range results.Results {
 			if !result {
 				continue
 			}

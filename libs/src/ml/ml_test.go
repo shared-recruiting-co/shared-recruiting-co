@@ -1,4 +1,4 @@
-package cloudfunctions
+package ml_test
 
 import (
 	"context"
@@ -9,14 +9,15 @@ import (
 
 	"net/http"
 	"net/http/httptest"
+
+	ml "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/ml"
 )
 
-func TestClassifierClientPredict(t *testing.T) {
+func TestServiceClassify(t *testing.T) {
 	ctx := context.Background()
-	apiKey := "test"
 	authToken := "xxx.yyy.zzz"
-	path := "/v1/predict"
-	input := &PredictRequest{
+	path := "/v1/classify"
+	input := &ml.ClassifyRequest{
 		From:    "from",
 		Subject: "subject",
 		Body:    "body",
@@ -34,7 +35,7 @@ func TestClassifierClientPredict(t *testing.T) {
 		if r.Header.Get("Authorization") != wantAuth {
 			t.Errorf("got %v, want %v", r.Header.Get("Authorization"), wantAuth)
 		}
-		var body PredictRequest
+		var body ml.ClassifyRequest
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			t.Errorf("failed to decode request body: %v", err)
 		}
@@ -47,7 +48,7 @@ func TestClassifierClientPredict(t *testing.T) {
 		if body.Body != input.Body {
 			t.Errorf("got %v, want %v", body.Body, input.Body)
 		}
-		resp := PredictResponse{
+		resp := ml.ClassifyResponse{
 			Result: want,
 		}
 		if err := json.NewEncoder(w).Encode(resp); err != nil {
@@ -55,42 +56,44 @@ func TestClassifierClientPredict(t *testing.T) {
 		}
 	}))
 
-	client := NewClassifierClient(ctx, ClassifierClientArgs{
+	srv := ml.NewService(ctx, ml.NewServiceArg{
 		BaseURL:   ts.URL,
-		ApiKey:    apiKey,
 		AuthToken: authToken,
 	})
 
-	got, err := client.Predict(input)
+	got, err := srv.Classify(input)
 
 	if err != nil {
 		t.Errorf("failed to predict: %v", err)
 	}
-	if got != want {
-		t.Errorf("got %v, want %v", got, want)
+	if got.Result != want {
+		t.Errorf("got %v, want %v", got.Result, want)
 	}
 }
 
-func TestClassifierClientPredictBatch(t *testing.T) {
+func TestServiceBatchClassify(t *testing.T) {
 	ctx := context.Background()
-	apiKey := "test"
 	authToken := "xxx.yyy.zzz"
-	path := "/v1/predict/batch"
-	inputs := map[string]*PredictRequest{
-		"input1": &PredictRequest{
-			From:    "1",
-			Subject: "1",
-			Body:    "1",
-		},
-		"input2": &PredictRequest{
-			From:    "2",
-			Subject: "2",
-			Body:    "2",
+	path := "/v1/classify/batch"
+	inputs := ml.BatchClassifyRequest{
+		Inputs: map[string]*ml.ClassifyRequest{
+			"input1": &ml.ClassifyRequest{
+				From:    "1",
+				Subject: "1",
+				Body:    "1",
+			},
+			"input2": &ml.ClassifyRequest{
+				From:    "2",
+				Subject: "2",
+				Body:    "2",
+			},
 		},
 	}
-	want := map[string]bool{
-		"input1": true,
-		"input2": false,
+	want := ml.BatchClassifyResponse{
+		Results: map[string]bool{
+			"input1": true,
+			"input2": false,
+		},
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -104,11 +107,11 @@ func TestClassifierClientPredictBatch(t *testing.T) {
 		if r.Header.Get("Authorization") != wantAuth {
 			t.Errorf("got %v, want %v", r.Header.Get("Authorization"), wantAuth)
 		}
-		var body PredictBatchRequest
+		var body ml.BatchClassifyRequest
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			t.Errorf("failed to decode request body: %v", err)
 		}
-		for k, v := range inputs {
+		for k, v := range inputs.Inputs {
 			if body.Inputs[k].From != v.From {
 				t.Errorf("got %v, want %v", body.Inputs[k].From, v.From)
 			}
@@ -119,62 +122,55 @@ func TestClassifierClientPredictBatch(t *testing.T) {
 				t.Errorf("got %v, want %v", body.Inputs[k].Body, v.Body)
 			}
 		}
-		resp := PredictBatchResponse{
-			Results: want,
-		}
-		if err := json.NewEncoder(w).Encode(resp); err != nil {
+		if err := json.NewEncoder(w).Encode(want); err != nil {
 			t.Errorf("failed to encode response: %v", err)
 		}
 	}))
 
-	client := NewClassifierClient(ctx, ClassifierClientArgs{
+	srv := ml.NewService(ctx, ml.NewServiceArg{
 		BaseURL:   ts.URL,
-		ApiKey:    apiKey,
 		AuthToken: authToken,
 	})
 
-	got, err := client.PredictBatch(inputs)
+	got, err := srv.BatchClassify(&inputs)
 
 	if err != nil {
 		t.Errorf("failed to predict: %v", err)
 	}
 
-	for k, v := range got {
-		if v != want[k] {
-			t.Errorf("got %v, want %v", v, want[k])
+	for k, v := range got.Results {
+		if v != want.Results[k] {
+			t.Errorf("got %v, want %v", v, want.Results[k])
 		}
 	}
 
 }
 
-func TestClassifierClientNon200(t *testing.T) {
+func TestSerivceNon200(t *testing.T) {
 	ctx := context.Background()
-	apiKey := "test"
-	input := &PredictRequest{
+	input := &ml.ClassifyRequest{
 		From:    "from",
 		Subject: "subject",
 		Body:    "body",
 	}
-	want := false
 	status := http.StatusBadRequest
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(status)
 	}))
 
-	client := NewClassifierClient(ctx, ClassifierClientArgs{
+	client := ml.NewService(ctx, ml.NewServiceArg{
 		BaseURL: ts.URL,
-		ApiKey:  apiKey,
 	})
 
-	got, err := client.Predict(input)
+	got, err := client.Classify(input)
 
 	if err == nil {
 		t.Error("expected error, got nil")
 	}
 
-	if got != want {
-		t.Errorf("got %v, want %v", got, want)
+	if got != nil {
+		t.Errorf("expected nil response, got %v", got)
 	}
 
 	if !strings.Contains(err.Error(), fmt.Sprintf("%d", status)) {
