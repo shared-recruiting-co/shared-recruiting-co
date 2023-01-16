@@ -1,4 +1,4 @@
-package gmail
+package message
 
 import (
 	"encoding/base64"
@@ -8,16 +8,16 @@ import (
 	"google.golang.org/api/gmail/v1"
 )
 
-// SortMessagesByDate sorts messages by date received by gmail (ascending)
+// SortByDate sorts messages by date received by gmail (ascending)
 // The messages are sorted in place.
-func SortMessagesByDate(messages []*gmail.Message) {
+func SortByDate(messages []*gmail.Message) {
 	sort.Slice(messages, func(i, j int) bool {
 		return messages[i].InternalDate < messages[j].InternalDate
 	})
 }
 
-// MessageHeader returns the value of the header with the given name
-func MessageHeader(m *gmail.Message, header string) string {
+// Header returns the value of the header with the given name
+func Header(m *gmail.Message, header string) string {
 	header = strings.ToLower(header)
 	for _, h := range m.Payload.Headers {
 		if strings.ToLower(h.Name) == header {
@@ -27,18 +27,18 @@ func MessageHeader(m *gmail.Message, header string) string {
 	return ""
 }
 
-// MessageSender returns the sender of the message
+// Sender returns the sender of the message
 // The sender is the email address of the first "From" header
-func MessageSender(m *gmail.Message) string {
-	return MessageHeader(m, "From")
+func Sender(m *gmail.Message) string {
+	return Header(m, "From")
 }
 
-// MessageSenderEmail returns the email address of the sender
-// It uses MessageSender to get the sender string, and then extracts the email address from it.
+// SenderEmail returns the email address of the sender
+// It uses Sender to get the sender string, and then extracts the email address from it.
 //
 // Example: "John Doe" <john.doe@example.com>" -> "john.doe@example.com"
-func MessageSenderEmail(m *gmail.Message) string {
-	sender := MessageSender(m)
+func SenderEmail(m *gmail.Message) string {
+	sender := Sender(m)
 	if sender == "" {
 		return ""
 	}
@@ -54,16 +54,16 @@ func MessageSenderEmail(m *gmail.Message) string {
 	return strings.TrimSpace(sender[start+1 : end])
 }
 
-// MessageSubject returns the subject of the message
-func MessageSubject(m *gmail.Message) string {
-	return MessageHeader(m, "Subject")
+// Subject returns the subject of the message
+func Subject(m *gmail.Message) string {
+	return Header(m, "Subject")
 }
 
-// MessageBody returns the body of the message as a string
+// Body returns the body of the message as a string
 //
 // It first checks for a text/plain body.
 // If none is found, it checks for a text/html body.
-func MessageBody(m *gmail.Message) string {
+func Body(m *gmail.Message) string {
 	// try to get native text content first
 	body := getTextContentFromMessageParts(m.Payload)
 
@@ -116,8 +116,8 @@ func getTextContentFromMessageParts(m *gmail.MessagePart) string {
 	return ""
 }
 
-// MessageHasLabel returns true if the message contains the given label id
-func MessageHasLabel(m *gmail.Message, id string) bool {
+// HasLabel returns true if the message contains the given label id
+func HasLabel(m *gmail.Message, id string) bool {
 	if m.LabelIds == nil {
 		return false
 	}
@@ -129,10 +129,10 @@ func MessageHasLabel(m *gmail.Message, id string) bool {
 	return false
 }
 
-// IsMessageSent returns true if the message was sent by the current user
+// IsSent returns true if the message was sent by the current user
 //
 // There are a number of ways to check if a message was sent by a user.
 // This function checks if the message contains the system "SENT" label, which allows us to only fetch the minimal message information (no headers) from a thread.
-func IsMessageSent(m *gmail.Message) bool {
-	return MessageHasLabel(m, "SENT")
+func IsSent(m *gmail.Message) bool {
+	return HasLabel(m, "SENT")
 }

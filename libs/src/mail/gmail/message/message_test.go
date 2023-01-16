@@ -1,10 +1,10 @@
-package gmail_test
+package message_test
 
 import (
 	"encoding/base64"
 	"testing"
 
-	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
+	message "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/message"
 	"google.golang.org/api/gmail/v1"
 )
 
@@ -43,7 +43,7 @@ func TestSortMessagesByDate(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			mail.SortMessagesByDate(tc.messages)
+			message.SortByDate(tc.messages)
 			for i, m := range tc.messages {
 				if m.Id != tc.want[i].Id {
 					t.Fail()
@@ -54,7 +54,7 @@ func TestSortMessagesByDate(t *testing.T) {
 }
 
 func TestMessageHeader(t *testing.T) {
-	message := &gmail.Message{
+	msg := &gmail.Message{
 		Payload: &gmail.MessagePart{
 			Headers: []*gmail.MessagePartHeader{
 				{
@@ -99,7 +99,7 @@ func TestMessageHeader(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := mail.MessageHeader(message, tc.header)
+			got := message.Header(msg, tc.header)
 			if got != tc.want {
 				t.Fail()
 			}
@@ -150,7 +150,7 @@ func TestMessageBody(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := mail.MessageBody(tc.message)
+			got := message.Body(tc.message)
 			if got != tc.want {
 				t.Fail()
 			}
@@ -226,7 +226,7 @@ func TestMessageSenderEmail(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := mail.MessageSenderEmail(tc.message)
+			got := message.SenderEmail(tc.message)
 			if got != tc.want {
 				t.Fail()
 			}
@@ -236,7 +236,7 @@ func TestMessageSenderEmail(t *testing.T) {
 
 func TestMessageHasLabel(t *testing.T) {
 	label := "label"
-	message := &gmail.Message{
+	msg := &gmail.Message{
 		LabelIds: []string{"one", label, "two"},
 	}
 	tests := []struct {
@@ -260,7 +260,7 @@ func TestMessageHasLabel(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := mail.MessageHasLabel(message, tc.label)
+			got := message.HasLabel(msg, tc.label)
 			if got != tc.want {
 				t.Fail()
 			}
@@ -294,7 +294,7 @@ func TestIsMessageSent(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := mail.IsMessageSent(tc.message)
+			got := message.IsSent(tc.message)
 			if got != tc.want {
 				t.Fail()
 			}
