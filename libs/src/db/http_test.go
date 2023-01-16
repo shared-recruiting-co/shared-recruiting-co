@@ -12,13 +12,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/shared-recruiting-co/shared-recruiting-co/libs/db/client"
+	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/db"
 )
 
 func TestNewHTTP(t *testing.T) {
 	url := "http://localhost:54321"
 	apikey := "apikey"
-	q := client.NewHTTP(url, apikey)
+	q := db.NewHTTP(url, apikey)
 	if q.URL != url {
 		t.Errorf("want %v, got %v", url, q.URL)
 	}
@@ -29,7 +29,7 @@ func TestNewHTTP(t *testing.T) {
 
 // This will not compile if the interface is not implemented
 func TestHTTPQueriesImplementsQuerier(t *testing.T) {
-	var _ client.Querier = &client.HTTPQueries{}
+	var _ db.Querier = &db.HTTPQueries{}
 }
 
 // Test DoRequest
@@ -75,7 +75,7 @@ func TestHTTPQueriesDoRequest(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	q := client.NewHTTP(ts.URL, apikey)
+	q := db.NewHTTP(ts.URL, apikey)
 
 	ctx := context.Background()
 	inputBytes, err := json.Marshal(input)
@@ -91,7 +91,7 @@ func TestHTTPGetUserProfileByEmail(t *testing.T) {
 	apikey := "apikey"
 	email := "example@test.com"
 	wantPath := fmt.Sprintf("/user_profile?select=*&email=eq.%s", email)
-	want := client.UserProfile{
+	want := db.UserProfile{
 		UserID:    uuid.New(),
 		Email:     email,
 		FirstName: "John",
@@ -121,7 +121,7 @@ func TestHTTPGetUserProfileByEmail(t *testing.T) {
 		}
 
 		// return a dummy list of user profiles
-		resp := []client.UserProfile{want}
+		resp := []db.UserProfile{want}
 		if err := json.NewEncoder(w).Encode(resp); err != nil {
 			t.Errorf("failed to encode response: %v", err)
 		}
@@ -129,7 +129,7 @@ func TestHTTPGetUserProfileByEmail(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	q := client.NewHTTP(ts.URL, apikey)
+	q := db.NewHTTP(ts.URL, apikey)
 
 	ctx := context.Background()
 	resp, err := q.GetUserProfileByEmail(ctx, email)

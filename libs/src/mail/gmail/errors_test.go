@@ -8,7 +8,7 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/api/googleapi"
 
-	mail "github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail"
+	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
 )
 
 func TestIsOAuth2Error(t *testing.T) {
@@ -33,7 +33,7 @@ func TestIsOAuth2Error(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := mail.IsOAuth2Error(tc.err)
+			got := srcmail.IsOAuth2Error(tc.err)
 			if got != tc.want {
 				t.Fail()
 			}
@@ -63,7 +63,7 @@ func TestIsGoogleAPIError(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := mail.IsGoogleAPIError(tc.err)
+			got := srcmail.IsGoogleAPIError(tc.err)
 			if got != tc.want {
 				t.Fail()
 			}
@@ -102,7 +102,7 @@ func TestIsRateLimitError(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := mail.IsRateLimitError(tc.err)
+			got := srcmail.IsRateLimitError(tc.err)
 			if got != tc.want {
 				t.Fail()
 			}
@@ -141,7 +141,7 @@ func TestIsNotFound(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := mail.IsNotFound(tc.err)
+			got := srcmail.IsNotFound(tc.err)
 			if got != tc.want {
 				t.Fail()
 			}
@@ -208,7 +208,7 @@ func TestExecuteWithRetries(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			f := tc.f()
-			got, err := mail.ExecuteWithRetries(f)
+			got, err := srcmail.ExecuteWithRetries(f)
 			if got != tc.want {
 				t.Errorf("want %d calls. got %d calls", tc.want, got)
 			}

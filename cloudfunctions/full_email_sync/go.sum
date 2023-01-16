@@ -212,6 +212,8 @@ github.com/shared-recruiting-co/shared-recruiting-co/libs/db v0.0.0-202301152034
 github.com/shared-recruiting-co/shared-recruiting-co/libs/db v0.0.0-20230115203452-737bb280e4a0/go.mod h1:ATt6f8vYVJC3qooE5kry2LgkxFQVIisj/Nj0j2V3wNk=
 github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20230115203452-737bb280e4a0 h1:ohAfrGcVAAkB0GGGv4UBQoXzSj2sv1Qk6TJzdUnH2K8=
 github.com/shared-recruiting-co/shared-recruiting-co/libs/gmail v0.0.0-20230115203452-737bb280e4a0/go.mod h1:6KYdQ72q1d0F1zlDxOxS1kK0b/UWSH/MCFW1+Pj+J2I=
+github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230116020326-6b312d22bb15 h1:YClZ2tqoi6+6/fEv8aBUDr6AjQERZm+Qkmc7CpSS0u0=
+github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230116020326-6b312d22bb15/go.mod h1:AICa8Em75TDHe3/axNXas+8I3bIf3p8SYLHeUYbXlT0=
 github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
 github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf h1:pvbZ0lM0XWPBqUKqFU8cmavspvIl9nulOYwdy6IFRRo=
 github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf/go.mod h1:RJID2RhlZKId02nZ62WenDCkgHFerpIOmW0iT7GKmXM=
