@@ -148,8 +148,6 @@ func reclassify(w http.ResponseWriter, r *http.Request) {
 				// get messages before the first reply
 				filtered := filterMessagesAfterReply(thread.Messages)
 				// save for processing
-				// TODO consider mimicking real-time sync and process messages sequentially
-				// (i.e do not label second email if the first is positive)
 				messages = append(messages, filtered...)
 			}
 
@@ -245,8 +243,8 @@ func handleNonRecruitingEmails(srv *srcmail.Service, labels *srclabel.Labels, me
 // fetchRecruitingThreads fetches all threads since the start date
 // It ignores threads of only sent emails and threads already processed by SRC
 func fetchRecruitingThreads(srv *srcmail.Service, pageToken string) ([]*gmail.Thread, string, error) {
-	// get all (including archived) emails after the start date, ignore sent emails and emails already processed by SRC
-	q := fmt.Sprintf("label:%s", srclabel.SRC.Name)
+	// get all existing job threads
+	q := fmt.Sprintf("label:%s", srclabel.JobsOpportunity.Name)
 
 	r, err := srcmail.ExecuteWithRetries(func() (*gmail.ListThreadsResponse, error) {
 		return srv.Users.Threads.
