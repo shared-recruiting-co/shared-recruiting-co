@@ -247,20 +247,6 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 	log.Println("done.")
 }
 
-func filterMessagesAfterReply(messages []*gmail.Message) []*gmail.Message {
-	filtered := []*gmail.Message{}
-	// ensure messages are sorted by ascending date
-	srcmessage.SortByDate(messages)
-
-	for _, m := range messages {
-		if srcmessage.IsSent(m) {
-			break
-		}
-		filtered = append(filtered, m)
-	}
-	return filtered
-}
-
 // fetchJobThreadsSinceDate fetches all job threads since the start date
 func fetchJobThreadsSinceDate(srv *srcmail.Service, date time.Time, pageToken string) ([]*gmail.Thread, string, error) {
 	q := fmt.Sprintf("-label:sent label:%s after:%s", srclabel.JobsOpportunity.Name, date.Format("2006/01/02"))
