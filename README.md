@@ -14,6 +14,12 @@ For companies, SRC stops you from wasting time sourcing candidates that aren't a
 
 Right now, SRC is invite only. If you are interesting in joining, sign up at [sharedrecruiting.co](https://sharedrecruiting.co/).
 
+## 📖 Documentation
+
+For user-facing app documentation, checkout the [SRC Docs](https://sharedrecruiting.co/docs/welcome).
+
+For code-related documentation, all the documentation lives in this repository. Read the directory-level README, read the code comments, or read the code itself 🤓
+
 ## 🕍 Project Layout
 
 ### 📱 `/app`
