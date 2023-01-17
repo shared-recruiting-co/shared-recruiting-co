@@ -19,8 +19,8 @@ import (
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/ml"
 )
 
-// reprocess is triggers a sync up to the specified date for the given email
-func reprocess(w http.ResponseWriter, r *http.Request) {
+// reclassify is triggers a sync up to the specified date for the given email
+func reclassify(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	err := sentry.Init(sentry.ClientOptions{
