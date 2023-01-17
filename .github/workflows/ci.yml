@@ -45,6 +45,7 @@ jobs:
           - "./cloudfunctions/watch_emails" 
           - "./cloudfunctions/full_email_sync" 
           - "./cloudfunctions/adhoc" 
+          - "./cloudfunctions/populate_jobs" 
           - "./libs/src" 
 
     steps:
