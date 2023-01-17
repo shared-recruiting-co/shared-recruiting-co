@@ -29,7 +29,7 @@ func reclassify(w http.ResponseWriter, r *http.Request) {
 		// of transactions for performance monitoring.
 		// We recommend adjusting this value in production,
 		TracesSampleRate: 1.0,
-		ServerName:       "full-email-sync",
+		ServerName:       "reclassify",
 	})
 	if err != nil {
 		log.Printf("sentry.Init: %s", err)
@@ -41,7 +41,7 @@ func reclassify(w http.ResponseWriter, r *http.Request) {
 	defer sentry.Flush(2 * time.Second)
 	defer sentry.RecoverWithContext(ctx)
 
-	log.Println("full email sync request")
+	log.Println("reclassify request")
 
 	creds, err := jsonFromEnv("GOOGLE_OAUTH2_CREDENTIALS")
 	if err != nil {
