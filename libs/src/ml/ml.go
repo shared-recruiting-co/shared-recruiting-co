@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"path"
 )
 
 type EmailInput struct {
@@ -110,8 +111,8 @@ func (c *client) BatchParseJob(inputs *BatchParseJobRequest) (*BatchParseJobResp
 	return resp, nil
 }
 
-func (c *client) doRequest(method string, path string, req interface{}, resp interface{}) error {
-	url := c.baseURL + path
+func (c *client) doRequest(method string, endpoint string, req interface{}, resp interface{}) error {
+	url := path.Join(c.baseURL, endpoint)
 	body, err := json.Marshal(req)
 	if err != nil {
 		return err
