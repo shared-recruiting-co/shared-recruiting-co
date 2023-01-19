@@ -77,12 +77,12 @@ func TestServiceBatchClassify(t *testing.T) {
 	path := "/v1/classify/batch"
 	inputs := ml.BatchClassifyRequest{
 		Inputs: map[string]*ml.ClassifyRequest{
-			"input1": &ml.ClassifyRequest{
+			"input1": {
 				From:    "1",
 				Subject: "1",
 				Body:    "1",
 			},
-			"input2": &ml.ClassifyRequest{
+			"input2": {
 				From:    "2",
 				Subject: "2",
 				Body:    "2",
@@ -175,5 +175,70 @@ func TestSerivceNon200(t *testing.T) {
 
 	if !strings.Contains(err.Error(), fmt.Sprintf("%d", status)) {
 		t.Errorf("expected %d to be in error message: %v", status, err)
+	}
+}
+
+func TestServiceParseJob(t *testing.T) {
+	ctx := context.Background()
+	authToken := "xxx.yyy.zzz"
+	path := "/v1/parse"
+	input := &ml.ParseJobRequest{
+		From:    "from",
+		Subject: "subject",
+		Body:    "body",
+	}
+	want := ml.ParseJobResponse{
+		Company:   "company",
+		Title:     "title",
+		Recruiter: "recruiter",
+	}
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			t.Errorf("got %v, want %v", r.Method, "POST")
+		}
+		if r.URL.Path != path {
+			t.Errorf("got %v, want %v", r.URL.Path, path)
+		}
+		wantAuth := fmt.Sprintf("Bearer %s", authToken)
+		if r.Header.Get("Authorization") != wantAuth {
+			t.Errorf("got %v, want %v", r.Header.Get("Authorization"), wantAuth)
+		}
+		var body ml.ParseJobRequest
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Errorf("failed to decode request body: %v", err)
+		}
+		if body.From != input.From {
+			t.Errorf("got %v, want %v", body.From, input.From)
+		}
+		if body.Subject != input.Subject {
+			t.Errorf("got %v, want %v", body.Subject, input.Subject)
+		}
+		if body.Body != input.Body {
+			t.Errorf("got %v, want %v", body.Body, input.Body)
+		}
+		if err := json.NewEncoder(w).Encode(want); err != nil {
+			t.Errorf("failed to encode response: %v", err)
+		}
+	}))
+
+	srv := ml.NewService(ctx, ml.NewServiceArg{
+		BaseURL:   ts.URL,
+		AuthToken: authToken,
+	})
+
+	got, err := srv.ParseJob(input)
+
+	if err != nil {
+		t.Errorf("failed to predict: %v", err)
+	}
+	if got.Company != want.Company {
+		t.Errorf("got %s, want %s", got.Company, want.Company)
+	}
+	if got.Title != want.Title {
+		t.Errorf("got %s, want %s", got.Title, want.Title)
+	}
+	if got.Recruiter != want.Recruiter {
+		t.Errorf("got %s, want %s", got.Recruiter, want.Recruiter)
 	}
 }

@@ -1,8 +1,10 @@
 package cloudfunctions
 
 import (
+	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -176,7 +178,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 			// get the first page of results (sorted desc by date received)
 			Offset: 0,
 		})
-		if err != nil {
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			handleError(w, "error fetching existing user jobs", err)
 			return
 		}
@@ -241,8 +243,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// process messages
-			// process messages
-			inputs := map[string]*ml.ParseJobRequest{}
+			inputs := map[string]ml.ParseJobRequest{}
 			for id := range messages {
 				// payload isn't included in the list endpoint responses
 				message, err := srv.GetMessage(id)
@@ -260,7 +261,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 					continue
 				}
 
-				inputs[message.Id] = &ml.ParseJobRequest{
+				inputs[message.Id] = ml.ParseJobRequest{
 					From:    srcmessage.Sender(message),
 					Subject: srcmessage.Subject(message),
 					Body:    srcmessage.Body(message),
@@ -273,14 +274,10 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 
-			if len(inputs) == 0 {
-				break
-			}
-
 			// predict one at a time for now
 			for id, input := range inputs {
 				log.Printf("parsing email: %s", id)
-				job, err := parser.ParseJob(input)
+				job, err := parser.ParseJob(&input)
 				// for now, abort on error
 				if err != nil {
 					handleError(w, "error parsing job", err)
