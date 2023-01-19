@@ -68,7 +68,7 @@
 
 <div>
 	<h1 class="text-3xl sm:text-4xl">Jobs</h1>
-	<p class="mt-1 max-w-3xl text-sm text-slate-500">Reivew your inbound job opportunity history.</p>
+	<p class="mt-1 max-w-3xl text-sm text-slate-500">Review your inbound job opportunity history.</p>
 	<p class="mt-2 max-w-3xl text-sm text-slate-500">
 		Inbound recruiting emails are automatically parsed and added to your job board. Only emails that
 		describe the company and role will be added to your job board.
