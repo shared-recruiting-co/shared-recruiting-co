@@ -1,10 +1,10 @@
-module github.com/shared-recruiting-co/shared-recruiting-co/cloudfunctions/full_email_sync
+module github.com/shared-recruiting-co/shared-recruiting-co/cloudfunctions/populate_jobs
 
 go 1.19
 
 require (
 	github.com/GoogleCloudPlatform/functions-framework-go v1.6.1
-	github.com/getsentry/sentry-go v0.16.0
+	github.com/getsentry/sentry-go v0.17.0
 	github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230117165556-c22c3caddd57
 	google.golang.org/api v0.107.0
 )

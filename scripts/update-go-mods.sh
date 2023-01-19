@@ -1,5 +1,5 @@
 libs=("./libs/src")
-pkgs=("./cloudfunctions/email_push_notifications" "./cloudfunctions/full_email_sync" "./cloudfunctions/watch_emails" "./cloudfunctions/adhoc")
+pkgs=("./cloudfunctions/email_push_notifications" "./cloudfunctions/full_email_sync" "./cloudfunctions/watch_emails" "./cloudfunctions/adhoc" "./cloudfunctions/populate_jobs")
 sha=$(git rev-parse origin/main)
 
 for lib in "${libs[@]}"; do
