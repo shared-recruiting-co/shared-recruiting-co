@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"path"
 )
 
@@ -112,13 +113,17 @@ func (c *client) BatchParseJob(inputs *BatchParseJobRequest) (*BatchParseJobResp
 }
 
 func (c *client) doRequest(method string, endpoint string, req interface{}, resp interface{}) error {
-	url := path.Join(c.baseURL, endpoint)
+	baseURL, err := url.Parse(c.baseURL)
+	if err != nil {
+		return err
+	}
+	reqURL := baseURL.ResolveReference(&url.URL{Path: path.Join(baseURL.Path, endpoint)})
 	body, err := json.Marshal(req)
 	if err != nil {
 		return err
 	}
 	reqBody := bytes.NewBuffer(body)
-	httpReq, err := http.NewRequestWithContext(c.ctx, method, url, reqBody)
+	httpReq, err := http.NewRequestWithContext(c.ctx, method, reqURL.String(), reqBody)
 	if err != nil {
 		return err
 	}
