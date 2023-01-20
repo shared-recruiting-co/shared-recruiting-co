@@ -28,11 +28,13 @@ const parseJWTPayload = (token: string): Record<string, string> | null => {
 const connectEmail = async ({
 	method,
 	code,
+	agreeToS,
 	session,
 	supabaseClient
 }: {
 	method: 'GET' | 'POST';
 	code: string;
+	agreeToS: string;
 	session: Session;
 	supabaseClient: SupabaseClient;
 }) => {
@@ -86,6 +88,11 @@ const connectEmail = async ({
 	const { data: profile } = await supabaseClient.from('user_profile').select('*').maybeSingle();
 	// if no profile, create one
 	if (!profile) {
+		// verify agree_tos is set to true
+		if (agreeToS !== 'true') {
+			console.log('user did not agree to terms of service');
+			throw error(400, 'You must agree to the terms of service to create an account.');
+		}
 		isNewUser = true;
 		console.log('creating user profile...');
 		// make sure the user is allowed to create one
@@ -174,8 +181,9 @@ export const POST: RequestHandler = async (event) => {
 	if (!code) {
 		throw error(400, 'missing code parameter');
 	}
+	const agreeToS = form.get('agree_tos') || 'false';
 
-	await connectEmail({ method: 'POST', code: code.toString(), session, supabaseClient });
+	await connectEmail({ method: 'POST', code: code.toString(), agreeToS, session, supabaseClient });
 
 	return new Response('success');
 };
@@ -190,8 +198,9 @@ export const GET: RequestHandler = async (event) => {
 	if (!code) {
 		throw error(400, 'missing code parameter');
 	}
+	const agreeToS = url.searchParams.get('agree_tos') || 'false';
 
-	await connectEmail({ method: 'GET', code, session, supabaseClient });
+	await connectEmail({ method: 'GET', code, agreeToS, session, supabaseClient });
 
 	return new Response('success');
 };

@@ -39,7 +39,7 @@
 			// log error
 			console.log('onerror', err);
 		};
-		xhr.send(`code=${response.code}&scope=${response.scope}`);
+		xhr.send(`code=${response.code}&scope=${response.scope}&agree_tos=true`);
 	};
 
 	const connectAccount = () => {
