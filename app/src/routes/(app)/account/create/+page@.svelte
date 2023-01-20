@@ -4,6 +4,8 @@
 	import { supabaseClient } from '$lib/supabase/client';
 	import ConnectGoogleAccountButton from '$lib/components/ConnectGoogleAccountButton.svelte';
 
+	let tos = false;
+
 	const onConnect = () => {
 		goto('/account/profile');
 	};
@@ -27,7 +29,9 @@
 </header>
 <div class="m-2 flex flex-row items-center justify-center sm:mx-auto sm:my-16">
 	<div class="flex max-w-xl flex-col space-y-8 rounded-md p-8">
-		<h1 class="text-center text-3xl">Welcome to the SRC {$page.data.profile.firstName}!</h1>
+		<h1 class="text-center text-3xl sm:text-4xl">
+			Welcome to the SRC {$page.data.profile.firstName}!
+		</h1>
 		<p class="mt-2">
 			We're excited to have you on board! Before we can create your account, we need to connect to
 			your Google mail account.
@@ -98,8 +102,23 @@
 			soon as they hit your inbox!
 		</p>
 		<div>
-			<p class="mb-2">Use the button below to connect your account</p>
-			<ConnectGoogleAccountButton {onConnect} email={$page.data.session?.user?.email} />
+			<!-- Agree to Terms of Service -->
+			<div class="mb-4 text-sm">
+				<input type="checkbox" bind:checked={tos} name="tos" />
+				<label for="tos" class="ml-2"
+					>I agree to the <a
+						href="/legal/terms-of-service"
+						class="underline"
+						target="_blank"
+						rel="noopener noreferrer">SRC Terms of Service</a
+					></label
+				>
+			</div>
+			<ConnectGoogleAccountButton
+				{onConnect}
+				email={$page.data.session?.user?.email}
+				disabled={!tos}
+			/>
 		</div>
 		<p class="text-sm">
 			You can read more about how we use and protect your data in our <a
