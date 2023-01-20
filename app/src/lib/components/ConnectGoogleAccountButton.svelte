@@ -5,6 +5,7 @@
 	// props
 	export let email: string | undefined;
 	export let onConnect: () => void;
+	export let disabled = false;
 
 	let loaded = Boolean(browser && window.google);
 	let error: string;
@@ -38,7 +39,7 @@
 			// log error
 			console.log('onerror', err);
 		};
-		xhr.send(`code=${response.code}&scope=${response.scope}`);
+		xhr.send(`code=${response.code}&scope=${response.scope}&agree_tos=true`);
 	};
 
 	const connectAccount = () => {
@@ -67,8 +68,10 @@
 </script>
 
 <button
-	disabled={!loaded}
-	class="flex items-center rounded-md bg-[#1a73e8] py-0.5 pl-0.5 pr-3 text-white shadow hover:bg-[#5a94ee] disabled:cursor-wait"
+	disabled={!loaded || disabled}
+	class="flex items-center rounded-md bg-[#1a73e8] py-0.5 pl-0.5 pr-3 text-white shadow hover:bg-[#5a94ee]"
+	class:disabled:cursor-wait={!loaded}
+	class:disabled:cursor-not-allowed={disabled}
 	on:click|preventDefault={connectAccount}
 	><img src="/google.svg" alt="Google logo" class="mr-3 rounded-l-md bg-white p-2" />
 	{#if connecting}
