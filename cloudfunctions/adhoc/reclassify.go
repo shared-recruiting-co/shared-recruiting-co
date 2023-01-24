@@ -95,6 +95,10 @@ func reclassify(w http.ResponseWriter, r *http.Request) {
 		// Create Gmail Service
 		auth := []byte(userToken.Token)
 		srv, err := srcmail.NewService(ctx, creds, auth)
+		if err != nil {
+			handleError(w, "error creating mail service", err)
+			return
+		}
 
 		// Create SRC Labels
 		labels, err := srv.GetOrCreateSRCLabels()

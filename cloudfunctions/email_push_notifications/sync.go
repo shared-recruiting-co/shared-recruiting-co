@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"time"
@@ -52,7 +52,7 @@ func triggerBackgroundfFullEmailSync(ctx context.Context, email string, startDat
 	// the proper way to do this is to use pubsub for automatic retries, but this is a quick and dirty solution
 	go func() {
 		log.Printf("trigger full sync for %s from %s", email, startDate.Format("2006/01/02"))
-		_, err = httpClient.Post(triggerURL, "application/json", ioutil.NopCloser(bytes.NewReader(bodyBytes)))
+		_, err = httpClient.Post(triggerURL, "application/json", io.NopCloser(bytes.NewReader(bodyBytes)))
 		if err != nil {
 			log.Printf("failed to trigger full sync: %v", err)
 		}

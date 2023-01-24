@@ -148,6 +148,10 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 		// Create Gmail Service
 		auth := []byte(userToken.Token)
 		srv, err := srcmail.NewService(ctx, creds, auth)
+		if err != nil {
+			handleError(w, "error getting creating mail service", err)
+			return
+		}
 
 		profile, err := srv.Profile()
 		if err != nil {

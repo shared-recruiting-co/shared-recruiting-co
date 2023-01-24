@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -80,7 +80,7 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 	defer sentry.RecoverWithContext(ctx)
 
 	// Get the request body
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		handleError(w, "error reading request body", err)
 		return
@@ -140,6 +140,10 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 	// Create Gmail Service
 	auth := []byte(userToken.Token)
 	srv, err := srcmail.NewService(ctx, creds, auth)
+	if err != nil {
+		handleError(w, "error creating mail service", err)
+		return
+	}
 
 	// Create SRC Labels
 	labels, err := srv.GetOrCreateSRCLabels()
