@@ -5,7 +5,8 @@ on:
   pull_request: {}
   # allow manual triggers
   workflow_dispatch: {}
-
+permissions:
+  contents: read
 jobs:
   supabase:
     runs-on: ubuntu-latest
@@ -63,3 +64,9 @@ jobs:
       - name: Test
         working-directory: ${{ matrix.directory }}
         run: go test .
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          working-directory: ${{ matrix.directory }}
