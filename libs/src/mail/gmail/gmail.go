@@ -33,6 +33,9 @@ var (
 func newGmailService(ctx context.Context, creds []byte, auth []byte) (*gmail.Service, error) {
 	tok := &oauth2.Token{}
 	err := json.Unmarshal(auth, tok)
+	if err != nil {
+		return nil, err
+	}
 
 	config, err := google.ConfigFromJSON(creds, scopes...)
 	if err != nil {
@@ -55,6 +58,9 @@ func newDefaultGmailService(ctx context.Context, auth []byte) (*gmail.Service, e
 	}
 
 	ts, err := google.DefaultTokenSource(ctx, scopes...)
+	if err != nil {
+		return nil, err
+	}
 	trans := &oauth2.Transport{
 		Source: oauth2.ReuseTokenSource(tok, ts),
 		Base:   http.DefaultTransport,
@@ -155,34 +161,24 @@ func (s *Service) GetOrCreateSRCLabels() (*srclabel.Labels, error) {
 		switch label.Name {
 		case srclabel.SRC.Name:
 			result.SRC = label
-			break
 		case srclabel.Jobs.Name:
 			result.Jobs = label
-			break
 		case srclabel.JobsOpportunity.Name:
 			result.JobsOpportunity = label
-			break
 		case srclabel.Allow.Name:
 			result.Allow = label
-			break
 		case srclabel.AllowSender.Name:
 			result.AllowSender = label
-			break
 		case srclabel.AllowDomain.Name:
 			result.AllowDomain = label
-			break
 		case srclabel.Block.Name:
 			result.Block = label
-			break
 		case srclabel.BlockSender.Name:
 			result.BlockSender = label
-			break
 		case srclabel.BlockDomain.Name:
 			result.BlockDomain = label
-			break
 		case srclabel.BlockGraveyard.Name:
 			result.BlockGraveyard = label
-			break
 		}
 	}
 

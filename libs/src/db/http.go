@@ -159,7 +159,7 @@ func (q *HTTPQueries) GetUserOAuthToken(ctx context.Context, arg GetUserOAuthTok
 // UpsertUserOAuthToken
 func (q *HTTPQueries) UpsertUserOAuthToken(ctx context.Context, arg UpsertUserOAuthTokenParams) error {
 	basePath := "/user_oauth_token"
-	path := fmt.Sprintf("%s", basePath)
+	path := basePath
 	body, err := json.Marshal(arg)
 	if err != nil {
 		return err
@@ -206,7 +206,7 @@ func (q *HTTPQueries) ListUserOAuthTokens(ctx context.Context, arg ListUserOAuth
 		return result, err
 	}
 
-	if result == nil || len(result) == 0 {
+	if len(result) == 0 {
 		// for now, return same error as database client
 		return result, sql.ErrNoRows
 	}
@@ -217,7 +217,7 @@ func (q *HTTPQueries) ListUserOAuthTokens(ctx context.Context, arg ListUserOAuth
 // UpsertUserEmailSyncHistory upserts a user's email sync history.
 func (q *HTTPQueries) UpsertUserEmailSyncHistory(ctx context.Context, arg UpsertUserEmailSyncHistoryParams) error {
 	basePath := "/user_email_sync_history"
-	path := fmt.Sprintf("%s", basePath)
+	path := basePath
 	body, err := json.Marshal(arg)
 	if err != nil {
 		return err
@@ -240,7 +240,7 @@ func (q *HTTPQueries) UpsertUserEmailSyncHistory(ctx context.Context, arg Upsert
 func (q *HTTPQueries) IncrementUserEmailStat(ctx context.Context, arg IncrementUserEmailStatParams) error {
 	// we cannot do upserts with PostgREST, so instead we user a stored procedure
 	basePath := "/rpc/increment_user_email_stat"
-	path := fmt.Sprintf("%s", basePath)
+	path := basePath
 	body, err := json.Marshal(arg)
 	if err != nil {
 		return err
@@ -309,7 +309,7 @@ func (q *HTTPQueries) ListUserEmailJobs(ctx context.Context, arg ListUserEmailJo
 		return result, err
 	}
 
-	if result == nil || len(result) == 0 {
+	if len(result) == 0 {
 		// for now, return same error as database client
 		return result, sql.ErrNoRows
 	}
@@ -320,7 +320,7 @@ func (q *HTTPQueries) ListUserEmailJobs(ctx context.Context, arg ListUserEmailJo
 // InsertUserEmailJob inserts a user's email job.
 func (q *HTTPQueries) InsertUserEmailJob(ctx context.Context, arg InsertUserEmailJobParams) error {
 	basePath := "/user_email_job"
-	path := fmt.Sprintf("%s", basePath)
+	path := basePath
 	body, err := json.Marshal(arg)
 	if err != nil {
 		return err

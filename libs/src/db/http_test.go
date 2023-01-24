@@ -82,7 +82,7 @@ func TestHTTPQueriesDoRequest(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to marshal input: %v", err)
 	}
-	q.DoRequest(ctx, method, path, io.NopCloser(bytes.NewReader(
+	_, _ = q.DoRequest(ctx, method, path, io.NopCloser(bytes.NewReader(
 		inputBytes,
 	)))
 }

@@ -15,6 +15,8 @@ const provider = "google"
 
 func init() {
 	functions.HTTP("PopulateJobs", populateJobs)
+	functions.HTTP("MigrateLabels", migrateLabels)
+	functions.HTTP("Reclassify", reclassify)
 }
 
 func jsonFromEnv(env string) ([]byte, error) {

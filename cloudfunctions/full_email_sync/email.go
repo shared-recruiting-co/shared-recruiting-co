@@ -13,29 +13,6 @@ import (
 
 const maxResults = 250
 
-// fetchEmailsSinceDate syncs all inbound emails from the start date to today.
-// It returns the messages fetched, the next page token, and an error.
-// Use the next page token to fetch the rest of the emails
-func fetchEmailsSinceDate(srv *srcmail.Service, date time.Time, pageToken string) ([]*gmail.Message, string, error) {
-	// get all (including archived) emails after the start date, ignore sent emails and emails already processed by SRC
-	q := fmt.Sprintf("-label:sent -label:%s after:%s", srclabel.SRC.Name, date.Format("2006/01/02"))
-
-	r, err := srcmail.ExecuteWithRetries(func() (*gmail.ListMessagesResponse, error) {
-		return srv.Users.Messages.
-			List(srv.UserID).
-			PageToken(pageToken).
-			Q(q).
-			MaxResults(maxResults).
-			Do()
-	})
-
-	if err != nil {
-		return nil, "", err
-	}
-
-	return r.Messages, r.NextPageToken, nil
-}
-
 // fetchThreadsSinceDate fetches all threads since the start date
 // It ignores threads of only sent emails and threads already processed by SRC
 func fetchThreadsSinceDate(srv *srcmail.Service, date time.Time, pageToken string) ([]*gmail.Thread, string, error) {
