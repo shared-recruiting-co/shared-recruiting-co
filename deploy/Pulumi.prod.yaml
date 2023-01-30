@@ -1,0 +1,3 @@
+config:
+  gcp:project: shared-recruiting-company
+  gcp:region: us-west1

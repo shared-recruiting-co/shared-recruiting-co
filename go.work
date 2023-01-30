@@ -7,4 +7,5 @@ use (
 	./cloudfunctions/adhoc
 	./cloudfunctions/populate_jobs
 	./libs/src
+	./deploy/
 )
