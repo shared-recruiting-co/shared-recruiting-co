@@ -48,6 +48,7 @@ jobs:
           - "./cloudfunctions/adhoc" 
           - "./cloudfunctions/populate_jobs" 
           - "./libs/src" 
+          - "./deploy" 
 
     steps:
       - uses: actions/checkout@v3
