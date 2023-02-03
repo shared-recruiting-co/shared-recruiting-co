@@ -16,8 +16,8 @@ import (
 
 var (
 	MaxEventArcTriggerTimeout = 540
-	MaxHTTPTriggerTimeout     = 3600
-	DefaultRegion             = "us-west1"
+	// MaxHTTPTriggerTimeout     = 3600
+	DefaultRegion = "us-west1"
 )
 
 // TODOs
@@ -71,7 +71,7 @@ func main() {
 		}
 
 		// create existing gmail pubsub topic
-		gmailPubSub, err = pubsub.NewTopic(ctx, "gmail-default", &pubsub.TopicArgs{
+		gmailPubSub, err := pubsub.NewTopic(ctx, "gmail-default", &pubsub.TopicArgs{
 			Name:    pulumi.String("gmail"),
 			Project: pulumi.String(*project.ProjectId),
 		}, pulumi.Protect(true))
@@ -79,7 +79,10 @@ func main() {
 			return err
 		}
 
-		infra.emailPushNotificationCF(gmailPubSub)
+		err = infra.emailPushNotificationCF(gmailPubSub)
+		if err != nil {
+			return err
+		}
 
 		return nil
 	})
