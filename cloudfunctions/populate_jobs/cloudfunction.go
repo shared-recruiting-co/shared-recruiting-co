@@ -346,7 +346,8 @@ func fetchRecruitingThreads(srv *srcmail.Service, startDate time.Time, pageToken
 	if !startDate.IsZero() {
 		// use Unix time (seconds) to avoid timezone issues
 		// Gmail InternalDate is in Unix
-		q = fmt.Sprintf("%s after:%d", q, startDate.Unix())
+		// Add one second to avoid duplicate threads
+		q = fmt.Sprintf("%s after:%d", q, startDate.Unix()+1)
 	}
 
 	r, err := srcmail.ExecuteWithRetries(func() (*gmail.ListThreadsResponse, error) {
