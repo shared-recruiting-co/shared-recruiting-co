@@ -20,7 +20,7 @@ import (
 const provider = "google"
 
 func init() {
-	functions.HTTP("RunWatchEmails", runWatchEmails)
+	functions.HTTP("WatchEmails", watchEmails)
 }
 
 func jsonFromEnv(env string) ([]byte, error) {
@@ -38,7 +38,7 @@ func handleError(w http.ResponseWriter, msg string, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
 }
 
-func runWatchEmails(w http.ResponseWriter, r *http.Request) {
+func watchEmails(w http.ResponseWriter, r *http.Request) {
 	log.Println("received watch trigger")
 	ctx := r.Context()
 
