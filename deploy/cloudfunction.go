@@ -162,9 +162,7 @@ func (i *Infra) emailPushNotificationCF(topic *pubsub.Topic, fullSync *CloudFunc
 				"ML_SERVICE_URL":             i.config.RequireSecret("ML_SERVICE_URL"),
 				"SENTRY_DSN":                 i.config.RequireSecret("SENTRY_DSN"),
 				"EXAMPLES_GMAIL_OAUTH_TOKEN": i.config.RequireSecret("EXAMPLES_GMAIL_OAUTH_TOKEN"),
-				// TODO
-				// "TRIGGER_FULL_SYNC_URL": pulumi.String("https://full-email-sync-2-bjrwwezbha-uw.a.run.app"),
-				"TRIGGER_FULL_SYNC_URL": fullSync.Function.ServiceConfig.Uri().Elem(),
+				"TRIGGER_FULL_SYNC_URL":      fullSync.Function.ServiceConfig.Uri().Elem(),
 			},
 			IngressSettings:            pulumi.String("ALLOW_INTERNAL_ONLY"),
 			AllTrafficOnLatestRevision: pulumi.Bool(true),
