@@ -1,8 +1,10 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import type { PageData } from './$types';
 	import { goto } from '$app/navigation';
 	import { supabaseClient } from '$lib/supabase/client';
 	import ConnectGoogleAccountButton from '$lib/components/ConnectGoogleAccountButton.svelte';
+
+	export let data: PageData;
 
 	let tos = false;
 
@@ -30,7 +32,7 @@
 <div class="m-2 flex flex-row items-center justify-center sm:mx-auto sm:my-16">
 	<div class="flex max-w-xl flex-col space-y-8 rounded-md p-8">
 		<h1 class="text-center text-3xl sm:text-4xl">
-			Welcome to the SRC {$page.data.profile.firstName}!
+			Welcome to the SRC {data.profile.firstName}!
 		</h1>
 		<p class="mt-2">
 			We're excited to have you on board! Before we can create your account, we need to connect to
@@ -114,11 +116,7 @@
 					></label
 				>
 			</div>
-			<ConnectGoogleAccountButton
-				{onConnect}
-				email={$page.data.session?.user?.email}
-				disabled={!tos}
-			/>
+			<ConnectGoogleAccountButton {onConnect} email={data.session?.user?.email} disabled={!tos} />
 		</div>
 		<p class="text-sm">
 			You can read more about how we use and protect your data in our <a
