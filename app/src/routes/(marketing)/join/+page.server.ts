@@ -3,25 +3,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { getSupabase } from '@supabase/auth-helpers-sveltekit';
 
 import { supabaseClient } from '$lib/supabase/client.server';
-
-// check url is valid
-const isValidUrl = (str: string): boolean => {
-	try {
-		new URL(str);
-		return true;
-	} catch (error) {
-		// If the URL is invalid, an error will be thrown
-		return false;
-	}
-};
-
-const getTrimmedFormValue = (data: FormData, key: string): string => {
-	const value = data.get(key);
-	if (typeof value === 'string') {
-		return value.trim();
-	}
-	return '';
-};
+import { isValidUrl, getTrimmedFormValue } from '$lib/forms';
 
 export const actions: Actions = {
 	default: async (event) => {
