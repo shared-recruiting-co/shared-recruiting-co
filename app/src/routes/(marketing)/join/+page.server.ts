@@ -1,4 +1,4 @@
-import type { Actions, FormData } from './$types';
+import type { Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { getSupabase } from '@supabase/auth-helpers-sveltekit';
 
