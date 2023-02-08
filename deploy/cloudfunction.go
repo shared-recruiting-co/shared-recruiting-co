@@ -59,7 +59,7 @@ func (i *Infra) createCloudFunctions(gmailPubSub *pubsub.Topic) error {
 		return err
 	}
 
-	_, err = i.watchEmails()
+	_, err = i.watchEmails(gmailPubSub)
 	if err != nil {
 		return err
 	}
@@ -372,7 +372,7 @@ func (i *Infra) populateJobs() (*CloudFunction, error) {
 	}, nil
 }
 
-func (i *Infra) watchEmails() (*CloudFunction, error) {
+func (i *Infra) watchEmails(topic *pubsub.Topic) (*CloudFunction, error) {
 	name := "watch-emails"
 	sa, err := i.createCloudFunctionServiceAccount(name)
 	if err != nil {
@@ -405,6 +405,7 @@ func (i *Infra) watchEmails() (*CloudFunction, error) {
 			MaxInstanceCount: pulumi.Int(1),
 			TimeoutSeconds:   pulumi.Int(MaxHTTPTriggerTimeout),
 			EnvironmentVariables: pulumi.StringMap{
+				"PUBSUB_TOPIC":              topic.ID(),
 				"SUPABASE_API_URL":          pulumi.String(i.config.Require("SUPABASE_API_URL")),
 				"SUPABASE_API_KEY":          i.config.RequireSecret("SUPABASE_API_KEY"),
 				"GOOGLE_OAUTH2_CREDENTIALS": i.config.RequireSecret("GOOGLE_OAUTH2_CREDENTIALS"),
