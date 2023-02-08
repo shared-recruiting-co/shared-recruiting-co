@@ -4,6 +4,17 @@ import { getSupabase } from '@supabase/auth-helpers-sveltekit';
 
 import { supabaseClient } from '$lib/supabase/client.server';
 
+// check url is valid
+const isValidUrl = (str: string): boolean => {
+	try {
+		new URL(str);
+		return true;
+	} catch (error) {
+		// If the URL is invalid, an error will be thrown
+		return false;
+	}
+};
+
 const getTrimmedFormValue = (data: FormData, key: string): string => {
 	const value = data.get(key);
 	if (typeof value === 'string') {
@@ -27,6 +38,7 @@ export const actions: Actions = {
 		const firstName = getTrimmedFormValue(data, 'firstName');
 		const lastName = getTrimmedFormValue(data, 'lastName');
 		const company = getTrimmedFormValue(data, 'company');
+		const companyWebsite = getTrimmedFormValue(data, 'companyWebsite');
 		const referrer = getTrimmedFormValue(data, 'referrer');
 		const comment = getTrimmedFormValue(data, 'comment');
 
@@ -64,11 +76,56 @@ export const actions: Actions = {
 			});
 		}
 
+		if (!companyWebsite) {
+			return fail(400, {
+				errors: {
+					companyWebsite: 'Company website is required'
+				}
+			});
+		} else if (!isValidUrl(companyWebsite)) {
+			return fail(400, {
+				errors: {
+					companyWebsite: 'Company website must be a valid URL'
+				}
+			});
+		}
+
 		// require referrer
 		if (!referrer) {
 			return fail(400, {
 				errors: {
 					referrer: 'Referrer is required'
+				}
+			});
+		}
+
+		// create company
+		const newCompany = {
+			company_name: company,
+			website: companyWebsite
+		};
+
+		const { data: createdCompany, error: companyError } = await supabaseClient
+			.from('company')
+			.insert(newCompany)
+			.select('*')
+			.maybeSingle();
+		console.log(createdCompany, companyError);
+
+		if (companyError) {
+			console.error('error creating company', companyError);
+			return fail(400, {
+				errors: {
+					submit: companyError.message
+				}
+			});
+		}
+
+		if (!createdCompany) {
+			return fail(400, {
+				errors: {
+					submit:
+						'Something went wrong. If this error persists, please reach out to team@sharedrecruiting.co'
 				}
 			});
 		}
@@ -84,8 +141,8 @@ export const actions: Actions = {
 			email,
 			first_name: firstName,
 			last_name: lastName,
-			company_name: company,
-			responses
+			responses,
+			company_id: createdCompany.company_id
 		};
 
 		const { error } = await supabaseClient.from('recruiter').insert(row);
