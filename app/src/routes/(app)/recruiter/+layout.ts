@@ -4,17 +4,17 @@ import { redirect } from '@sveltejs/kit';
 
 export const load: PageLoad = async (event) => {
 	const { session, supabaseClient } = await getSupabase(event);
+	const path = event.route.id;
 
 	// redirect to login
 	if (!session) {
-		throw redirect(303, '/recruiter/login');
+		if (path !== '/(app)/recruiter/login') {
+			throw redirect(303, '/recruiter/login');
+		}
+		return {};
 	}
 
 	const { data: profile } = await supabaseClient.from('recruiter').select('*').maybeSingle();
-
-	// TODO: Do we need to check for current path to avoid infinite redirect
-	const path = event.route.id;
-	console.log('path', path);
 
 	if (!profile && path !== '/(app)/recruiter/create') {
 		throw redirect(303, '/recruiter/create');
