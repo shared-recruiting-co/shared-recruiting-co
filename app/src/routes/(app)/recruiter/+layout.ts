@@ -27,7 +27,12 @@ export const load: PageLoad = async (event) => {
 
 	return {
 		profile: {
-			...profile
+			email: profile.email,
+			firstName: profile.first_name,
+			lastName: profile.last_name,
+			company: profile.company_name,
+			createdAt: profile.create_at,
+			updatedAt: profile.updated_at
 		}
 	};
 };
