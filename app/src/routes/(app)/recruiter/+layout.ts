@@ -20,6 +20,11 @@ export const load: PageLoad = async (event) => {
 		throw redirect(303, '/recruiter/create');
 	}
 
+	// if were aren't already on an account page, redirect to the profile page
+	if (!path.includes('(account)/')) {
+		throw redirect(303, '/recruiter/profile');
+	}
+
 	return {
 		profile: {
 			...profile
