@@ -14,10 +14,16 @@ export const load: PageLoad = async (event) => {
 		return {};
 	}
 
-	const { data: profile } = await supabaseClient.from('recruiter').select('*').maybeSingle();
+	const { data: profile } = await supabaseClient
+		.from('recruiter')
+		.select('*,company(company_id,company_name,website)')
+		.maybeSingle();
 
-	if (!profile && path !== '/(app)/recruiter/create') {
-		throw redirect(303, '/recruiter/create');
+	if (!profile) {
+		if (path !== '/(app)/recruiter/create') {
+			throw redirect(303, '/recruiter/create');
+		}
+		return {};
 	}
 
 	// if were aren't already on an account page, redirect to the profile page
@@ -30,9 +36,13 @@ export const load: PageLoad = async (event) => {
 			email: profile.email,
 			firstName: profile.first_name,
 			lastName: profile.last_name,
-			company: profile.company_name,
 			createdAt: profile.create_at,
 			updatedAt: profile.updated_at
+		},
+		company: {
+			id: profile.company.company_id,
+			name: profile.company.company_name,
+			website: profile.company.website
 		}
 	};
 };

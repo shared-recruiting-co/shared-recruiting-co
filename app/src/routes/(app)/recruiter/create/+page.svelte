@@ -6,10 +6,13 @@
 	export let data: PageData;
 	const user = data?.session?.user;
 	const email = user?.email;
+	// guess company website from email domain
+	const emailDomain = email?.split('@')[1];
 	const names = user?.user_metadata?.name?.split(' ');
 
 	let firstName = names?.length ? names[0] : '';
 	let lastName = names?.length ? names[names.length - 1] : '';
+	let companyWebsite = emailDomain && emailDomain !== 'gmail.com' ? `https://${emailDomain}` : '';
 
 	let tos = false;
 
@@ -102,7 +105,7 @@
 				{/if}
 			</div>
 			<div>
-				<label for="Company" class="block text-sm font-medium text-slate-700">Company</label>
+				<label for="company" class="block text-sm font-medium text-slate-700">Company</label>
 				<div class="mt-1">
 					<input
 						required
@@ -115,6 +118,25 @@
 				</div>
 				{#if formError('company')}
 					<p class="mt-1 text-xs text-rose-500">{formError('company')}</p>
+				{/if}
+			</div>
+			<div>
+				<label for="companyWebsite" class="block text-sm font-medium text-slate-700"
+					>Company Website</label
+				>
+				<div class="mt-1">
+					<input
+						required
+						type="text"
+						name="companyWebsite"
+						id="companyWebsite"
+						bind:value={companyWebsite}
+						class="block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+						placeholder="https://sharedrecruiting.co"
+					/>
+				</div>
+				{#if formError('companyWebsite')}
+					<p class="mt-1 text-xs text-rose-500">{formError('companyWebsite')}</p>
 				{/if}
 			</div>
 			<div>
