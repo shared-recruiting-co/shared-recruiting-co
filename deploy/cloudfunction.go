@@ -40,7 +40,7 @@ func (i *Infra) createCloudFunctions(gmailPubSub *pubsub.Topic) error {
 	}
 
 	// grant email push notification function invoke access to the sync function
-	cloudrunv2.NewServiceIamMember(i.ctx, fmt.Sprintf("%s-can-invoke-%s", emailPushNotify.Name, syncCF.Name), &cloudrunv2.ServiceIamMemberArgs{
+	_, err = cloudrunv2.NewServiceIamMember(i.ctx, fmt.Sprintf("%s-can-invoke-%s", emailPushNotify.Name, syncCF.Name), &cloudrunv2.ServiceIamMemberArgs{
 		Project:  pulumi.String(*i.Project.ProjectId),
 		Location: pulumi.String(DefaultRegion),
 		Name:     pulumi.String(syncCF.Name),
@@ -53,6 +53,10 @@ func (i *Infra) createCloudFunctions(gmailPubSub *pubsub.Topic) error {
 			syncCF.Function,
 			emailPushNotify.Function,
 		}))
+
+	if err != nil {
+		return err
+	}
 
 	_, err = i.populateJobs()
 	if err != nil {
@@ -363,6 +367,9 @@ func (i *Infra) populateJobs() (*CloudFunction, error) {
 	}, pulumi.DependsOn([]pulumi.Resource{
 		cf,
 	}))
+	if err != nil {
+		return nil, err
+	}
 
 	return &CloudFunction{
 		Name:           name,
@@ -458,6 +465,9 @@ func (i *Infra) watchEmails(topic *pubsub.Topic) (*CloudFunction, error) {
 	}, pulumi.DependsOn([]pulumi.Resource{
 		cf,
 	}))
+	if err != nil {
+		return nil, err
+	}
 
 	return &CloudFunction{
 		Name:           name,
