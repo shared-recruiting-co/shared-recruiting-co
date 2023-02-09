@@ -127,7 +127,7 @@ export const actions: Actions = {
 			comment
 		};
 
-		// add the user to waitlist
+		// create recruiter
 		const row = {
 			user_id: userId,
 			email,
