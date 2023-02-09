@@ -3,6 +3,90 @@ export type Json = string | number | boolean | null | { [key: string]: Json } | 
 export interface Database {
 	public: {
 		Tables: {
+			company: {
+				Row: {
+					company_id: string;
+					company_name: string;
+					website: string;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: {
+					company_id?: string;
+					company_name: string;
+					website: string;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					company_id?: string;
+					company_name?: string;
+					website?: string;
+					created_at?: string;
+					updated_at?: string;
+				};
+			};
+			job: {
+				Row: {
+					job_id: string;
+					title: string;
+					description_url: string;
+					recruiter_id: string;
+					company_id: string;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: {
+					job_id?: string;
+					title: string;
+					description_url: string;
+					recruiter_id: string;
+					company_id: string;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					job_id?: string;
+					title?: string;
+					description_url?: string;
+					recruiter_id?: string;
+					company_id?: string;
+					created_at?: string;
+					updated_at?: string;
+				};
+			};
+			recruiter: {
+				Row: {
+					user_id: string;
+					email: string;
+					first_name: string;
+					last_name: string;
+					responses: Json;
+					company_id: string;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: {
+					user_id: string;
+					email: string;
+					first_name: string;
+					last_name: string;
+					responses?: Json;
+					company_id: string;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					user_id?: string;
+					email?: string;
+					first_name?: string;
+					last_name?: string;
+					responses?: Json;
+					company_id?: string;
+					created_at?: string;
+					updated_at?: string;
+				};
+			};
 			user_email_job: {
 				Row: {
 					job_id: string;

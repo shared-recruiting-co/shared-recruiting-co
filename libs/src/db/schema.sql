@@ -167,7 +167,7 @@ $$
   on conflict (user_id, email, stat_id)
   do update set
       stat_value = user_email_stat.stat_value + excluded.stat_value;
-$$ 
+$$
 language sql volatile;
 
 
@@ -208,3 +208,118 @@ create policy "Users can view their own jobs"
   using ( auth.uid() = user_id );
 
 -- for now jobs are read only
+
+-- company table
+create table public.company (
+    company_id uuid not null default uuid_generate_v4(),
+    company_name text not null,
+    website text not null,
+    created_at timestamp with time zone not null default now(),
+    updated_at timestamp with time zone not null default now(),
+
+    primary key (company_id)
+);
+
+create trigger handle_updated_at_company before update on public.company
+  for each row execute procedure moddatetime (updated_at);
+
+-- enable realtime
+alter publication supabase_realtime add table public.company;
+alter table public.company enable row level security;
+
+-- recruiter table
+-- similar to user_profile but for recruiters
+create table public.recruiter (
+    user_id uuid references auth.users(id) on delete cascade not null,
+    -- duplicate email for convenience
+    email text not null,
+    first_name text not null,
+    last_name text not null,
+    -- collect additional information when recruiters create an account
+    responses jsonb not null default '{}'::jsonb,
+
+    company_id uuid references public.company(company_id) not null,
+
+    created_at timestamp with time zone not null default now(),
+    updated_at timestamp with time zone not null default now(),
+
+    primary key (user_id)
+);
+
+create trigger handle_updated_at_recruiter before update on public.recruiter
+  for each row execute procedure moddatetime (updated_at);
+
+-- enable realtime
+alter publication supabase_realtime add table public.recruiter;
+alter table public.recruiter enable row level security;
+
+create policy "Recruiters can view their own profile"
+  on public.recruiter for select
+  using ( auth.uid() = user_id );
+
+create policy "Recruiters can update their own profile"
+  on public.recruiter for update
+  using ( auth.uid() = user_id );
+
+ccreate policy "Recruiters can view their own company"
+  on public.company for select
+  using ( auth.uid() in (
+      select user_id
+      from public.company
+      inner join recruiter using (company_id)
+      where user_id = auth.uid()
+  ));
+
+create policy "Recruiters can view their own company"
+  on public.company for select
+  using ( company_id in (
+      select company_id
+      from public.recruiter
+      where user_id = auth.uid()
+  ));
+
+-- jobs
+create table public.job (
+    job_id uuid not null default uuid_generate_v4(),
+    title text not null,
+    description_url text not null,
+
+    recruiter_id uuid references public.recruiter(user_id) on delete cascade not null,
+    company_id uuid references public.company(company_id) on delete cascade not null,
+
+    created_at timestamp with time zone not null default now(),
+    updated_at timestamp with time zone not null default now(),
+
+    primary key (job_id)
+);
+
+create trigger handle_updated_at_job before update on public.job
+  for each row execute procedure moddatetime (updated_at);
+
+-- enable real-time
+alter publication supabase_realtime add table public.job;
+alter table public.job enable row level security;
+
+create policy "Recruiters can view their jobs"
+  on public.job for select
+  using ( auth.uid() = recruiter_id );
+
+create policy "Recruiters can insert their jobs"
+  on public.job for insert
+  with check ( auth.uid() = recruiter_id );
+
+create policy "Recruiters can update their jobs"
+  on public.job for update
+  using ( auth.uid() = recruiter_id );
+
+create policy "Recruiters can delete their jobs"
+  on public.job for delete
+  using ( auth.uid() = recruiter_id );
+
+create policy "Companies can view their jobs"
+  on public.job for select
+  using ( company_id in (
+      select company_id 
+      from public.recruiter
+      where user_id = auth.uid()
+  ));
