@@ -3,7 +3,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { getSupabase } from '@supabase/auth-helpers-sveltekit';
 
 import { supabaseClient } from '$lib/supabase/client.server';
-import { isValidUrl, getTrimmedFormValue } from '$lib/forms';
+import { isValidUrl, getTrimmedFormValue, getFormCheckboxValue } from '$lib/forms';
 
 export const actions: Actions = {
 	default: async (event) => {
@@ -23,6 +23,16 @@ export const actions: Actions = {
 		const companyWebsite = getTrimmedFormValue(data, 'companyWebsite');
 		const referrer = getTrimmedFormValue(data, 'referrer');
 		const comment = getTrimmedFormValue(data, 'comment');
+		const tos = getFormCheckboxValue(data, 'tos');
+
+		// Verify ToS is checked
+		if (!tos) {
+			return fail(400, {
+				errors: {
+					tos: 'You must agree to the terms of service to create an account'
+				}
+			});
+		}
 
 		// form validation
 		// Trims whitespace for all fields

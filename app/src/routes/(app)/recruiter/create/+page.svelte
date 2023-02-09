@@ -186,6 +186,9 @@
 							rel="noopener noreferrer">SRC Terms of Service</a
 						></label
 					>
+					{#if formError('tos')}
+						<p class="mt-1 text-left text-xs text-rose-500">{formError('tos')}</p>
+					{/if}
 				</div>
 			</div>
 			<p class="text-sm">
