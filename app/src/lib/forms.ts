@@ -15,3 +15,8 @@ export const getTrimmedFormValue = (data: FormData, key: string): string => {
 	}
 	return '';
 };
+
+export const getFormCheckboxValue = (data: FormData, key: string): boolean => {
+	const value = data.get(key);
+	return value === 'on';
+};
