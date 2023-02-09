@@ -66,39 +66,41 @@
 					/>
 				</div>
 			</div>
-			<div>
-				<label for="firstName" class="block text-sm font-medium text-slate-700">First Name</label>
-				<div class="mt-1">
-					<input
-						required
-						type="text"
-						name="firstName"
-						id="firstName"
-						bind:value={firstName}
-						class="block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-						placeholder="Devin"
-					/>
+			<div class="grid grid-cols-2 gap-2">
+				<div>
+					<label for="firstName" class="block text-sm font-medium text-slate-700">First Name</label>
+					<div class="mt-1">
+						<input
+							required
+							type="text"
+							name="firstName"
+							id="firstName"
+							bind:value={firstName}
+							class="block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+							placeholder="Devin"
+						/>
+					</div>
+					{#if formError('firstName')}
+						<p class="mt-1 text-xs text-rose-500">{formError('firstName')}</p>
+					{/if}
 				</div>
-				{#if formError('firstName')}
-					<p class="mt-1 text-xs text-rose-500">{formError('firstName')}</p>
-				{/if}
-			</div>
-			<div>
-				<label for="lastName" class="block text-sm font-medium text-slate-700">Last Name</label>
-				<div class="mt-1">
-					<input
-						required
-						type="text"
-						name="lastName"
-						id="lastName"
-						bind:value={lastName}
-						class="block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-						placeholder="Stein"
-					/>
+				<div>
+					<label for="lastName" class="block text-sm font-medium text-slate-700">Last Name</label>
+					<div class="mt-1">
+						<input
+							required
+							type="text"
+							name="lastName"
+							id="lastName"
+							bind:value={lastName}
+							class="block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+							placeholder="Stein"
+						/>
+					</div>
+					{#if formError('lastName')}
+						<p class="mt-1 text-xs text-rose-500">{formError('lastName')}</p>
+					{/if}
 				</div>
-				{#if formError('lastName')}
-					<p class="mt-1 text-xs text-rose-500">{formError('lastName')}</p>
-				{/if}
 			</div>
 			<div>
 				<label for="linkedin" class="block text-sm font-medium text-slate-700"
