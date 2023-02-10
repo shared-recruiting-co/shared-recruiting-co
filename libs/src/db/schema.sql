@@ -261,7 +261,7 @@ create policy "Recruiters can update their own profile"
   on public.recruiter for update
   using ( auth.uid() = user_id );
 
-ccreate policy "Recruiters can view their own company"
+create policy "Recruiters can view their own company"
   on public.company for select
   using ( auth.uid() in (
       select user_id
