@@ -7,9 +7,28 @@
 	export let data: PageData;
 
 	let tos = false;
+	let error = '';
 
-	const onConnect = () => {
-		goto('/account/profile');
+	const onConnect = async () => {
+		const resp = await fetch('/api/candidate', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				tos
+			})
+		});
+		if (!resp.ok) {
+			const { message } = await resp.json();
+			error = message;
+			return;
+		}
+
+		goto('/account/profile', {
+			// revalidate because we just created the account
+			invalidateAll: true
+		});
 	};
 
 	const handleLogout = async () => {
@@ -106,7 +125,7 @@
 		<div>
 			<!-- Agree to Terms of Service -->
 			<div class="mb-4 text-sm">
-				<input type="checkbox" bind:checked={tos} name="tos" />
+				<input type="checkbox" bind:checked={tos} name="tos" class="rounded-md" />
 				<label for="tos" class="ml-2"
 					>I agree to the <a
 						href="/legal/terms-of-service"
@@ -117,6 +136,9 @@
 				>
 			</div>
 			<ConnectGoogleAccountButton {onConnect} email={data.session?.user?.email} disabled={!tos} />
+			{#if error}
+				<div class="mt-4 text-sm text-red-600">{error}</div>
+			{/if}
 		</div>
 		<p class="text-sm">
 			You can read more about how we use and protect your data in our <a
