@@ -5,7 +5,7 @@ import { getSupabase } from '@supabase/auth-helpers-sveltekit';
 
 import { supabaseClient as adminSupabaseClient } from '$lib/supabase/client.server';
 
-import { sendWelcomeEmail } from '../account/gmail/connect/welcome';
+import { sendWelcomeEmail } from '$lib/server/google/welcomeEmail';
 
 export const POST: RequestHandler = async (event) => {
 	const { session, supabaseClient } = await getSupabase(event);
