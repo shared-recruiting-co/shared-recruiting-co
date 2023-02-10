@@ -6,7 +6,7 @@
 CREATE OR REPLACE VIEW public.recruiter_oauth_token
  AS
  SELECT 
-    user_oauth_token.*,
+    user_oauth_token.*
    FROM user_oauth_token
      JOIN recruiter USING (user_id);
 
@@ -21,7 +21,7 @@ GRANT ALL ON TABLE public.recruiter_oauth_token TO service_role;
 CREATE OR REPLACE VIEW public.candidate_oauth_token
  AS
  SELECT
-    user_oauth_token.*,
+    user_oauth_token.*
    FROM user_oauth_token
      JOIN user_profile USING (user_id);
 
