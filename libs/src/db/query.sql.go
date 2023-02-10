@@ -200,6 +200,108 @@ func (q *Queries) InsertUserEmailJob(ctx context.Context, arg InsertUserEmailJob
 	return err
 }
 
+const listCandidateOAuthTokens = `-- name: ListCandidateOAuthTokens :many
+select
+    user_id, provider, token, is_valid, created_at, updated_at
+from public.candidate_oauth_token
+where provider = $1 and is_valid = $2
+limit $3
+offset $4
+`
+
+type ListCandidateOAuthTokensParams struct {
+	Provider string `json:"provider"`
+	IsValid  bool   `json:"is_valid"`
+	Limit    int32  `json:"limit"`
+	Offset   int32  `json:"offset"`
+}
+
+func (q *Queries) ListCandidateOAuthTokens(ctx context.Context, arg ListCandidateOAuthTokensParams) ([]CandidateOauthToken, error) {
+	rows, err := q.query(ctx, q.listCandidateOAuthTokensStmt, listCandidateOAuthTokens,
+		arg.Provider,
+		arg.IsValid,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CandidateOauthToken
+	for rows.Next() {
+		var i CandidateOauthToken
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Provider,
+			&i.Token,
+			&i.IsValid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listRecruiterOAuthTokens = `-- name: ListRecruiterOAuthTokens :many
+select
+    user_id, provider, token, is_valid, created_at, updated_at
+from public.recruiter_oauth_token
+where provider = $1 and is_valid = $2
+limit $3
+offset $4
+`
+
+type ListRecruiterOAuthTokensParams struct {
+	Provider string `json:"provider"`
+	IsValid  bool   `json:"is_valid"`
+	Limit    int32  `json:"limit"`
+	Offset   int32  `json:"offset"`
+}
+
+func (q *Queries) ListRecruiterOAuthTokens(ctx context.Context, arg ListRecruiterOAuthTokensParams) ([]RecruiterOauthToken, error) {
+	rows, err := q.query(ctx, q.listRecruiterOAuthTokensStmt, listRecruiterOAuthTokens,
+		arg.Provider,
+		arg.IsValid,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []RecruiterOauthToken
+	for rows.Next() {
+		var i RecruiterOauthToken
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Provider,
+			&i.Token,
+			&i.IsValid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUserEmailJobs = `-- name: ListUserEmailJobs :many
 select
     job_id,
@@ -269,15 +371,25 @@ select
     updated_at
 from public.user_oauth_token
 where provider = $1 and is_valid = $2
+order by created_at desc
+limit $3
+offset $4
 `
 
 type ListUserOAuthTokensParams struct {
 	Provider string `json:"provider"`
 	IsValid  bool   `json:"is_valid"`
+	Limit    int32  `json:"limit"`
+	Offset   int32  `json:"offset"`
 }
 
 func (q *Queries) ListUserOAuthTokens(ctx context.Context, arg ListUserOAuthTokensParams) ([]UserOauthToken, error) {
-	rows, err := q.query(ctx, q.listUserOAuthTokensStmt, listUserOAuthTokens, arg.Provider, arg.IsValid)
+	rows, err := q.query(ctx, q.listUserOAuthTokensStmt, listUserOAuthTokens,
+		arg.Provider,
+		arg.IsValid,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}

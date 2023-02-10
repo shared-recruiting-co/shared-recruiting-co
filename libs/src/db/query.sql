@@ -21,7 +21,27 @@ select
     created_at,
     updated_at
 from public.user_oauth_token
-where provider = $1 and is_valid = $2;
+where provider = $1 and is_valid = $2
+order by created_at desc
+limit $3
+offset $4;
+
+
+-- name: ListCandidateOAuthTokens :many
+select
+    *
+from public.candidate_oauth_token
+where provider = $1 and is_valid = $2
+limit $3
+offset $4;
+
+-- name: ListRecruiterOAuthTokens :many
+select
+    *
+from public.recruiter_oauth_token
+where provider = $1 and is_valid = $2
+limit $3
+offset $4;
 
 -- name: GetUserOAuthToken :one
 select
