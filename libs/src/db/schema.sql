@@ -323,3 +323,17 @@ create policy "Companies can view their jobs"
       from public.recruiter
       where user_id = auth.uid()
   ));
+
+
+-- views on oauth tokens
+create view candidate_oauth_token as
+select
+  user_oauth_token.*
+from user_oauth_token
+inner join user_profile using (user_id);
+
+create view recruiter_oauth_token as
+select
+  user_oauth_token.*
+from user_oauth_token
+inner join recruiter using (user_id);
