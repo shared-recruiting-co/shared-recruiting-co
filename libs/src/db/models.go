@@ -16,6 +16,53 @@ type AuthUser struct {
 	Email string    `json:"email"`
 }
 
+type CandidateOauthToken struct {
+	UserID    uuid.UUID       `json:"user_id"`
+	Provider  string          `json:"provider"`
+	Token     json.RawMessage `json:"token"`
+	IsValid   bool            `json:"is_valid"`
+	CreatedAt time.Time       `json:"created_at"`
+	UpdatedAt time.Time       `json:"updated_at"`
+}
+
+type Company struct {
+	CompanyID   uuid.UUID `json:"company_id"`
+	CompanyName string    `json:"company_name"`
+	Website     string    `json:"website"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type Job struct {
+	JobID          uuid.UUID `json:"job_id"`
+	Title          string    `json:"title"`
+	DescriptionUrl string    `json:"description_url"`
+	RecruiterID    uuid.UUID `json:"recruiter_id"`
+	CompanyID      uuid.UUID `json:"company_id"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+type Recruiter struct {
+	UserID    uuid.UUID       `json:"user_id"`
+	Email     string          `json:"email"`
+	FirstName string          `json:"first_name"`
+	LastName  string          `json:"last_name"`
+	Responses json.RawMessage `json:"responses"`
+	CompanyID uuid.UUID       `json:"company_id"`
+	CreatedAt time.Time       `json:"created_at"`
+	UpdatedAt time.Time       `json:"updated_at"`
+}
+
+type RecruiterOauthToken struct {
+	UserID    uuid.UUID       `json:"user_id"`
+	Provider  string          `json:"provider"`
+	Token     json.RawMessage `json:"token"`
+	IsValid   bool            `json:"is_valid"`
+	CreatedAt time.Time       `json:"created_at"`
+	UpdatedAt time.Time       `json:"updated_at"`
+}
+
 type UserEmailJob struct {
 	JobID         uuid.UUID       `json:"job_id"`
 	UserID        uuid.UUID       `json:"user_id"`

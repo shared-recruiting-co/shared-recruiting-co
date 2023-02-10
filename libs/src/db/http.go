@@ -179,7 +179,6 @@ func (q *HTTPQueries) UpsertUserOAuthToken(ctx context.Context, arg UpsertUserOA
 }
 
 // ListUserOAuthTokens lists a user oauth tokens.
-// TODO: Support pagination
 func (q *HTTPQueries) ListUserOAuthTokens(ctx context.Context, arg ListUserOAuthTokensParams) ([]UserOauthToken, error) {
 	basePath := "/user_oauth_token"
 	query := "select=*"
@@ -188,9 +187,85 @@ func (q *HTTPQueries) ListUserOAuthTokens(ctx context.Context, arg ListUserOAuth
 	}
 	query = fmt.Sprintf("%s&provider=eq.%s", query, arg.Provider)
 	query = fmt.Sprintf("%s&is_valid=eq.%t", query, arg.IsValid)
+	// pagination params
+	query = fmt.Sprintf("%s&limit=eq.%d&offset=eq.%d", query, arg.Limit, arg.Offset)
 
 	path := fmt.Sprintf("%s?%s", basePath, query)
 	var result []UserOauthToken
+
+	resp, err := q.DoRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return result, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return result, fmt.Errorf("list valid user oauth tokens: %s", resp.Status)
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return result, err
+	}
+
+	if len(result) == 0 {
+		// for now, return same error as database client
+		return result, sql.ErrNoRows
+	}
+
+	return result, nil
+}
+
+// ListCandidateOAuthTokens lists a user oauth tokens.
+func (q *HTTPQueries) ListCandidateOAuthTokens(ctx context.Context, arg ListCandidateOAuthTokensParams) ([]CandidateOauthToken, error) {
+	basePath := "/candidate_oauth_token"
+	query := "select=*"
+	if arg.Provider == "" {
+		return nil, fmt.Errorf("provider is required")
+	}
+	query = fmt.Sprintf("%s&provider=eq.%s", query, arg.Provider)
+	query = fmt.Sprintf("%s&is_valid=eq.%t", query, arg.IsValid)
+	// pagination params
+	query = fmt.Sprintf("%s&limit=eq.%d&offset=eq.%d", query, arg.Limit, arg.Offset)
+
+	path := fmt.Sprintf("%s?%s", basePath, query)
+	var result []CandidateOauthToken
+
+	resp, err := q.DoRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return result, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return result, fmt.Errorf("list valid candidate oauth tokens: %s", resp.Status)
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return result, err
+	}
+
+	if len(result) == 0 {
+		// for now, return same error as database client
+		return result, sql.ErrNoRows
+	}
+
+	return result, nil
+}
+
+// ListRecruiterOAuthTokens lists a user oauth tokens.
+func (q *HTTPQueries) ListRecruiterOAuthTokens(ctx context.Context, arg ListRecruiterOAuthTokensParams) ([]RecruiterOauthToken, error) {
+	basePath := "/recruiter_oauth_token"
+	query := "select=*"
+	if arg.Provider == "" {
+		return nil, fmt.Errorf("provider is required")
+	}
+	query = fmt.Sprintf("%s&provider=eq.%s", query, arg.Provider)
+	query = fmt.Sprintf("%s&is_valid=eq.%t", query, arg.IsValid)
+	// pagination params
+	query = fmt.Sprintf("%s&limit=eq.%d&offset=eq.%d", query, arg.Limit, arg.Offset)
+
+	path := fmt.Sprintf("%s?%s", basePath, query)
+	var result []RecruiterOauthToken
 
 	resp, err := q.DoRequest(ctx, http.MethodGet, path, nil)
 	if err != nil {
