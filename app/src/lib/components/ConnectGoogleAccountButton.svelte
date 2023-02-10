@@ -4,7 +4,7 @@
 
 	// props
 	export let email: string | undefined;
-	export let onConnect: () => void;
+	export let onConnect: () => void = () => {};
 	export let disabled = false;
 
 	let loaded = Boolean(browser && window.google);
@@ -24,7 +24,6 @@
 		// Set custom header for CRSF
 		xhr.withCredentials = true;
 		xhr.onload = function () {
-			connecting = false;
 			// check for error status
 			if (xhr.status === 200) {
 				// success
@@ -33,6 +32,8 @@
 				const body = JSON.parse(xhr.responseText);
 				error = body.message;
 			}
+			// set connecting to false after error or success callback
+			connecting = false;
 		};
 		xhr.onerror = function (err) {
 			connecting = false;
