@@ -179,7 +179,14 @@
 			<div>
 				<!-- Agree to Terms of Service -->
 				<div class="mb-4 text-sm">
-					<input type="checkbox" bind:checked={tos} required id="tos" name="tos" />
+					<input
+						type="checkbox"
+						bind:checked={tos}
+						required
+						id="tos"
+						name="tos"
+						class="rounded-md"
+					/>
 					<label for="tos" class="ml-2"
 						>I agree to the <a
 							href="/legal/terms-of-service"

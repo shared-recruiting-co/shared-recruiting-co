@@ -3,12 +3,8 @@ import type { RequestHandler } from './$types';
 
 import { getSupabase } from '@supabase/auth-helpers-sveltekit';
 
-import { supabaseClient as adminSupabaseClient } from '$lib/supabase/client.server';
 import { exchangeCodeForTokens } from '$lib/server/google/oauth';
-import { watch } from '$lib/server/google/gmail';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
-
-import { sendWelcomeEmail } from './welcome';
 
 const GMAIL_MODIFY_SCOPE = 'https://www.googleapis.com/auth/gmail.modify';
 
@@ -28,13 +24,11 @@ const parseJWTPayload = (token: string): Record<string, string> | null => {
 const connectEmail = async ({
 	method,
 	code,
-	agreeToS,
 	session,
 	supabaseClient
 }: {
 	method: 'GET' | 'POST';
 	code: string;
-	agreeToS: string;
 	session: Session;
 	supabaseClient: SupabaseClient;
 }) => {
@@ -82,48 +76,6 @@ const connectEmail = async ({
 		);
 	}
 
-	let isNewUser = false;
-
-	// check if user has an account
-	const { data: profile } = await supabaseClient.from('user_profile').select('*').maybeSingle();
-	// if no profile, create one
-	if (!profile) {
-		// verify agree_tos is set to true
-		if (agreeToS !== 'true') {
-			console.log('user did not agree to terms of service');
-			throw error(400, 'You must agree to the terms of service to create an account.');
-		}
-		isNewUser = true;
-		console.log('creating user profile...');
-		// make sure the user is allowed to create one
-		const { data: waitlist } = await supabaseClient.from('waitlist').select('*').maybeSingle();
-		if (!waitlist) {
-			console.log('user is not on waitlist');
-			throw error(401, `${session.user.email} is not on the waitlist`);
-		}
-		if (!waitlist.can_create_account) {
-			console.log(`user ${session.user.email} is not allowed to create an account yet`);
-			throw error(401, `${session.user.email} is not allowed to create an account yet`);
-		}
-		// create a profile for them
-		const { error: createError } = await adminSupabaseClient.from('user_profile').insert({
-			user_id: session.user.id,
-			first_name: waitlist.first_name,
-			last_name: waitlist.last_name,
-			email: session.user.email,
-			// for now, all early users opt-in to auto contributing emails
-			auto_contribute: true
-		});
-
-		if (createError) {
-			console.error('failed to create profile: ', createError);
-			throw error(
-				500,
-				'Failed to create your account. Please try again. If this problem persists, please team@sharedrecruiting.co.'
-			);
-		}
-	}
-
 	// save oauth tokens
 	console.log('saving user oauth token...');
 	// format tokens for db
@@ -147,23 +99,6 @@ const connectEmail = async ({
 			'Failed to sync your account. Please try again. If this problem persists, reach out to team@sharedrecruiting.co.'
 		);
 	}
-
-	// watch for new emails
-	console.log('subscribing to gmail notifications...');
-	const watchResponse = await watch(access_token);
-	if (watchResponse.status !== 200) {
-		console.log('failed to subscribe to gmail notifications');
-		throw error(
-			500,
-			'Failed to sync your account. Please try again. If this problem persists, reach out to team@sharedrecruiting.co.'
-		);
-	}
-
-	// send message from founder email to welcome (back) user
-	// to trigger the initial email sync
-	console.log('sending welcome email...');
-	// TODO: Use a real transactional email service (sendgrid/mailgun) instead of this homebrew solution
-	await sendWelcomeEmail(session.user.email, isNewUser);
 };
 
 export const POST: RequestHandler = async (event) => {
@@ -181,9 +116,8 @@ export const POST: RequestHandler = async (event) => {
 	if (!code) {
 		throw error(400, 'missing code parameter');
 	}
-	const agreeToS = form.get('agree_tos') || 'false';
 
-	await connectEmail({ method: 'POST', code: code.toString(), agreeToS, session, supabaseClient });
+	await connectEmail({ method: 'POST', code: code.toString(), session, supabaseClient });
 
 	return new Response('success');
 };
@@ -198,9 +132,8 @@ export const GET: RequestHandler = async (event) => {
 	if (!code) {
 		throw error(400, 'missing code parameter');
 	}
-	const agreeToS = url.searchParams.get('agree_tos') || 'false';
 
-	await connectEmail({ method: 'GET', code, agreeToS, session, supabaseClient });
+	await connectEmail({ method: 'GET', code, session, supabaseClient });
 
 	return new Response('success');
 };
