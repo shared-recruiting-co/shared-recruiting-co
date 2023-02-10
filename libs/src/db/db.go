@@ -45,6 +45,12 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.insertUserEmailJobStmt, err = db.PrepareContext(ctx, insertUserEmailJob); err != nil {
 		return nil, fmt.Errorf("error preparing query InsertUserEmailJob: %w", err)
 	}
+	if q.listCandidateOAuthTokensStmt, err = db.PrepareContext(ctx, listCandidateOAuthTokens); err != nil {
+		return nil, fmt.Errorf("error preparing query ListCandidateOAuthTokens: %w", err)
+	}
+	if q.listRecruiterOAuthTokensStmt, err = db.PrepareContext(ctx, listRecruiterOAuthTokens); err != nil {
+		return nil, fmt.Errorf("error preparing query ListRecruiterOAuthTokens: %w", err)
+	}
 	if q.listUserEmailJobsStmt, err = db.PrepareContext(ctx, listUserEmailJobs); err != nil {
 		return nil, fmt.Errorf("error preparing query ListUserEmailJobs: %w", err)
 	}
@@ -95,6 +101,16 @@ func (q *Queries) Close() error {
 	if q.insertUserEmailJobStmt != nil {
 		if cerr := q.insertUserEmailJobStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing insertUserEmailJobStmt: %w", cerr)
+		}
+	}
+	if q.listCandidateOAuthTokensStmt != nil {
+		if cerr := q.listCandidateOAuthTokensStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listCandidateOAuthTokensStmt: %w", cerr)
+		}
+	}
+	if q.listRecruiterOAuthTokensStmt != nil {
+		if cerr := q.listRecruiterOAuthTokensStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listRecruiterOAuthTokensStmt: %w", cerr)
 		}
 	}
 	if q.listUserEmailJobsStmt != nil {
@@ -163,6 +179,8 @@ type Queries struct {
 	getUserProfileByEmailStmt      *sql.Stmt
 	incrementUserEmailStatStmt     *sql.Stmt
 	insertUserEmailJobStmt         *sql.Stmt
+	listCandidateOAuthTokensStmt   *sql.Stmt
+	listRecruiterOAuthTokensStmt   *sql.Stmt
 	listUserEmailJobsStmt          *sql.Stmt
 	listUserOAuthTokensStmt        *sql.Stmt
 	upsertUserEmailSyncHistoryStmt *sql.Stmt
@@ -180,6 +198,8 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getUserProfileByEmailStmt:      q.getUserProfileByEmailStmt,
 		incrementUserEmailStatStmt:     q.incrementUserEmailStatStmt,
 		insertUserEmailJobStmt:         q.insertUserEmailJobStmt,
+		listCandidateOAuthTokensStmt:   q.listCandidateOAuthTokensStmt,
+		listRecruiterOAuthTokensStmt:   q.listRecruiterOAuthTokensStmt,
 		listUserEmailJobsStmt:          q.listUserEmailJobsStmt,
 		listUserOAuthTokensStmt:        q.listUserOAuthTokensStmt,
 		upsertUserEmailSyncHistoryStmt: q.upsertUserEmailSyncHistoryStmt,
