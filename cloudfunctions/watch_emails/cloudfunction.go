@@ -74,12 +74,11 @@ func watchEmails(w http.ResponseWriter, r *http.Request) {
 	// NOTE" When this function takes longer than 60 minutes to complete, we can use goroutines to parallelize
 	// https://docs.sentry.io/platforms/go/concurrency/
 
-	// 1. Fetch valid auth tokens for all users
-
 	limit := int32(1000)
 	offset := int32(0)
 
 	for {
+		// 1. Fetch valid auth tokens
 		userTokens, err := queries.ListCandidateOAuthTokens(ctx, db.ListCandidateOAuthTokensParams{
 			Provider: provider,
 			IsValid:  true,
