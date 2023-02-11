@@ -71,107 +71,119 @@ func watchEmails(w http.ResponseWriter, r *http.Request) {
 	apiKey := os.Getenv("SUPABASE_API_KEY")
 	queries := db.NewHTTP(apiURL, apiKey)
 
-	// TODO
-	// v0 -> no pagination, no go routines
-	// 2. Spawn a goroutine for each user to watch their emails
+	// NOTE" When this function takes longer than 60 minutes to complete, we can use goroutines to parallelize
 	// https://docs.sentry.io/platforms/go/concurrency/
-	// 3. Wait for all goroutines to finish
 
 	// 1. Fetch valid auth tokens for all users
-	userTokens, err := queries.ListUserOAuthTokens(ctx, db.ListUserOAuthTokensParams{
-		Provider: provider,
-		IsValid:  true,
-	})
 
-	if err != nil {
-		handleError(w, "error getting user tokens", err)
-		return
-	}
+	limit := int32(1000)
+	offset := int32(0)
 
-	var srv *srcmail.Service
-	user := "me"
-	label := "UNREAD"
-	topic := os.Getenv("PUBSUB_TOPIC")
-
-	hasError := false
-
-	for _, userToken := range userTokens {
-		auth := []byte(userToken.Token)
-
-		srv, err = srcmail.NewService(ctx, creds, auth)
-		if err != nil {
-			err = fmt.Errorf("error creating gmail service: %w", err)
-			log.Print(err)
-			sentry.CaptureException(err)
-			hasError = true
-			continue
-		}
-
-		// Get the user's email address
-		// This also keeps the user's refresh token valid for deactivated emails
-		gmailProfile, err := srv.Profile()
-		if err != nil {
-			err = fmt.Errorf("error getting gmail profile: %w", err)
-			log.Print(err)
-
-			// check for oauth token expiration or revocation
-			if srcmail.IsOAuth2Error(err) {
-				log.Printf("error oauth error: %v", err)
-				// update the user's oauth token
-				err = queries.UpsertUserOAuthToken(ctx, db.UpsertUserOAuthTokenParams{
-					UserID:   userToken.UserID,
-					Provider: provider,
-					Token:    userToken.Token,
-					IsValid:  false,
-				})
-				if err != nil {
-					log.Printf("error updating user oauth token: %v", err)
-				} else {
-					log.Printf("marked user oauth token as invalid")
-				}
-			}
-			sentry.CaptureException(err)
-			hasError = true
-			continue
-		}
-
-		// validate the user's email is active
-		userProfile, err := queries.GetUserProfileByEmail(ctx, gmailProfile.EmailAddress)
-		if err != nil {
-			err = fmt.Errorf("error getting user profile: %w", err)
-			log.Print(err)
-			sentry.CaptureException(err)
-			hasError = true
-			continue
-		}
-
-		if !userProfile.IsActive {
-			log.Printf("skipping deactivated email %s", userProfile.Email)
-			continue
-		}
-
-		// Watch for changes in labelId
-		resp, err := srcmail.ExecuteWithRetries(func() (*gmail.WatchResponse, error) {
-			return srv.Users.Watch(user, &gmail.WatchRequest{
-				LabelIds:          []string{label},
-				LabelFilterAction: "include",
-				TopicName:         topic,
-			}).Do()
+	for {
+		userTokens, err := queries.ListUserOAuthTokens(ctx, db.ListUserOAuthTokensParams{
+			Provider: provider,
+			IsValid:  true,
+			Limit:    limit,
+			Offset:   offset,
 		})
 
 		if err != nil {
-			err = fmt.Errorf("error watching email: %w", err)
-			log.Print(err)
-			sentry.CaptureException(err)
-			continue
+			handleError(w, "error getting user tokens", err)
+			return
 		}
-		// success
-		log.Printf("watching: %v", resp)
-	}
 
-	// write error status code for tracking
-	if hasError {
-		w.WriteHeader(http.StatusInternalServerError)
+		var srv *srcmail.Service
+		user := "me"
+		label := "UNREAD"
+		topic := os.Getenv("PUBSUB_TOPIC")
+
+		hasError := false
+
+		for _, userToken := range userTokens {
+			auth := []byte(userToken.Token)
+
+			srv, err = srcmail.NewService(ctx, creds, auth)
+			if err != nil {
+				err = fmt.Errorf("error creating gmail service: %w", err)
+				log.Print(err)
+				sentry.CaptureException(err)
+				hasError = true
+				continue
+			}
+
+			// Get the user's email address
+			// This also keeps the user's refresh token valid for deactivated emails
+			gmailProfile, err := srv.Profile()
+			if err != nil {
+				err = fmt.Errorf("error getting gmail profile: %w", err)
+				log.Print(err)
+
+				// check for oauth token expiration or revocation
+				if srcmail.IsOAuth2Error(err) {
+					log.Printf("error oauth error: %v", err)
+					// update the user's oauth token
+					err = queries.UpsertUserOAuthToken(ctx, db.UpsertUserOAuthTokenParams{
+						UserID:   userToken.UserID,
+						Provider: provider,
+						Token:    userToken.Token,
+						IsValid:  false,
+					})
+					if err != nil {
+						log.Printf("error updating user oauth token: %v", err)
+					} else {
+						log.Printf("marked user oauth token as invalid")
+					}
+				}
+				sentry.CaptureException(err)
+				hasError = true
+				continue
+			}
+
+			// validate the user's email is active
+			userProfile, err := queries.GetUserProfileByEmail(ctx, gmailProfile.EmailAddress)
+			if err != nil {
+				err = fmt.Errorf("error getting user profile: %w", err)
+				log.Print(err)
+				sentry.CaptureException(err)
+				hasError = true
+				continue
+			}
+
+			if !userProfile.IsActive {
+				log.Printf("skipping deactivated email %s", userProfile.Email)
+				continue
+			}
+
+			// Watch for changes in labelId
+			resp, err := srcmail.ExecuteWithRetries(func() (*gmail.WatchResponse, error) {
+				return srv.Users.Watch(user, &gmail.WatchRequest{
+					LabelIds:          []string{label},
+					LabelFilterAction: "include",
+					TopicName:         topic,
+				}).Do()
+			})
+
+			if err != nil {
+				err = fmt.Errorf("error watching email: %w", err)
+				log.Print(err)
+				sentry.CaptureException(err)
+				continue
+			}
+			// success
+			log.Printf("watching: %v", resp)
+		}
+
+		// write error status code for tracking
+		if hasError {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		// check if there are more results
+		if len(userTokens) < int(limit) {
+			break
+		}
+		offset += limit
 	}
 
 	log.Println("done.")
