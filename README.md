@@ -22,7 +22,7 @@ For code-related documentation, all the documentation lives in this repository. 
 
 ## 🕍 Project Layout
 
-### 📱 `/app`
+### 📱 `/web`
 
 The SRC web app ([sharedrecruiting.co](https://sharedrecruiting.co)) built via Sveltekit + Tailwind + Supabase and deployed with Vercel
 
@@ -38,7 +38,7 @@ To run a local instance of Supabase, run
 supabase start
 ```
 
-If you want to log into the app locally, add your Google OAuth client ID/secret to the bottom of `app/supabase/config.toml`:
+If you want to log into the app locally, add your Google OAuth client ID/secret to the bottom of `web/supabase/config.toml`:
 
 ```toml
 [auth.external.google]
@@ -47,7 +47,7 @@ client_id = "xxx"
 secret = "xxx"
 ```
 
-Changes to `app/supabase/config.toml` are ignored by Git, so you don't have to worry about accidentally committing your client secret.
+Changes to `web/supabase/config.toml` are ignored by Git, so you don't have to worry about accidentally committing your client secret.
 
 #### Testing
 
@@ -57,7 +57,7 @@ Tests are written via [Playwright](https://playwright.dev/) and [Vitest](https:/
 npm run test
 ```
 
-Note: The `app/` is under active development. Test coverage is intentionally low until the app stabilizes. 
+Note: The `web/` is under active development. Test coverage is intentionally low until the app stabilizes. 
 
 ### 🌩️ `/cloudfunctions`
 
@@ -83,4 +83,4 @@ We want to build the best candidates experience possible. To do so, SRC needs ex
 
 ## 🖼️ Architecture
 
-![SRC Architecture Diagram](/app/static/docs/images/architecture.png "Architecture")
+![SRC Architecture Diagram](/web/static/docs/images/architecture.png "Architecture")
