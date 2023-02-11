@@ -181,7 +181,6 @@ func watchEmails(w http.ResponseWriter, r *http.Request) {
 	// write error status code for tracking
 	if hasError {
 		w.WriteHeader(http.StatusInternalServerError)
-		return
 	}
 
 	log.Println("done.")
