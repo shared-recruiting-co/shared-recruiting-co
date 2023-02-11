@@ -22,10 +22,10 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           # version of CLI to use...consider switching to latest
-          version: 1.12.1
+          version: latest
 
       - name: "Push DB Changes to Production"
-        working-directory: ./app
+        working-directory: ./web
         run: |
           supabase link --project-ref $SUPABASE_PROJECT_ID
           supabase db push
