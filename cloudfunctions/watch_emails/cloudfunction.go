@@ -71,9 +71,10 @@ func watchEmails(w http.ResponseWriter, r *http.Request) {
 	apiKey := os.Getenv("SUPABASE_API_KEY")
 	queries := db.NewHTTP(apiURL, apiKey)
 
-	// NOTE" When this function takes longer than 60 minutes to complete, we can use goroutines to parallelize
+	// NOTE: When this function takes longer than 60 minutes to complete, we can use goroutines to parallelize
 	// https://docs.sentry.io/platforms/go/concurrency/
 
+	hasError := false
 	limit := int32(1000)
 	offset := int32(0)
 
@@ -95,8 +96,6 @@ func watchEmails(w http.ResponseWriter, r *http.Request) {
 		user := "me"
 		label := "UNREAD"
 		topic := os.Getenv("PUBSUB_TOPIC")
-
-		hasError := false
 
 		for _, userToken := range userTokens {
 			auth := []byte(userToken.Token)
@@ -172,17 +171,17 @@ func watchEmails(w http.ResponseWriter, r *http.Request) {
 			log.Printf("watching: %v", resp)
 		}
 
-		// write error status code for tracking
-		if hasError {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
 		// check if there are more results
 		if len(userTokens) < int(limit) {
 			break
 		}
 		offset += limit
+	}
+
+	// write error status code for tracking
+	if hasError {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	log.Println("done.")
