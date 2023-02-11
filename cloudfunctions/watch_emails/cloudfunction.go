@@ -80,7 +80,7 @@ func watchEmails(w http.ResponseWriter, r *http.Request) {
 	offset := int32(0)
 
 	for {
-		userTokens, err := queries.ListUserOAuthTokens(ctx, db.ListUserOAuthTokensParams{
+		userTokens, err := queries.ListCandidateOAuthTokens(ctx, db.ListCandidateOAuthTokensParams{
 			Provider: provider,
 			IsValid:  true,
 			Limit:    limit,
