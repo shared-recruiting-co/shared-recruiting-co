@@ -10,7 +10,7 @@ config:
   cloudfunctions:SENTRY_DSN:
     secure: v1:vcshQlbDEMmJknES:KByQ4DsVNfbO/vhTtGBvQvmTiK3zpsayRg07BJ/Yum5sXjTJsmQGO8SVBuc8txqv/43CxryLG7ohGC6XEGZD8fGy9VK4+xQBi5CbpFSdci1DeBXYhTTKdjhQqX5dupAKpcTe9j5IHztkqEBn
   cloudfunctions:SUPABASE_API_KEY:
-    secure: v1:d6RtMehxtlUJwdJc:rcpMgEUFmZ1DorpPjcnTYfNDWAUR2m62mKpsHFlZ7zVysjliWDUGY3+1QTuYAQ5EUiCF5XLIt0MAL/lpjlZir7TzIkQnfYixG8V9B1FUZ72R7LWrzYJnZiMX+aiApipzt3SyySflLEtBDOaUCglHu2Djn34DTgMYLJwBAWhVVu1K04esjlj43T1tRvFP0mHGAR29gdC3tCy6Q7ogMhbb8SKGvvIAdaSTHUZEZd+UxiIFSISG50+AlO0aaNhfC0eVSN1BRoB3O8izYv8KE685kCPaYKOG/ijwf+i2Z2cAhd687afu9nJdjZEbvw==
-  cloudfunctions:SUPABASE_API_URL: https://obtwqpglpvvykwqshlzc.supabase.co/rest/v1
+    secure: v1:t2itQIfiLpwdJKcj:5Pz/5VbpWEeOktDZaOWbuhgMc/VH8c+QTvz55HZMFDUf4fgRvJiWQ6843kIKuhL6cjaOUhKEQEZPE2amzBpIgJrZ+QNq10SDYNsec931yp3AsDfJg4z3n9mmZoPFI2Ne/qGArId4Cvt71PQZpZukRdE109pEiV1HYFcl1uN0GPhJYMPwDQRM/OgAvlL6KuJOL9m0pwaB8JGK1iyoOg6g0CyolOFYB1jhlf+rn6eqtVdIKuCvP/Bqk8nUUo21g1xyN9ESFqB/bMGdpa2RsudGMwvBIGXWlnCQxBT9dycaaK43d/EFl89cgNANHw==
+  cloudfunctions:SUPABASE_API_URL: https://cxdmnzaxtfqyvrpyvbnp.supabase.co/rest/v1
   gcp:project: shared-recruiting-company
   gcp:region: us-west1
