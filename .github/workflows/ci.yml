@@ -20,15 +20,15 @@ jobs:
           version: latest
 
       - name: "Install app dependencies"
-        working-directory: ./app
+        working-directory: ./web
         run: npm install
 
       - name: "Start Supabase local development setup"
-        working-directory: ./app
+        working-directory: ./web
         run: supabase start
 
       - name: "Verify generated types are up-to-date"
-        working-directory: ./app
+        working-directory: ./web
         run: |
           npm run gen-types
           if [ "$(git diff --ignore-space-at-eol types.ts | wc -l)" -gt "0" ]; then
