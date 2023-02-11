@@ -1,9 +1,15 @@
 <script lang="ts">
 	import { invalidate } from '$app/navigation';
+	import { dev } from '$app/environment';
 	import { onMount } from 'svelte';
+	import { inject } from '@vercel/analytics';
+
 	import '../app.css';
 
 	import { supabaseClient } from '$lib/supabase/client';
+
+	// use Vercel analytics
+	inject({ mode: dev ? 'development' : 'production' });
 
 	onMount(() => {
 		// Add note to developers that open the console
