@@ -11,6 +11,6 @@ config:
     secure: v1:vcshQlbDEMmJknES:KByQ4DsVNfbO/vhTtGBvQvmTiK3zpsayRg07BJ/Yum5sXjTJsmQGO8SVBuc8txqv/43CxryLG7ohGC6XEGZD8fGy9VK4+xQBi5CbpFSdci1DeBXYhTTKdjhQqX5dupAKpcTe9j5IHztkqEBn
   cloudfunctions:SUPABASE_API_KEY:
     secure: v1:t2itQIfiLpwdJKcj:5Pz/5VbpWEeOktDZaOWbuhgMc/VH8c+QTvz55HZMFDUf4fgRvJiWQ6843kIKuhL6cjaOUhKEQEZPE2amzBpIgJrZ+QNq10SDYNsec931yp3AsDfJg4z3n9mmZoPFI2Ne/qGArId4Cvt71PQZpZukRdE109pEiV1HYFcl1uN0GPhJYMPwDQRM/OgAvlL6KuJOL9m0pwaB8JGK1iyoOg6g0CyolOFYB1jhlf+rn6eqtVdIKuCvP/Bqk8nUUo21g1xyN9ESFqB/bMGdpa2RsudGMwvBIGXWlnCQxBT9dycaaK43d/EFl89cgNANHw==
-  cloudfunctions:SUPABASE_API_URL: https://cxdmnzaxtfqyvrpyvbnp.supabase.co/rest/v1
+  cloudfunctions:SUPABASE_API_URL: https://src.supabase.co/rest/v1
   gcp:project: shared-recruiting-company
   gcp:region: us-west1
