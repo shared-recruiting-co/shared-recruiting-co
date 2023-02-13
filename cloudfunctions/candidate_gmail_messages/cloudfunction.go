@@ -20,7 +20,7 @@ import (
 // )
 
 func init() {
-	functions.CloudEvent("Handle", Handle)
+	functions.CloudEvent("Handler", handler)
 }
 
 // naive error handler for now
@@ -30,7 +30,7 @@ func handleError(msg string, err error) error {
 	return err
 }
 
-func Handle(ctx context.Context, e event.Event) error {
+func handler(ctx context.Context, e event.Event) error {
 	err := sentry.Init(sentry.ClientOptions{
 		Dsn: os.Getenv("SENTRY_DSN"),
 		// Set TracesSampleRate to 1.0 to capture 100%
