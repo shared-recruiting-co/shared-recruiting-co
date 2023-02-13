@@ -11,6 +11,7 @@ import (
 	"os"
 	"time"
 
+	"cloud.google.com/go/pubsub"
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/idtoken"
 
@@ -19,11 +20,51 @@ import (
 	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/label"
 	srcmessage "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/message"
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/ml"
+	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/pubsub/schema"
 )
 
 type FullEmailSyncRequest struct {
 	Email     string    `json:"email"`
 	StartDate time.Time `json:"start_date"`
+}
+
+func publishMessages(email string, messages []*gmail.Message) {
+	ctx := context.Background()
+	// push message to be processed
+	emailMessages := schema.EmailMessages{
+		Email:    email,
+		Messages: make([]string, len(messages)),
+		Settings: schema.EmailMessagesSettings{},
+	}
+	for i, message := range messages {
+		emailMessages.Messages[i] = message.Id
+	}
+	projectID := os.Getenv("GCP_PROJECT_ID")
+	client, err := pubsub.NewClient(ctx, projectID)
+	if err != nil {
+		// TODO: Handle error.
+		log.Printf("failed to create pubsub client: %v", err)
+	}
+	topic := client.Topic(os.Getenv("CANDIDATE_GMAIL_MESSAGES_TOPIC"))
+	defer topic.Stop()
+
+	rawMessage, err := json.Marshal(emailMessages)
+	if err != nil {
+		log.Printf("failed to marshal email messages: %v", err)
+	}
+
+	// publish message
+	result := topic.Publish(ctx, &pubsub.Message{
+		Data: rawMessage,
+	})
+
+	// Block until the result is returned and a server-generated ID is returned
+	// for the published message.
+	id, err := result.Get(ctx)
+	if err != nil {
+		log.Printf("failed to publish message: %v", err)
+	}
+	log.Printf("Published a message; msg ID: %v", id)
 }
 
 // triggerBackgroundfFullEmailSync triggers a background function to sync all emails since a given date
@@ -101,6 +142,9 @@ func syncNewEmails(
 			}
 			return fmt.Errorf("error fetching emails: %v", err)
 		}
+
+		// TEMP: Test publishing messages
+		publishMessages(user.Email, messages)
 
 		// process messages
 		examples := map[string]*ml.ClassifyRequest{}

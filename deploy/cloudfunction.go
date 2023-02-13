@@ -167,7 +167,6 @@ func (i *Infra) fullEmailSyncCF() (*CloudFunction, error) {
 }
 
 func (i *Infra) emailPushNotificationCF(fullSync *CloudFunction) (*CloudFunction, error) {
-
 	name := "email-push-notifications"
 	sa, err := i.createCloudFunctionServiceAccount(name)
 	if err != nil {
@@ -186,7 +185,7 @@ func (i *Infra) emailPushNotificationCF(fullSync *CloudFunction) (*CloudFunction
 		Description: pulumi.String("Handle user email push notifications"),
 		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
 			Runtime:    pulumi.String("go119"),
-			EntryPoint: pulumi.String("EmailPushNotificationHandler"),
+			EntryPoint: pulumi.String("Handler"),
 			Source: &cloudfunctionsv2.FunctionBuildConfigSourceArgs{
 				StorageSource: &cloudfunctionsv2.FunctionBuildConfigSourceStorageSourceArgs{
 					Bucket: i.GCFBucket.Name,
@@ -207,6 +206,10 @@ func (i *Infra) emailPushNotificationCF(fullSync *CloudFunction) (*CloudFunction
 				"SENTRY_DSN":                 i.config.RequireSecret("SENTRY_DSN"),
 				"EXAMPLES_GMAIL_OAUTH_TOKEN": i.config.RequireSecret("EXAMPLES_GMAIL_OAUTH_TOKEN"),
 				"TRIGGER_FULL_SYNC_URL":      fullSync.Function.ServiceConfig.Uri().Elem(),
+				"GCP_PROJECT_ID":             pulumi.String(*i.Project.ProjectId),
+				"CANDIDATE_GMAIL_MESSAGES_TOPIC": i.Topics.CandidateGmailMessages.Name.ApplyT(func(name string) string {
+					return name
+				}).(pulumi.StringOutput),
 			},
 			IngressSettings:            pulumi.String("ALLOW_INTERNAL_ONLY"),
 			AllTrafficOnLatestRevision: pulumi.Bool(true),
@@ -282,7 +285,7 @@ func (i *Infra) candidateGmailMessages() (*CloudFunction, error) {
 		Description: pulumi.String("Handle candidate gmail messages"),
 		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
 			Runtime:    pulumi.String("go119"),
-			EntryPoint: pulumi.String("Handle"),
+			EntryPoint: pulumi.String("Handler"),
 			Source: &cloudfunctionsv2.FunctionBuildConfigSourceArgs{
 				StorageSource: &cloudfunctionsv2.FunctionBuildConfigSourceStorageSourceArgs{
 					Bucket: i.GCFBucket.Name,

@@ -32,7 +32,7 @@ var (
 )
 
 func init() {
-	functions.CloudEvent("EmailPushNotificationHandler", emailPushNotificationHandler)
+	functions.CloudEvent("Handler", handler)
 }
 
 type EmailHistory struct {
@@ -63,8 +63,8 @@ func handleError(msg string, err error) error {
 	return err
 }
 
-// emailPushNotificationHandler consumes a CloudEvent message and extracts the Pub/Sub message.
-func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
+// handler consumes a CloudEvent message and extracts the Pub/Sub message.
+func handler(ctx context.Context, e event.Event) error {
 	var msg schema.MessagePublishedData
 
 	err := sentry.Init(sentry.ClientOptions{
