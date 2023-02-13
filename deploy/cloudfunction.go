@@ -63,7 +63,7 @@ func (i *Infra) createCloudFunctions() error {
 		return err
 	}
 
-	_, err = i.watchEmails()
+	_, err = i.watchCandidateEmails()
 	if err != nil {
 		return err
 	}
@@ -408,13 +408,14 @@ func (i *Infra) populateJobs() (*CloudFunction, error) {
 	}, nil
 }
 
-func (i *Infra) watchEmails() (*CloudFunction, error) {
-	name := "watch-emails"
+func (i *Infra) watchCandidateEmails() (*CloudFunction, error) {
+	name := "candidate-watch-emails"
 	sa, err := i.createCloudFunctionServiceAccount(name)
 	if err != nil {
 		return nil, err
 	}
-	obj, err := i.uploadCloudFunction(name)
+	funcName := "watch-emails"
+	obj, err := i.uploadCloudFunction(funcName)
 	if err != nil {
 		return nil, err
 	}
@@ -424,10 +425,10 @@ func (i *Infra) watchEmails() (*CloudFunction, error) {
 		// use the same location as the bucket
 		Location:    pulumi.String(DefaultRegion),
 		Project:     pulumi.String(*i.Project.ProjectId),
-		Description: pulumi.String("Subscribe to the user's email inbox and watch for new emails"),
+		Description: pulumi.String("Subscribe to the candidate's email inbox and watch for relevant emails"),
 		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
 			Runtime:    pulumi.String("go119"),
-			EntryPoint: pulumi.String("WatchEmails"),
+			EntryPoint: pulumi.String("CandidateWatchEmails"),
 			Source: &cloudfunctionsv2.FunctionBuildConfigSourceArgs{
 				StorageSource: &cloudfunctionsv2.FunctionBuildConfigSourceStorageSourceArgs{
 					Bucket: i.GCFBucket.Name,
@@ -453,6 +454,7 @@ func (i *Infra) watchEmails() (*CloudFunction, error) {
 			ServiceAccountEmail:        sa.Email,
 		},
 	}, pulumi.DependsOn([]pulumi.Resource{
+		i.Topics.Gmail,
 		obj,
 		sa,
 	}))
