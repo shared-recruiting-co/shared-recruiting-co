@@ -10,7 +10,6 @@ import (
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/cloudrunv2"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/cloudscheduler"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/projects"
-	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/pubsub"
 	serviceAccount "github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/serviceaccount"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/storage"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
@@ -27,14 +26,14 @@ type CloudFunction struct {
 	Service        *cloudrun.LookupServiceResult
 }
 
-func (i *Infra) createCloudFunctions(gmailPubSub *pubsub.Topic) error {
+func (i *Infra) createCloudFunctions() error {
 	syncCF, err := i.fullEmailSyncCF()
 	if err != nil {
 		return err
 	}
 	i.ctx.Export("FullEmailSyncURI", syncCF.Function.ServiceConfig.Uri())
 
-	emailPushNotify, err := i.emailPushNotificationCF(gmailPubSub, syncCF)
+	emailPushNotify, err := i.emailPushNotificationCF(syncCF)
 	if err != nil {
 		return err
 	}
@@ -63,7 +62,7 @@ func (i *Infra) createCloudFunctions(gmailPubSub *pubsub.Topic) error {
 		return err
 	}
 
-	_, err = i.watchEmails(gmailPubSub)
+	_, err = i.watchEmails()
 	if err != nil {
 		return err
 	}
@@ -147,7 +146,7 @@ func (i *Infra) fullEmailSyncCF() (*CloudFunction, error) {
 	}, nil
 }
 
-func (i *Infra) emailPushNotificationCF(topic *pubsub.Topic, fullSync *CloudFunction) (*CloudFunction, error) {
+func (i *Infra) emailPushNotificationCF(fullSync *CloudFunction) (*CloudFunction, error) {
 
 	name := "email-push-notifications"
 	sa, err := i.createCloudFunctionServiceAccount(name)
@@ -195,14 +194,14 @@ func (i *Infra) emailPushNotificationCF(topic *pubsub.Topic, fullSync *CloudFunc
 		},
 		EventTrigger: &cloudfunctionsv2.FunctionEventTriggerArgs{
 			TriggerRegion: pulumi.String(DefaultRegion),
-			PubsubTopic:   topic.ID(),
+			PubsubTopic:   i.Topics.Gmail.ID(),
 			EventType:     pulumi.String("google.cloud.pubsub.topic.v1.messagePublished"),
 			// Disable retry
 			RetryPolicy:         pulumi.String("RETRY_POLICY_DO_NOT_RETRY"),
 			ServiceAccountEmail: sa.Email,
 		},
 	}, pulumi.DependsOn([]pulumi.Resource{
-		topic,
+		i.Topics.Gmail,
 		obj,
 		sa,
 		fullSync.Function,
@@ -379,7 +378,7 @@ func (i *Infra) populateJobs() (*CloudFunction, error) {
 	}, nil
 }
 
-func (i *Infra) watchEmails(topic *pubsub.Topic) (*CloudFunction, error) {
+func (i *Infra) watchEmails() (*CloudFunction, error) {
 	name := "watch-emails"
 	sa, err := i.createCloudFunctionServiceAccount(name)
 	if err != nil {
@@ -412,7 +411,7 @@ func (i *Infra) watchEmails(topic *pubsub.Topic) (*CloudFunction, error) {
 			MaxInstanceCount: pulumi.Int(1),
 			TimeoutSeconds:   pulumi.Int(MaxHTTPTriggerTimeout),
 			EnvironmentVariables: pulumi.StringMap{
-				"PUBSUB_TOPIC":              topic.ID(),
+				"PUBSUB_TOPIC":              i.Topics.Gmail.ID(),
 				"SUPABASE_API_URL":          pulumi.String(i.config.Require("SUPABASE_API_URL")),
 				"SUPABASE_API_KEY":          i.config.RequireSecret("SUPABASE_API_KEY"),
 				"GOOGLE_OAUTH2_CREDENTIALS": i.config.RequireSecret("GOOGLE_OAUTH2_CREDENTIALS"),

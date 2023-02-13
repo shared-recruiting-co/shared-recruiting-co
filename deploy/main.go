@@ -22,12 +22,16 @@ var (
 // 5. Cloud Scheduler
 // Read about https://www.pulumi.com/docs/guides/testing/
 
+type Topics struct {
+	Gmail *pubsub.Topic
+}
+
 type Infra struct {
 	ctx       *pulumi.Context
 	config    *config.Config
-	ProjectID string
 	Project   *organizations.LookupProjectResult
 	GCFBucket *storage.Bucket
+	Topics    Topics
 }
 
 func main() {
@@ -62,21 +66,16 @@ func main() {
 		infra := &Infra{
 			ctx:       ctx,
 			config:    cfg,
-			ProjectID: *project.ProjectId,
 			Project:   project,
 			GCFBucket: gcfBucket,
 		}
 
-		// create existing gmail pubsub topic
-		gmailPubSub, err := pubsub.NewTopic(ctx, "gmail-default", &pubsub.TopicArgs{
-			Name:    pulumi.String("gmail"),
-			Project: pulumi.String(*project.ProjectId),
-		}, pulumi.Protect(true))
+		err = infra.setupTopics()
 		if err != nil {
 			return err
 		}
 
-		err = infra.createCloudFunctions(gmailPubSub)
+		err = infra.createCloudFunctions()
 		if err != nil {
 			return err
 		}
