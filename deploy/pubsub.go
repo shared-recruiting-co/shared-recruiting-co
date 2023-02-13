@@ -8,7 +8,7 @@ import (
 func (i *Infra) setupTopics() error { // create existing gmail pubsub topic
 	gmailPubSub, err := pubsub.NewTopic(i.ctx, "gmail-default", &pubsub.TopicArgs{
 		Name:    pulumi.String("gmail"),
-		Project: pulumi.String(*project.ProjectId),
+		Project: pulumi.String(*i.Project.ProjectId),
 	}, pulumi.Protect(true))
 	if err != nil {
 		return err

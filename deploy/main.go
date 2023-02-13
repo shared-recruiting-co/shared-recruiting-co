@@ -25,7 +25,7 @@ var (
 type Topics struct {
 	DepcrecatedGmail *pubsub.Topic
 	CandidateGmail   *pubsub.Topic
-	RecruiterGamil   *pubsub.Topic
+	RecruiterGmail   *pubsub.Topic
 }
 
 type Infra struct {
