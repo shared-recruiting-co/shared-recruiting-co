@@ -47,6 +47,7 @@ jobs:
           - "./cloudfunctions/full_email_sync" 
           - "./cloudfunctions/adhoc" 
           - "./cloudfunctions/populate_jobs" 
+          - "./cloudfunctions/candidate_gmail_messages"
           - "./libs/src" 
           - "./deploy" 
 

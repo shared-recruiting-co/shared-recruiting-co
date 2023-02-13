@@ -73,6 +73,11 @@ func (i *Infra) createCloudFunctions() error {
 		return err
 	}
 
+	_, err = i.candidateGmailMessages()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -235,6 +240,100 @@ func (i *Infra) emailPushNotificationCF(fullSync *CloudFunction) (*CloudFunction
 		return nil, err
 	}
 
+	_, err = pubsub.NewTopicIAMMember(i.ctx, fmt.Sprintf("%s-publish-to-candidate-gmail-messages", name), &pubsub.TopicIAMMemberArgs{
+		Topic:   i.Topics.CandidateGmailMessages.ID(),
+		Role:    pulumi.String("roles/pubsub.publisher"),
+		Member:  pulumi.Sprintf("serviceAccount:%s", sa.Email),
+		Project: pulumi.String(*i.Project.ProjectId),
+	}, pulumi.DependsOn([]pulumi.Resource{
+		cf,
+		sa,
+		i.Topics.CandidateGmailMessages,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	return &CloudFunction{
+		Name:           name,
+		ServiceAccount: sa,
+		Function:       cf,
+		Service:        srv,
+	}, nil
+}
+
+func (i *Infra) candidateGmailMessages() (*CloudFunction, error) {
+
+	name := "candidate-gmail-messages"
+	sa, err := i.createCloudFunctionServiceAccount(name)
+	if err != nil {
+		return nil, err
+	}
+	obj, err := i.uploadCloudFunction(name)
+	if err != nil {
+		return nil, err
+	}
+
+	cf, err := cloudfunctionsv2.NewFunction(i.ctx, name, &cloudfunctionsv2.FunctionArgs{
+		Name: pulumi.String(name),
+		// use the same location as the bucket
+		Location:    pulumi.String(DefaultRegion),
+		Project:     pulumi.String(*i.Project.ProjectId),
+		Description: pulumi.String("Handle candidate gmail messages"),
+		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
+			Runtime:    pulumi.String("go119"),
+			EntryPoint: pulumi.String("Handle"),
+			Source: &cloudfunctionsv2.FunctionBuildConfigSourceArgs{
+				StorageSource: &cloudfunctionsv2.FunctionBuildConfigSourceStorageSourceArgs{
+					Bucket: i.GCFBucket.Name,
+					Object: obj.Name,
+				},
+			},
+		},
+		ServiceConfig: &cloudfunctionsv2.FunctionServiceConfigArgs{
+			AvailableMemory:  pulumi.String("256M"),
+			MinInstanceCount: pulumi.Int(0),
+			MaxInstanceCount: pulumi.Int(25),
+			TimeoutSeconds:   pulumi.Int(MaxEventArcTriggerTimeout),
+			EnvironmentVariables: pulumi.StringMap{
+				"SUPABASE_API_URL":           pulumi.String(i.config.Require("SUPABASE_API_URL")),
+				"SUPABASE_API_KEY":           i.config.RequireSecret("SUPABASE_API_KEY"),
+				"GOOGLE_OAUTH2_CREDENTIALS":  i.config.RequireSecret("GOOGLE_OAUTH2_CREDENTIALS"),
+				"ML_SERVICE_URL":             i.config.RequireSecret("ML_SERVICE_URL"),
+				"SENTRY_DSN":                 i.config.RequireSecret("SENTRY_DSN"),
+				"EXAMPLES_GMAIL_OAUTH_TOKEN": i.config.RequireSecret("EXAMPLES_GMAIL_OAUTH_TOKEN"),
+			},
+			IngressSettings:            pulumi.String("ALLOW_INTERNAL_ONLY"),
+			AllTrafficOnLatestRevision: pulumi.Bool(true),
+			ServiceAccountEmail:        sa.Email,
+		},
+		EventTrigger: &cloudfunctionsv2.FunctionEventTriggerArgs{
+			TriggerRegion: pulumi.String(DefaultRegion),
+			PubsubTopic:   i.Topics.CandidateGmailMessages.ID(),
+			EventType:     pulumi.String("google.cloud.pubsub.topic.v1.messagePublished"),
+			// Always retry failed messages
+			RetryPolicy:         pulumi.String("RETRY_POLICY_RETRY"),
+			ServiceAccountEmail: sa.Email,
+		},
+	}, pulumi.DependsOn([]pulumi.Resource{
+		i.Topics.CandidateGmailMessages,
+		obj,
+		sa,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	srv, err := cloudrun.LookupService(i.ctx, &cloudrun.LookupServiceArgs{
+		Name:     name,
+		Location: DefaultRegion,
+		Project:  i.Project.ProjectId,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// allow it to selectively re-push messages that fail
 	_, err = pubsub.NewTopicIAMMember(i.ctx, fmt.Sprintf("%s-publish-to-candidate-gmail-messages", name), &pubsub.TopicIAMMemberArgs{
 		Topic:   i.Topics.CandidateGmailMessages.ID(),
 		Role:    pulumi.String("roles/pubsub.publisher"),
