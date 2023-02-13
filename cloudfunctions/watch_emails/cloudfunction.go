@@ -24,7 +24,7 @@ const (
 )
 
 func init() {
-	functions.HTTP("CandidateWatchEmail", candidateWatchEmails)
+	functions.HTTP("CandidateWatchEmails", candidateWatchEmails)
 	functions.HTTP("RecruiterWatchEmails", recruiterWatchEmails)
 }
 
