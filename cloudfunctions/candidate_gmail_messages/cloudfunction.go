@@ -15,9 +15,9 @@ import (
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/pubsub/schema"
 )
 
-const (
-	provider = "google"
-)
+// const (
+// provider = "google"
+// )
 
 func init() {
 	functions.CloudEvent("Handle", Handle)
