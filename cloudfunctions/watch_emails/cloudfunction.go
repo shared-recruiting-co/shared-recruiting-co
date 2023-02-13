@@ -1,6 +1,7 @@
 package cloudfunctions
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"log"
@@ -17,10 +18,14 @@ import (
 	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
 )
 
-const provider = "google"
+const (
+	provider = "google"
+	limit    = int32(1000)
+)
 
 func init() {
-	functions.HTTP("WatchEmails", watchEmails)
+	functions.HTTP("CandidateWatchEmail", candidateWatchEmails)
+	functions.HTTP("RecruiterWatchEmails", recruiterWatchEmails)
 }
 
 func jsonFromEnv(env string) ([]byte, error) {
@@ -38,7 +43,106 @@ func handleError(w http.ResponseWriter, msg string, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
 }
 
-func watchEmails(w http.ResponseWriter, r *http.Request) {
+type CloudFunction struct {
+	ctx                 context.Context
+	OAuthCredententials []byte
+	Queries             db.Querier
+}
+
+func NewCloudFunction(ctx context.Context) (*CloudFunction, error) {
+	creds, err := jsonFromEnv("GOOGLE_OAUTH2_CREDENTIALS")
+	if err != nil {
+		return nil, fmt.Errorf("error getting credentials: %w", err)
+	}
+
+	// Create SRC client
+	apiURL := os.Getenv("SUPABASE_API_URL")
+	if apiURL == "" {
+		return nil, fmt.Errorf("missing SUPABASE_API_URL")
+	}
+	apiKey := os.Getenv("SUPABASE_API_KEY")
+	if apiKey == "" {
+		return nil, fmt.Errorf("missing SUPABASE_API_KEY")
+	}
+	queries := db.NewHTTP(apiURL, apiKey)
+
+	return &CloudFunction{
+		ctx:                 ctx,
+		OAuthCredententials: creds,
+		Queries:             queries,
+	}, nil
+}
+
+func (cf *CloudFunction) watch(users []db.UserOauthToken, arg *gmail.WatchRequest) []error {
+	var err error
+	var srv *srcmail.Service
+	errs := []error{}
+
+	for _, user := range users {
+		auth := []byte(user.Token)
+
+		srv, err = srcmail.NewService(cf.ctx, cf.OAuthCredententials, auth)
+		if err != nil {
+			err = fmt.Errorf("error creating gmail service: %w", err)
+			errs = append(errs, err)
+			continue
+		}
+
+		// Get the user's email address
+		// This also keeps the user's refresh token valid for deactivated emails
+		gmailProfile, err := srv.Profile()
+		if err != nil {
+			err = fmt.Errorf("error getting gmail profile: %w", err)
+			errs = append(errs, err)
+
+			// check for oauth token expiration or revocation
+			if srcmail.IsOAuth2Error(err) {
+				log.Printf("error oauth error: %v", err)
+				// update the user's oauth token
+				err = cf.Queries.UpsertUserOAuthToken(cf.ctx, db.UpsertUserOAuthTokenParams{
+					UserID:   user.UserID,
+					Provider: provider,
+					Token:    user.Token,
+					IsValid:  false,
+				})
+				if err != nil {
+					log.Printf("error updating user oauth token: %v", err)
+				} else {
+					log.Printf("marked user oauth token as invalid")
+				}
+			}
+			sentry.CaptureException(err)
+			continue
+		}
+
+		// validate the user's email is active
+		userProfile, err := cf.Queries.GetUserProfileByEmail(cf.ctx, gmailProfile.EmailAddress)
+		if err != nil {
+			err = fmt.Errorf("error getting user profile: %w", err)
+			errs = append(errs, err)
+			continue
+		}
+
+		if !userProfile.IsActive {
+			log.Printf("skipping deactivated email %s", userProfile.Email)
+			continue
+		}
+
+		_, err = srcmail.ExecuteWithRetries(func() (*gmail.WatchResponse, error) {
+			return srv.Users.Watch(srv.UserID, arg).Do()
+		})
+
+		if err != nil {
+			err = fmt.Errorf("error watching email: %w", err)
+			errs = append(errs, err)
+			continue
+		}
+	}
+
+	return errs
+}
+
+func recruiterWatchEmails(w http.ResponseWriter, r *http.Request) {
 	log.Println("received watch trigger")
 	ctx := r.Context()
 
@@ -48,7 +152,7 @@ func watchEmails(w http.ResponseWriter, r *http.Request) {
 		// of transactions for performance monitoring.
 		// We recommend adjusting this value in production,
 		TracesSampleRate: 1.0,
-		ServerName:       "watch-emails",
+		ServerName:       "recruiter-watch-emails",
 	})
 	if err != nil {
 		log.Printf("sentry.Init: %s", err)
@@ -60,27 +164,32 @@ func watchEmails(w http.ResponseWriter, r *http.Request) {
 	defer sentry.Flush(2 * time.Second)
 	defer sentry.RecoverWithContext(ctx)
 
-	creds, err := jsonFromEnv("GOOGLE_OAUTH2_CREDENTIALS")
+	cf, err := NewCloudFunction(ctx)
 	if err != nil {
-		handleError(w, "error getting credentials", err)
+		log.Printf("error creating cloud function: %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	// Create SRC client
-	apiURL := os.Getenv("SUPABASE_API_URL")
-	apiKey := os.Getenv("SUPABASE_API_KEY")
-	queries := db.NewHTTP(apiURL, apiKey)
+	topic := os.Getenv("PUBSUB_TOPIC")
+	if topic == "" {
+		log.Printf("missing PUBSUB_TOPIC")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-	// NOTE: When this function takes longer than 60 minutes to complete, we can use goroutines to parallelize
-	// https://docs.sentry.io/platforms/go/concurrency/
+	arg := &gmail.WatchRequest{
+		LabelIds:          []string{"SENT"},
+		LabelFilterAction: "include",
+		TopicName:         topic,
+	}
 
 	hasError := false
-	limit := int32(1000)
 	offset := int32(0)
 
 	for {
 		// 1. Fetch valid auth tokens
-		userTokens, err := queries.ListCandidateOAuthTokens(ctx, db.ListCandidateOAuthTokensParams{
+		userTokens, err := cf.Queries.ListRecruiterOAuthTokens(ctx, db.ListRecruiterOAuthTokensParams{
 			Provider: provider,
 			IsValid:  true,
 			Limit:    limit,
@@ -88,87 +197,26 @@ func watchEmails(w http.ResponseWriter, r *http.Request) {
 		})
 
 		if err != nil {
-			handleError(w, "error getting user tokens", err)
+			handleError(w, "error getting recruiter oauth tokens", err)
 			return
 		}
 
-		var srv *srcmail.Service
-		user := "me"
-		label := "UNREAD"
-		topic := os.Getenv("PUBSUB_TOPIC")
-
-		for _, userToken := range userTokens {
-			auth := []byte(userToken.Token)
-
-			srv, err = srcmail.NewService(ctx, creds, auth)
-			if err != nil {
-				err = fmt.Errorf("error creating gmail service: %w", err)
-				log.Print(err)
-				sentry.CaptureException(err)
-				hasError = true
-				continue
+		// convert to user oauth token
+		users := make([]db.UserOauthToken, len(userTokens))
+		for i, userToken := range userTokens {
+			users[i] = db.UserOauthToken{
+				UserID:   userToken.UserID,
+				Provider: userToken.Provider,
+				Token:    userToken.Token,
 			}
+		}
 
-			// Get the user's email address
-			// This also keeps the user's refresh token valid for deactivated emails
-			gmailProfile, err := srv.Profile()
-			if err != nil {
-				err = fmt.Errorf("error getting gmail profile: %w", err)
-				log.Print(err)
+		errs := cf.watch(users, arg)
 
-				// check for oauth token expiration or revocation
-				if srcmail.IsOAuth2Error(err) {
-					log.Printf("error oauth error: %v", err)
-					// update the user's oauth token
-					err = queries.UpsertUserOAuthToken(ctx, db.UpsertUserOAuthTokenParams{
-						UserID:   userToken.UserID,
-						Provider: provider,
-						Token:    userToken.Token,
-						IsValid:  false,
-					})
-					if err != nil {
-						log.Printf("error updating user oauth token: %v", err)
-					} else {
-						log.Printf("marked user oauth token as invalid")
-					}
-				}
-				sentry.CaptureException(err)
-				hasError = true
-				continue
-			}
-
-			// validate the user's email is active
-			userProfile, err := queries.GetUserProfileByEmail(ctx, gmailProfile.EmailAddress)
-			if err != nil {
-				err = fmt.Errorf("error getting user profile: %w", err)
-				log.Print(err)
-				sentry.CaptureException(err)
-				hasError = true
-				continue
-			}
-
-			if !userProfile.IsActive {
-				log.Printf("skipping deactivated email %s", userProfile.Email)
-				continue
-			}
-
-			// Watch for changes in labelId
-			resp, err := srcmail.ExecuteWithRetries(func() (*gmail.WatchResponse, error) {
-				return srv.Users.Watch(user, &gmail.WatchRequest{
-					LabelIds:          []string{label},
-					LabelFilterAction: "include",
-					TopicName:         topic,
-				}).Do()
-			})
-
-			if err != nil {
-				err = fmt.Errorf("error watching email: %w", err)
-				log.Print(err)
-				sentry.CaptureException(err)
-				continue
-			}
-			// success
-			log.Printf("watching: %v", resp)
+		for _, err := range errs {
+			log.Printf("error watching email: %v", err)
+			sentry.CaptureException(err)
+			hasError = true
 		}
 
 		// check if there are more results
@@ -178,7 +226,97 @@ func watchEmails(w http.ResponseWriter, r *http.Request) {
 		offset += limit
 	}
 
-	// write error status code for tracking
+	if hasError {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	log.Println("done.")
+}
+
+func candidateWatchEmails(w http.ResponseWriter, r *http.Request) {
+	log.Println("received watch trigger")
+	ctx := r.Context()
+
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: os.Getenv("SENTRY_DSN"),
+		// Set TracesSampleRate to 1.0 to capture 100%
+		// of transactions for performance monitoring.
+		// We recommend adjusting this value in production,
+		TracesSampleRate: 1.0,
+		ServerName:       "candidate-watch-emails",
+	})
+	if err != nil {
+		log.Printf("sentry.Init: %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Flush buffered events before the program terminates.
+	defer sentry.Flush(2 * time.Second)
+	defer sentry.RecoverWithContext(ctx)
+
+	cf, err := NewCloudFunction(ctx)
+	if err != nil {
+		log.Printf("error creating cloud function: %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	topic := os.Getenv("PUBSUB_TOPIC")
+	if topic == "" {
+		log.Printf("missing PUBSUB_TOPIC")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	arg := &gmail.WatchRequest{
+		LabelIds:          []string{"UNREAD"},
+		LabelFilterAction: "include",
+		TopicName:         topic,
+	}
+
+	hasError := false
+	offset := int32(0)
+
+	for {
+		// 1. Fetch valid auth tokens
+		userTokens, err := cf.Queries.ListCandidateOAuthTokens(ctx, db.ListCandidateOAuthTokensParams{
+			Provider: provider,
+			IsValid:  true,
+			Limit:    limit,
+			Offset:   offset,
+		})
+
+		if err != nil {
+			handleError(w, "error getting candidate oauth tokens", err)
+			return
+		}
+
+		// convert to user oauth token
+		users := make([]db.UserOauthToken, len(userTokens))
+		for i, userToken := range userTokens {
+			users[i] = db.UserOauthToken{
+				UserID:   userToken.UserID,
+				Provider: userToken.Provider,
+				Token:    userToken.Token,
+			}
+		}
+
+		errs := cf.watch(users, arg)
+
+		for _, err := range errs {
+			log.Printf("error watching email: %v", err)
+			sentry.CaptureException(err)
+			hasError = true
+		}
+
+		// check if there are more results
+		if len(userTokens) < int(limit) {
+			break
+		}
+		offset += limit
+	}
+
 	if hasError {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
