@@ -23,7 +23,8 @@ var (
 // Read about https://www.pulumi.com/docs/guides/testing/
 
 type Topics struct {
-	Gmail *pubsub.Topic
+	Gmail                  *pubsub.Topic
+	CandidateGmailMessages *pubsub.Topic
 }
 
 type Infra struct {

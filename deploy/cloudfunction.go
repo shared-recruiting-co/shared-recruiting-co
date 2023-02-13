@@ -10,6 +10,7 @@ import (
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/cloudrunv2"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/cloudscheduler"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/projects"
+	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/pubsub"
 	serviceAccount "github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/serviceaccount"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/storage"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
@@ -128,6 +129,20 @@ func (i *Infra) fullEmailSyncCF() (*CloudFunction, error) {
 		return nil, err
 	}
 
+	_, err = pubsub.NewTopicIAMMember(i.ctx, fmt.Sprintf("%s-publish-to-candidate-gmail-messages", name), &pubsub.TopicIAMMemberArgs{
+		Topic:   i.Topics.CandidateGmailMessages.ID(),
+		Role:    pulumi.String("roles/pubsub.publisher"),
+		Member:  pulumi.Sprintf("serviceAccount:%s", sa.Email),
+		Project: pulumi.String(*i.Project.ProjectId),
+	}, pulumi.DependsOn([]pulumi.Resource{
+		cf,
+		sa,
+		i.Topics.CandidateGmailMessages,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
 	srv, err := cloudrun.LookupService(i.ctx, &cloudrun.LookupServiceArgs{
 		Name:     name,
 		Location: DefaultRegion,
@@ -202,6 +217,7 @@ func (i *Infra) emailPushNotificationCF(fullSync *CloudFunction) (*CloudFunction
 		},
 	}, pulumi.DependsOn([]pulumi.Resource{
 		i.Topics.Gmail,
+		i.Topics.CandidateGmailMessages,
 		obj,
 		sa,
 		fullSync.Function,
@@ -215,6 +231,20 @@ func (i *Infra) emailPushNotificationCF(fullSync *CloudFunction) (*CloudFunction
 		Location: DefaultRegion,
 		Project:  i.Project.ProjectId,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = pubsub.NewTopicIAMMember(i.ctx, fmt.Sprintf("%s-publish-to-candidate-gmail-messages", name), &pubsub.TopicIAMMemberArgs{
+		Topic:   i.Topics.CandidateGmailMessages.ID(),
+		Role:    pulumi.String("roles/pubsub.publisher"),
+		Member:  pulumi.Sprintf("serviceAccount:%s", sa.Email),
+		Project: pulumi.String(*i.Project.ProjectId),
+	}, pulumi.DependsOn([]pulumi.Resource{
+		cf,
+		sa,
+		i.Topics.CandidateGmailMessages,
+	}))
 	if err != nil {
 		return nil, err
 	}
