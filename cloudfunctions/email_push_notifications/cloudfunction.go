@@ -18,6 +18,7 @@ import (
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/db"
 	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/ml"
+	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/pubsub/schema"
 )
 
 const (
@@ -32,25 +33,6 @@ var (
 
 func init() {
 	functions.CloudEvent("EmailPushNotificationHandler", emailPushNotificationHandler)
-}
-
-// MessagePublishedData contains the full Pub/Sub message
-// See the documentation for more details:
-// https://cloud.google.com/eventarc/docs/cloudevents#pubsub
-type MessagePublishedData struct {
-	Message PubSubMessage
-}
-
-// PubSubMessage is the payload of a Pub/Sub event.
-// See the documentation for more details:
-// https://cloud.google.com/pubsub/docs/reference/rest/v1/PubsubMessage
-type PubSubMessage struct {
-	Data []byte `json:"data"`
-}
-
-type EmailPushNotification struct {
-	Email     string `json:"emailAddress"`
-	HistoryID uint64 `json:"historyId"`
 }
 
 type EmailHistory struct {
@@ -83,7 +65,7 @@ func handleError(msg string, err error) error {
 
 // emailPushNotificationHandler consumes a CloudEvent message and extracts the Pub/Sub message.
 func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
-	var msg MessagePublishedData
+	var msg schema.MessagePublishedData
 
 	err := sentry.Init(sentry.ClientOptions{
 		Dsn: os.Getenv("SENTRY_DSN"),
@@ -107,7 +89,7 @@ func emailPushNotificationHandler(ctx context.Context, e event.Event) error {
 	data := msg.Message.Data
 	log.Printf("Event: %s", data)
 
-	var emailPushNotification EmailPushNotification
+	var emailPushNotification schema.EmailPushNotification
 	if err := json.Unmarshal(data, &emailPushNotification); err != nil {
 		return handleError("error parsing email push notification", err)
 	}
