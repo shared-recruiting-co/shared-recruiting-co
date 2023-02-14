@@ -348,6 +348,12 @@ func (cf *CloudFunction) proccessMessages(messageIDs []string) error {
 
 	log.Printf("number of recruiting emails: %d", len(recruitingEmailIDs))
 
+	// Label new recruiting emails
+	err = cf.processRecruitingEmails(recruitingEmailIDs)
+	if err != nil {
+		return fmt.Errorf("error processing recruiting emails: %v", err)
+	}
+
 	// Save statistics at end to avoid re-counting
 	if !cf.settings.DryRun && len(examples) > 0 {
 		err := cf.queries.IncrementUserEmailStat(
@@ -383,7 +389,7 @@ func (cf *CloudFunction) proccessMessages(messageIDs []string) error {
 	return nil
 }
 
-func (cf *CloudFunction) handleRecruitingEmails(messageIDs []string) error {
+func (cf *CloudFunction) processRecruitingEmails(messageIDs []string) error {
 	if len(messageIDs) == 0 {
 		return nil
 	}
