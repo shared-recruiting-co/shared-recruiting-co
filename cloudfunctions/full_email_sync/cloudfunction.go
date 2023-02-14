@@ -90,7 +90,7 @@ func NewCloudFunction(ctx context.Context, payload FullEmailSyncRequest) (*Cloud
 
 	//
 	if !userToken.IsValid {
-		return nil, fmt.Errorf("user token is not valid: %s", payload.Email)
+		return nil, fmt.Errorf("user token is not valid: %s", userToken.UserID)
 	}
 
 	// 3. Create Gmail Service
