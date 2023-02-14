@@ -211,7 +211,7 @@ func handler(ctx context.Context, e event.Event) error {
 		// of transactions for performance monitoring.
 		// We recommend adjusting this value in production,
 		TracesSampleRate: 1.0,
-		ServerName:       "email-push-notifications",
+		ServerName:       "candidate-gmail-messages",
 	})
 	if err != nil {
 		return fmt.Errorf("sentry.Init: %v", err)
