@@ -26,6 +26,10 @@ type FullEmailSyncRequest struct {
 }
 
 func publishMessages(email string, messages []*gmail.Message) {
+	if len(messages) == 0 {
+		return
+	}
+
 	ctx := context.Background()
 	// push message to be processed
 	emailMessages := schema.EmailMessages{
