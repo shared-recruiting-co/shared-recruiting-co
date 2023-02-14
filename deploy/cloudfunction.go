@@ -100,7 +100,7 @@ func (i *Infra) fullEmailSyncCF() (*CloudFunction, error) {
 		Description: pulumi.String("Sync a user's historic emails starting from a given date"),
 		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
 			Runtime:    pulumi.String("go119"),
-			EntryPoint: pulumi.String("FullEmailSync"),
+			EntryPoint: pulumi.String("Handler"),
 			Source: &cloudfunctionsv2.FunctionBuildConfigSourceArgs{
 				StorageSource: &cloudfunctionsv2.FunctionBuildConfigSourceStorageSourceArgs{
 					Bucket: i.GCFBucket.Name,
@@ -114,12 +114,14 @@ func (i *Infra) fullEmailSyncCF() (*CloudFunction, error) {
 			MaxInstanceCount: pulumi.Int(1),
 			TimeoutSeconds:   pulumi.Int(MaxHTTPTriggerTimeout),
 			EnvironmentVariables: pulumi.StringMap{
-				"SUPABASE_API_URL":           pulumi.String(i.config.Require("SUPABASE_API_URL")),
-				"SUPABASE_API_KEY":           i.config.RequireSecret("SUPABASE_API_KEY"),
-				"GOOGLE_OAUTH2_CREDENTIALS":  i.config.RequireSecret("GOOGLE_OAUTH2_CREDENTIALS"),
-				"ML_SERVICE_URL":             i.config.RequireSecret("ML_SERVICE_URL"),
-				"SENTRY_DSN":                 i.config.RequireSecret("SENTRY_DSN"),
-				"EXAMPLES_GMAIL_OAUTH_TOKEN": i.config.RequireSecret("EXAMPLES_GMAIL_OAUTH_TOKEN"),
+				"SUPABASE_API_URL":          pulumi.String(i.config.Require("SUPABASE_API_URL")),
+				"SUPABASE_API_KEY":          i.config.RequireSecret("SUPABASE_API_KEY"),
+				"GOOGLE_OAUTH2_CREDENTIALS": i.config.RequireSecret("GOOGLE_OAUTH2_CREDENTIALS"),
+				"SENTRY_DSN":                i.config.RequireSecret("SENTRY_DSN"),
+				"GCP_PROJECT_ID":            pulumi.String(*i.Project.ProjectId),
+				"CANDIDATE_GMAIL_MESSAGES_TOPIC": i.Topics.CandidateGmailMessages.Name.ApplyT(func(name string) string {
+					return name
+				}).(pulumi.StringOutput),
 			},
 			IngressSettings:            pulumi.String("ALLOW_ALL"),
 			AllTrafficOnLatestRevision: pulumi.Bool(true),
@@ -203,14 +205,12 @@ func (i *Infra) emailPushNotificationCF(fullSync *CloudFunction) (*CloudFunction
 			MaxInstanceCount: pulumi.Int(25),
 			TimeoutSeconds:   pulumi.Int(MaxEventArcTriggerTimeout),
 			EnvironmentVariables: pulumi.StringMap{
-				"SUPABASE_API_URL":           pulumi.String(i.config.Require("SUPABASE_API_URL")),
-				"SUPABASE_API_KEY":           i.config.RequireSecret("SUPABASE_API_KEY"),
-				"GOOGLE_OAUTH2_CREDENTIALS":  i.config.RequireSecret("GOOGLE_OAUTH2_CREDENTIALS"),
-				"ML_SERVICE_URL":             i.config.RequireSecret("ML_SERVICE_URL"),
-				"SENTRY_DSN":                 i.config.RequireSecret("SENTRY_DSN"),
-				"EXAMPLES_GMAIL_OAUTH_TOKEN": i.config.RequireSecret("EXAMPLES_GMAIL_OAUTH_TOKEN"),
-				"TRIGGER_FULL_SYNC_URL":      fullSync.Function.ServiceConfig.Uri().Elem(),
-				"GCP_PROJECT_ID":             pulumi.String(*i.Project.ProjectId),
+				"SUPABASE_API_URL":          pulumi.String(i.config.Require("SUPABASE_API_URL")),
+				"SUPABASE_API_KEY":          i.config.RequireSecret("SUPABASE_API_KEY"),
+				"GOOGLE_OAUTH2_CREDENTIALS": i.config.RequireSecret("GOOGLE_OAUTH2_CREDENTIALS"),
+				"SENTRY_DSN":                i.config.RequireSecret("SENTRY_DSN"),
+				"TRIGGER_FULL_SYNC_URL":     fullSync.Function.ServiceConfig.Uri().Elem(),
+				"GCP_PROJECT_ID":            pulumi.String(*i.Project.ProjectId),
 				"CANDIDATE_GMAIL_MESSAGES_TOPIC": i.Topics.CandidateGmailMessages.Name.ApplyT(func(name string) string {
 					return name
 				}).(pulumi.StringOutput),

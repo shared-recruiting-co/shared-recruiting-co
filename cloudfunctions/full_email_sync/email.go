@@ -36,14 +36,14 @@ func fetchThreadsSinceDate(srv *srcmail.Service, date time.Time, pageToken strin
 }
 
 // SkipThread if the messages already labeled with SRC label
-func skipThread(messages []*gmail.Message, srcLabelId string) bool {
+func skipThread(messages []*gmail.Message, label string) bool {
 	if len(messages) == 0 {
 		return true
 	}
 
 	// for each message in the thread, check if it has the @src label
 	for _, m := range messages {
-		if srcmessage.HasLabel(m, srcLabelId) {
+		if srcmessage.HasLabel(m, label) {
 			return true
 		}
 	}
