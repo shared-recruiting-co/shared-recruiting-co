@@ -71,18 +71,19 @@ func isThreadAlreadyLabeled(messages []*gmail.Message, srcLabelId string) bool {
 }
 
 func isMessageBeforeReply(messages []*gmail.Message, messageID string) bool {
-	beforeReplyIDs := []string{}
 	// ensure messages are sorted by ascending date
 	srcmessage.SortByDate(messages)
 
+	// skip if the message it doesn't appear before a reply
 	for _, m := range messages {
 		if srcmessage.IsSent(m) {
 			break
 		}
-		beforeReplyIDs = append(beforeReplyIDs, m.Id)
+		if m.Id == messageID {
+			return true
+		}
 	}
-	// skip if the message is not in the beforeReplyIDs
-	return !contains(beforeReplyIDs, messageID)
+	return false
 }
 
 // TODO:
