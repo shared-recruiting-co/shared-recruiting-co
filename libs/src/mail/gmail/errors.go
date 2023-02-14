@@ -19,13 +19,14 @@ func IsOAuth2Error(err error) bool {
 
 // IsGoogleAPIError checks if the error is a googleapi.Error
 //
-// https://developers.google.com/gmail/api/guides/handle-errors#resolve_a_403_error_user_rate_limit_exceeded
+// https://developers.google.com/gmail/api/guides/handle-errors
 func IsGoogleAPIError(err error) bool {
 	target := &googleapi.Error{}
 	return errors.As(err, &target)
 }
 
-// IsRateLimitError checks for a status too many requests (429) response from a Google API
+// IsRateLimitError checks for a status too many requests (429) or a usage limit (403) response from a Google API
+// https://developers.google.com/gmail/api/guides/handle-errors#resolve_a_403_error_user_rate_limit_exceeded
 func IsRateLimitError(err error) bool {
 	if !IsGoogleAPIError(err) {
 		return false
