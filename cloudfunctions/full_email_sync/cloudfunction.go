@@ -1,6 +1,7 @@
 package cloudfunctions
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -13,28 +14,21 @@ import (
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/getsentry/sentry-go"
 
+	"cloud.google.com/go/pubsub"
 	"google.golang.org/api/gmail/v1"
-	"google.golang.org/api/idtoken"
 
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/db"
 	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
 	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/label"
-	srcmessage "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/message"
-	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/ml"
+	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/pubsub/schema"
 )
 
 const (
 	provider = "google"
 )
 
-var (
-	// global variable to share across functions...simplest approach for now
-	examplesCollectorSrv   *srcmail.Service
-	collectedExampleLabels = []string{"INBOX", "UNREAD"}
-)
-
 func init() {
-	functions.HTTP("FullEmailSync", fullEmailSync)
+	functions.HTTP("Handler", handler)
 }
 
 func jsonFromEnv(env string) ([]byte, error) {
@@ -53,12 +47,113 @@ func handleError(w http.ResponseWriter, msg string, err error) {
 }
 
 type FullEmailSyncRequest struct {
-	Email     string    `json:"email"`
-	StartDate time.Time `json:"start_date"`
+	Email     string                       `json:"email"`
+	StartDate time.Time                    `json:"start_date"`
+	Settings  schema.EmailMessagesSettings `json:"settings"`
 }
 
-// fullEmailSync is triggers a sync up to the specified date for the given email
-func fullEmailSync(w http.ResponseWriter, r *http.Request) {
+type CloudFunction struct {
+	ctx     context.Context
+	queries db.Querier
+	srv     *srcmail.Service
+	labels  *srclabel.Labels
+	user    db.UserProfile
+	request FullEmailSyncRequest
+	topic   *pubsub.Topic
+}
+
+func NewCloudFunction(ctx context.Context, payload FullEmailSyncRequest) (*CloudFunction, error) {
+	creds, err := jsonFromEnv("GOOGLE_OAUTH2_CREDENTIALS")
+	if err != nil {
+		return nil, fmt.Errorf("error parsing GOOGLE_OAUTH2_CREDENTIALScredentials: %w", err)
+	}
+
+	// 0, Create SRC client
+	apiURL := os.Getenv("SUPABASE_API_URL")
+	apiKey := os.Getenv("SUPABASE_API_KEY")
+	queries := db.NewHTTP(apiURL, apiKey)
+
+	// 1. Get User from email address
+	user, err := queries.GetUserProfileByEmail(ctx, payload.Email)
+	if err != nil {
+		return nil, fmt.Errorf("error getting user profile by email: %w", err)
+	}
+
+	// 2. Get User' OAuth Token
+	userToken, err := queries.GetUserOAuthToken(ctx, db.GetUserOAuthTokenParams{
+		UserID:   user.UserID,
+		Provider: provider,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error getting user oauth token: %w", err)
+	}
+
+	//
+	if !userToken.IsValid {
+		return nil, fmt.Errorf("user token is not valid: %s", payload.Email)
+	}
+
+	// 3. Create Gmail Service
+	auth := []byte(userToken.Token)
+	srv, err := srcmail.NewService(ctx, creds, auth)
+	if err != nil {
+		return nil, fmt.Errorf("error creating gmail service: %w", err)
+	}
+
+	// 4. Get or Create SRC Labels
+	labels, err := srv.GetOrCreateSRCLabels()
+	if err != nil {
+		// first request, so check if the error is an oauth error
+		// if so, update the database
+		if srcmail.IsOAuth2Error(err) {
+			log.Printf("error oauth error: %v", err)
+			// update the user's oauth token
+			err = queries.UpsertUserOAuthToken(ctx, db.UpsertUserOAuthTokenParams{
+				UserID:   userToken.UserID,
+				Provider: provider,
+				Token:    userToken.Token,
+				IsValid:  false,
+			})
+			if err != nil {
+				log.Printf("error updating user oauth token: %v", err)
+			} else {
+				log.Printf("marked user oauth token as invalid")
+			}
+		}
+		return nil, fmt.Errorf("error getting or creating src labels: %w", err)
+	}
+
+	// Create messages topic
+	projectID := os.Getenv("GCP_PROJECT_ID")
+	if projectID == "" {
+		return nil, fmt.Errorf("GCP_PROJECT_ID is not set")
+	}
+	topicName := os.Getenv("CANDIDATE_GMAIL_MESSAGES_TOPIC")
+	if topicName == "" {
+		return nil, fmt.Errorf("CANDIDATE_GMAIL_MESSAGES_TOPIC is not set")
+	}
+	client, err := pubsub.NewClient(ctx, projectID)
+	if err != nil {
+		return nil, fmt.Errorf("error creating pubsub client: %w", err)
+	}
+	topic := client.Topic(topicName)
+	if topic == nil {
+		return nil, fmt.Errorf("error getting pubsub topic: %w", err)
+	}
+
+	return &CloudFunction{
+		ctx:     ctx,
+		queries: queries,
+		srv:     srv,
+		labels:  labels,
+		user:    user,
+		request: payload,
+		topic:   topic,
+	}, nil
+}
+
+// handler is triggers a sync up to the specified date for the given email
+func handler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	err := sentry.Init(sentry.ClientOptions{
@@ -91,129 +186,52 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 		handleError(w, "error unmarshalling request body", err)
 		return
 	}
-	email := data.Email
-	startDate := data.StartDate
-
 	log.Println("full email sync request")
 
-	creds, err := jsonFromEnv("GOOGLE_OAUTH2_CREDENTIALS")
+	cf, err := NewCloudFunction(ctx, data)
 	if err != nil {
-		handleError(w, "error fetching google app credentials", err)
+		handleError(w, "error creating cloud function", err)
+		return
+	}
+	defer cf.topic.Stop()
+
+	err = cf.Sync()
+	if err != nil {
+		handleError(w, "error syncing", err)
 		return
 	}
 
-	// 0, Create SRC http client
-	apiURL := os.Getenv("SUPABASE_API_URL")
-	apiKey := os.Getenv("SUPABASE_API_KEY")
-	queries := db.NewHTTP(apiURL, apiKey)
+	log.Printf("done.")
+}
 
-	// 1. Get User from email address
-	user, err := queries.GetUserProfileByEmail(ctx, email)
-	if err != nil {
-		handleError(w, "error getting user profile by email", err)
-		return
-	}
-	// if auto contribute is on, create the collector service
-	if user.AutoContribute {
-		auth, err := jsonFromEnv("EXAMPLES_GMAIL_OAUTH_TOKEN")
-		if err != nil {
-			handleError(w, "error reading examples@sharedrecruiting.co credentials", err)
-			return
-		}
-		examplesCollectorSrv, err = srcmail.NewService(ctx, creds, auth)
-		if err != nil {
-			handleError(w, "error creating example collector service", err)
-			return
-		}
-	}
-
-	// Get User' OAuth Token
-	userToken, err := queries.GetUserOAuthToken(ctx, db.GetUserOAuthTokenParams{
-		UserID:   user.UserID,
-		Provider: provider,
-	})
-	if err != nil {
-		handleError(w, "error getting user oauth token", err)
-		return
-	}
-
-	// Create Gmail Service
-	auth := []byte(userToken.Token)
-	srv, err := srcmail.NewService(ctx, creds, auth)
-	if err != nil {
-		handleError(w, "error creating mail service", err)
-		return
-	}
-
-	// Create SRC Labels
-	labels, err := srv.GetOrCreateSRCLabels()
-	if err != nil {
-		// first request, so check if the error is an oauth error
-		// if so, update the database
-		if srcmail.IsOAuth2Error(err) {
-			log.Printf("error oauth error: %v", err)
-			// update the user's oauth token
-			err = queries.UpsertUserOAuthToken(ctx, db.UpsertUserOAuthTokenParams{
-				UserID:   userToken.UserID,
-				Provider: provider,
-				Token:    userToken.Token,
-				IsValid:  false,
-			})
-			if err != nil {
-				log.Printf("error updating user oauth token: %v", err)
-			} else {
-				log.Printf("marked user oauth token as invalid")
-			}
-		}
-		handleError(w, "error getting or creating the SRC label", err)
-		return
-	}
-
-	// Create recruiting detector client
-	classifierBaseURL := os.Getenv("ML_SERVICE_URL")
-	idTokenSource, err := idtoken.NewTokenSource(ctx, classifierBaseURL)
-	if err != nil {
-		handleError(w, "error creating id token source", err)
-		return
-	}
-	idToken, err := idTokenSource.Token()
-	if err != nil {
-		handleError(w, "error getting id token", err)
-		return
-	}
-
-	classifier := ml.NewService(ctx, ml.NewServiceArg{
-		BaseURL:   classifierBaseURL,
-		AuthToken: idToken.AccessToken,
-	})
-
+func (cf *CloudFunction) Sync() error {
+	var err error
 	var threads []*gmail.Thread
+	var results []*pubsub.PublishResult
 	pageToken := ""
 
 	// batch process messages to reduce memory usage
 	for {
 		// get next set of messages
 		// if this is the first notification, trigger a one-time sync
-		threads, pageToken, err = fetchThreadsSinceDate(srv, startDate, pageToken)
+		threads, pageToken, err = fetchThreadsSinceDate(cf.srv, cf.request.StartDate, pageToken)
 
 		// for now, abort on error
 		if err != nil {
-			handleError(w, "error fetching emails", err)
-			return
+			return fmt.Errorf("error fetching emails: %w", err)
 		}
 
 		// get the messages for each thread
 		var messages []*gmail.Message
 		for _, t := range threads {
-			thread, err := srv.GetThread(t.Id, "minimal")
+			thread, err := cf.srv.GetThread(t.Id, "minimal")
 			if err != nil {
 				// for now abort on error
-				handleError(w, "error fetching thread", err)
-				return
+				return fmt.Errorf("error fetching thread: %w", err)
 			}
 
 			// check if we already processed this thread
-			if skipThread(thread.Messages, labels.JobsOpportunity.Id) {
+			if skipThread(thread.Messages, cf.labels.JobsOpportunity.Id) {
 				continue
 			}
 			// get messages before the first reply
@@ -224,98 +242,16 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 			messages = append(messages, filtered...)
 		}
 
-		// process messages
-		examples := map[string]*ml.ClassifyRequest{}
-		for _, message := range messages {
-			// payload isn't included in the list endpoint responses
-			message, err := srv.GetMessage(message.Id)
-
-			// for now, abort on error
+		if len(messages) == 0 {
+			log.Printf("no new messages to process")
+		} else {
+			// TODO: Push to topic
+			result, err := cf.PublishMessages(messages)
 			if err != nil {
-				handleError(w, "error getting message", err)
-				return
+				return fmt.Errorf("error publishing messages: %w", err)
 			}
 
-			// filter out empty messages
-			if message.Payload == nil {
-				continue
-			}
-			examples[message.Id] = &ml.ClassifyRequest{
-				From:    srcmessage.Sender(message),
-				Subject: srcmessage.Subject(message),
-				Body:    srcmessage.Body(message),
-			}
-		}
-
-		log.Printf("number of emails to classify: %d", len(examples))
-
-		if len(examples) == 0 {
-			break
-		}
-
-		// Batch predict on new emails
-		results, err := classifier.BatchClassify(&ml.BatchClassifyRequest{
-			Inputs: examples,
-		})
-		if err != nil {
-			handleError(w, "error predicting on examples", err)
-			return
-		}
-
-		// Get IDs of new recruiting emails
-		recruitingEmailIDs := []string{}
-		for id, result := range results.Results {
-			if !result {
-				continue
-			}
-			recruitingEmailIDs = append(recruitingEmailIDs, id)
-		}
-
-		log.Printf("number of recruiting emails: %d", len(recruitingEmailIDs))
-
-		// Take action on recruiting emails
-		err = handleRecruitingEmails(srv, user, labels, recruitingEmailIDs)
-		// for now, abort on error
-		if err != nil {
-			handleError(w, "error modifying recruiting emails", err)
-			return
-		}
-
-		// save statistics
-		if len(examples) > 0 {
-			err = queries.IncrementUserEmailStat(
-				ctx,
-				db.IncrementUserEmailStatParams{
-					UserID:    user.UserID,
-					Email:     user.Email,
-					StatID:    "emails_processed",
-					StatValue: int32(len(examples)),
-				},
-			)
-			if err != nil {
-				// print error, but don't abort
-				err = fmt.Errorf("error incrementing user email stat: %w", err)
-				log.Print(err)
-				sentry.CaptureException(err)
-			}
-		}
-		if len(recruitingEmailIDs) > 0 {
-			err = queries.IncrementUserEmailStat(
-				ctx,
-				db.IncrementUserEmailStatParams{
-					UserID: user.UserID,
-					Email:  user.Email,
-					StatID: "jobs_detected",
-					// TOOD: Use number of threads instead of number of messages
-					StatValue: int32(len(recruitingEmailIDs)),
-				},
-			)
-			if err != nil {
-				// print error, but don't abort
-				err = fmt.Errorf("error incrementing user email stat: %w", err)
-				log.Print(err)
-				sentry.CaptureException(err)
-			}
+			results = append(results, result)
 		}
 
 		if pageToken == "" {
@@ -323,51 +259,36 @@ func fullEmailSync(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	log.Printf("done.")
-}
-
-func handleRecruitingEmails(srv *srcmail.Service, profile db.UserProfile, labels *srclabel.Labels, messageIDs []string) error {
-	if len(messageIDs) == 0 {
-		return nil
-	}
-
-	removeLabels := []string{}
-	if profile.AutoArchive {
-		removeLabels = append(removeLabels, "INBOX", "UNREAD")
-	}
-
-	_, err := srcmail.ExecuteWithRetries(func() (interface{}, error) {
-		err := srv.Users.Messages.BatchModify(srv.UserID, &gmail.BatchModifyMessagesRequest{
-			Ids: messageIDs,
-			// Add job opportunity label and parent folder labels
-			AddLabelIds:    []string{labels.SRC.Id, labels.Jobs.Id, labels.JobsOpportunity.Id},
-			RemoveLabelIds: removeLabels,
-		}).Do()
-		// hack to make compatible with ExecuteWithRetries requirements
-		return nil, err
-	})
-
-	if err != nil {
-		return fmt.Errorf("error modifying recruiting emails: %v", err)
-	}
-
-	if profile.AutoContribute {
-		for _, id := range messageIDs {
-			// shouldn't happen
-			if examplesCollectorSrv == nil {
-				log.Print("examples collector service not initialized")
-				break
-			}
-			// clone the message to the examples inbox
-			_, err := srcmail.CloneMessage(srv, examplesCollectorSrv, id, collectedExampleLabels)
-
-			if err != nil {
-				// don't abort on error
-				log.Printf("error collecting email %s: %v", id, err)
-				continue
-			}
+	// wait for all messages to be processed
+	for _, result := range results {
+		_, err := result.Get(cf.ctx)
+		if err != nil {
+			// log but do not abort
+			log.Printf("error getting publish result: %v", err)
 		}
 	}
 
 	return nil
+}
+
+func (cf *CloudFunction) PublishMessages(messages []*gmail.Message) (*pubsub.PublishResult, error) {
+	emailMessages := schema.EmailMessages{
+		Email:    cf.user.Email,
+		Messages: make([]string, len(messages)),
+		Settings: cf.request.Settings,
+	}
+	for i, message := range messages {
+		emailMessages.Messages[i] = message.Id
+	}
+	rawMessage, err := json.Marshal(emailMessages)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling email messages: %w", err)
+	}
+
+	// publish message
+	result := cf.topic.Publish(cf.ctx, &pubsub.Message{
+		Data: rawMessage,
+	})
+
+	return result, nil
 }
