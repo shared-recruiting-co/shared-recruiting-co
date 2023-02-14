@@ -101,6 +101,10 @@ func (i *Infra) fullEmailSyncCF() (*CloudFunction, error) {
 		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
 			Runtime:    pulumi.String("go119"),
 			EntryPoint: pulumi.String("Handler"),
+			EnvironmentVariables: pulumi.StringMap{
+				// Use hash to force redeploy when code changes
+				"FUNCTION_CONTENT_HASH": obj.Md5hash,
+			},
 			Source: &cloudfunctionsv2.FunctionBuildConfigSourceArgs{
 				StorageSource: &cloudfunctionsv2.FunctionBuildConfigSourceStorageSourceArgs{
 					Bucket: i.GCFBucket.Name,
