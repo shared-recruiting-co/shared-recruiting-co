@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/GoogleCloudPlatform/functions-framework-go v1.6.1
 	github.com/getsentry/sentry-go v0.17.0
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230213162904-183560d30913
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230214143255-29af740be8ad
 	google.golang.org/api v0.107.0
 )
 
