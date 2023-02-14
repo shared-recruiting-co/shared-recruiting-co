@@ -85,6 +85,45 @@ func TestIsRateLimitError(t *testing.T) {
 			want: true,
 		},
 		{
+			name: "user usage limit error",
+			err: &googleapi.Error{
+				Code: http.StatusForbidden,
+				Errors: []googleapi.ErrorItem{
+					{
+						Reason:  "userRateLimitExceeded",
+						Message: "User Rate Limit Exceeded",
+					},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "daily usage limit error",
+			err: &googleapi.Error{
+				Code: http.StatusForbidden,
+				Errors: []googleapi.ErrorItem{
+					{
+						Reason:  "dailyLimitExceeded",
+						Message: "Daily Limit Exceeded",
+					},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "usage limit error",
+			err: &googleapi.Error{
+				Code: http.StatusForbidden,
+				Errors: []googleapi.ErrorItem{
+					{
+						Reason:  "rateLimitExceeded",
+						Message: "Rate Limit Exceeded",
+					},
+				},
+			},
+			want: true,
+		},
+		{
 			name: "other googleapi error",
 			err: &googleapi.Error{
 				Code: http.StatusNotFound,

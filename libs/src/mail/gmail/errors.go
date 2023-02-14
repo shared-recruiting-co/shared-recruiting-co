@@ -18,14 +18,37 @@ func IsOAuth2Error(err error) bool {
 }
 
 // IsGoogleAPIError checks if the error is a googleapi.Error
+//
+// https://developers.google.com/gmail/api/guides/handle-errors
 func IsGoogleAPIError(err error) bool {
 	target := &googleapi.Error{}
 	return errors.As(err, &target)
 }
 
-// IsRateLimitError checks for a status too many requests (429) response from a Google API
+// IsRateLimitError checks for a status too many requests (429) or a usage limit (403) response from a Google API
+// https://developers.google.com/gmail/api/guides/handle-errors#resolve_a_403_error_user_rate_limit_exceeded
 func IsRateLimitError(err error) bool {
-	return IsGoogleAPIError(err) && err.(*googleapi.Error).Code == http.StatusTooManyRequests
+	if !IsGoogleAPIError(err) {
+		return false
+	}
+	// cast to googleapi.Error
+	gErr := err.(*googleapi.Error)
+	if gErr.Code == http.StatusTooManyRequests {
+		return true
+	}
+	if gErr.Code == http.StatusForbidden {
+		// check Errors for domain usageLimits
+		// Note: ErrorItem doesn't contain a Domain field
+		for _, e := range gErr.Errors {
+			if e.Reason == "rateLimitExceeded" ||
+				e.Reason == "dailyLimitExceeded" ||
+				e.Reason == "userRateLimitExceeded" {
+				return true
+			}
+		}
+
+	}
+	return false
 }
 
 // IsNotFound checks for a status not found (404) response from a Google API
