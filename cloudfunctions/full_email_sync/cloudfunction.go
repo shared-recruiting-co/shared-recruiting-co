@@ -245,7 +245,7 @@ func (cf *CloudFunction) Sync() error {
 		if len(messages) == 0 {
 			log.Printf("no new messages to process")
 		} else {
-			// TODO: Push to topic
+			// if there are messages to process, push them
 			result, err := cf.PublishMessages(messages)
 			if err != nil {
 				return fmt.Errorf("error publishing messages: %w", err)
