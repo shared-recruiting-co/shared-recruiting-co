@@ -41,6 +41,8 @@ func handleError(msg string, err error) error {
 	return err
 }
 
+// TODO: Refactor this to use a struct
+
 // handler consumes a CloudEvent message and extracts the Pub/Sub message.
 func handler(ctx context.Context, e event.Event) error {
 	var msg schema.MessagePublishedData
