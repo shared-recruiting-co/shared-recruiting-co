@@ -86,13 +86,6 @@ func isMessageBeforeReply(messages []*gmail.Message, messageID string) bool {
 	return false
 }
 
-// TODO:
-
-// TODO: Port filterMessagesAfterReply
-// glue code
-//
-// refactor push code (maybe move to libs)
-// clean up code in push notification
 type CloudFunction struct {
 	ctx                  context.Context
 	queries              db.Querier
