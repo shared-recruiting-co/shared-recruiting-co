@@ -13,11 +13,9 @@ import (
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
 	"github.com/getsentry/sentry-go"
-	"google.golang.org/api/idtoken"
 
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/db"
 	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
-	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/ml"
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/pubsub/schema"
 )
 
@@ -25,19 +23,8 @@ const (
 	provider = "google"
 )
 
-var (
-	// global variable to share across functions...simplest approach for now
-	examplesCollectorSrv   *srcmail.Service
-	collectedExampleLabels = []string{"INBOX", "UNREAD"}
-)
-
 func init() {
 	functions.CloudEvent("Handler", handler)
-}
-
-type EmailHistory struct {
-	Email     string `json:"email"`
-	HistoryID int64  `json:"historyId"`
 }
 
 func jsonFromEnv(env string) ([]byte, error) {
@@ -45,15 +32,6 @@ func jsonFromEnv(env string) ([]byte, error) {
 	decoded, err := base64.URLEncoding.DecodeString(encoded)
 
 	return decoded, err
-}
-
-func contains[T comparable](list []T, item T) bool {
-	for _, element := range list {
-		if element == item {
-			return true
-		}
-	}
-	return false
 }
 
 // naive error handler for now
@@ -112,16 +90,6 @@ func handler(ctx context.Context, e event.Event) error {
 	if err != nil {
 		return handleError("error getting user profile by email", err)
 	}
-	if user.AutoContribute {
-		auth, err := jsonFromEnv("EXAMPLES_GMAIL_OAUTH_TOKEN")
-		if err != nil {
-			return handleError("error parsing EXAMPLES_GMAIL_OAUTH_TOKEN", err)
-		}
-		examplesCollectorSrv, err = srcmail.NewService(ctx, creds, auth)
-		if err != nil {
-			return handleError("error creating examples collector service", err)
-		}
-	}
 
 	// 2. Get User' OAuth Token
 	userToken, err := queries.GetUserOAuthToken(ctx, db.GetUserOAuthTokenParams{
@@ -146,7 +114,7 @@ func handler(ctx context.Context, e event.Event) error {
 	}
 
 	// 4. Get or Create SRC Labels
-	labels, err := srv.GetOrCreateSRCLabels()
+	_, err = srv.GetOrCreateSRCLabels()
 	if err != nil {
 		// first request, so check if the error is an oauth error
 		// if so, update the database
@@ -167,22 +135,6 @@ func handler(ctx context.Context, e event.Event) error {
 		}
 		return handleError("error getting or creating SRC labels", err)
 	}
-	// Create recruiting detector client
-	classifierBaseURL := os.Getenv("ML_SERVICE_URL")
-	idTokenSource, err := idtoken.NewTokenSource(ctx, classifierBaseURL)
-	if err != nil {
-		return handleError("error creating id token source", err)
-	}
-
-	idToken, err := idTokenSource.Token()
-	if err != nil {
-		return handleError("error getting id token", err)
-	}
-
-	classifier := ml.NewService(ctx, ml.NewServiceArg{
-		BaseURL:   classifierBaseURL,
-		AuthToken: idToken.AccessToken,
-	})
 
 	// 5. Make Request to get previous history and proactively save new history (If anything goes wrong, then we reset the history ID to the previous one)
 	// Make Request to Fetch Previous History ID
@@ -249,10 +201,7 @@ func handler(ctx context.Context, e event.Event) error {
 	err = syncNewEmails(
 		user,
 		srv,
-		queries,
-		classifier,
 		prevSyncHistory,
-		labels,
 	)
 	if err != nil {
 		revertSynctHistory()

@@ -17,8 +17,6 @@ import (
 
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/db"
 	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
-	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/label"
-	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/ml"
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/pubsub/schema"
 )
 
@@ -104,10 +102,7 @@ func triggerBackgroundfFullEmailSync(ctx context.Context, email string, startDat
 func syncNewEmails(
 	user db.UserProfile,
 	srv *srcmail.Service,
-	queries db.Querier,
-	classifier ml.Service,
 	syncHistory db.UserEmailSyncHistory,
-	labels *srclabel.Labels,
 ) error {
 	var err error
 	pageToken := ""
