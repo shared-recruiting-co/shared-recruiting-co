@@ -16,11 +16,13 @@ type PubSubMessage struct {
 }
 
 // EmailPushNotification is the payload of a gmail push notification event.
+// Note the fields are camelCase, not snake_case, because Google generates them.
 type EmailPushNotification struct {
 	Email     string `json:"emailAddress"`
 	HistoryID uint64 `json:"historyId"`
 }
 
+// EmailMessages is the payload for messages to be processes
 type EmailMessages struct {
 	// Email is the email address of the user.
 	Email string `json:"email"`
@@ -32,7 +34,7 @@ type EmailMessages struct {
 
 type EmailMessagesSettings struct {
 	// DryRun indicates whether we should take action on the messages or not.
-	DryRun bool `json:"dryRun"`
+	DryRun bool `json:"dry_run"`
 	// Reclassify indicates whether we should reclassify already classified messages or not.
 	Reclassify bool `json:"reclassify"`
 }
