@@ -3,6 +3,7 @@ package gmail
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"golang.org/x/oauth2"
 	"google.golang.org/api/googleapi"
@@ -56,13 +57,40 @@ func IsNotFound(err error) bool {
 	return IsGoogleAPIError(err) && err.(*googleapi.Error).Code == http.StatusNotFound
 }
 
+// Default values for ExponentialBackOff.
+// The defaults should be optimized for
+// - Google usage quota periods and limits
+// - Cloud Functions execution time limits
+const (
+	DefaultInitialInterval     = 1 * time.Second
+	DefaultRandomizationFactor = 0.5
+	DefaultMultiplier          = 3
+	DefaultMaxInterval         = 2 * time.Minute
+	DefaultMaxElapsedTime      = 20 * time.Minute
+)
+
+// NewExponentialBackOff creates an instance of ExponentialBackOff using default values.
+func NewExponentialBackOff() *backoff.ExponentialBackOff {
+	b := &backoff.ExponentialBackOff{
+		InitialInterval:     DefaultInitialInterval,
+		RandomizationFactor: DefaultRandomizationFactor,
+		Multiplier:          DefaultMultiplier,
+		MaxInterval:         DefaultMaxInterval,
+		MaxElapsedTime:      DefaultMaxElapsedTime,
+		Stop:                backoff.Stop,
+		Clock:               backoff.SystemClock,
+	}
+	b.Reset()
+	return b
+}
+
 // ExecuteWithRetries executes a function
 // and automatically retries with an exponential back-off if the function rate turns a
 // googleapi rate limit error (IsRateLimitError).
 func ExecuteWithRetries[T any](f func() (T, error)) (T, error) {
 	t, err := f()
 	if IsRateLimitError(err) {
-		return backoff.RetryWithData(f, backoff.NewExponentialBackOff())
+		return backoff.RetryWithData(f, NewExponentialBackOff())
 	}
 	return t, err
 }
