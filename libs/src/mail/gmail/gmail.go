@@ -253,7 +253,11 @@ func (s *Service) IsSenderAllowed(sender string) (bool, error) {
 	// if there is a sender display name ("John Doe <john.doe@gmail.com>")
 	// extract the email address
 	if senderEmailRe.MatchString(sender) {
-		sender = senderEmailRe.FindStringSubmatch(sender)[1]
+		matches := senderEmailRe.FindStringSubmatch(sender)
+		if len(matches) < 2 {
+			return false, fmt.Errorf("error allowing message: unable to parse email from sender: %s", sender)
+		}
+		sender = matches[1]
 	}
 	// check if sender is allowed
 	// leverage Gmail's native query engine to check
@@ -287,7 +291,11 @@ func (s *Service) IsSenderBlocked(sender string) (bool, error) {
 	// if there is a sender display name ("John Doe <john.doe@gmail.com>")
 	// extract the email address
 	if senderEmailRe.MatchString(sender) {
-		sender = senderEmailRe.FindStringSubmatch(sender)[1]
+		matches := senderEmailRe.FindStringSubmatch(sender)
+		if len(matches) < 2 {
+			return false, fmt.Errorf("error blocking message: unable to parse email from sender: %s", sender)
+		}
+		sender = matches[1]
 	}
 	// check if sender is blocked
 	// leverage Gmail's native query engine to check
