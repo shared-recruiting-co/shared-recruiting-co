@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -22,6 +23,8 @@ type HTTPQueries struct {
 	URL string
 	// APIKey is the API Key for the PostgREST API
 	APIKey string
+	// Debug enables debug logging
+	Debug bool
 }
 
 // NewHTTP creates a new HTTPQueries.
@@ -48,6 +51,9 @@ func (q *HTTPQueries) DoRequest(ctx context.Context, method, path string, body i
 	req, err := http.NewRequestWithContext(ctx, method, reqPath, body)
 	if err != nil {
 		return nil, err
+	}
+	if q.Debug {
+		log.Printf("request: %s %s\n", req.Method, req.URL.String())
 	}
 
 	req.Header.Set("apikey", q.APIKey)
