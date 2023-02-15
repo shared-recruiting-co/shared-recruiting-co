@@ -26,7 +26,12 @@ func IsGoogleAPIError(err error) bool {
 	return errors.As(err, &target)
 }
 
-// IsRateLimitError checks for a status too many requests (429) or a usage limit (403) response from a Google API
+// IsRateLimitError checks for
+// - a status too many requests (429)
+// - a usage limit (403) response
+// - or a temporary 500 response
+// from the Google API
+//
 // https://developers.google.com/gmail/api/guides/handle-errors#resolve_a_403_error_user_rate_limit_exceeded
 func IsRateLimitError(err error) bool {
 	if !IsGoogleAPIError(err) {
@@ -47,7 +52,10 @@ func IsRateLimitError(err error) bool {
 				return true
 			}
 		}
-
+	}
+	// https://developers.google.com/gmail/api/guides/handle-errors#resolve_a_500_error_backend_error
+	if gErr.Code >= http.StatusInternalServerError {
+		return true
 	}
 	return false
 }

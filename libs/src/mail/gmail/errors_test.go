@@ -124,6 +124,19 @@ func TestIsRateLimitError(t *testing.T) {
 			want: true,
 		},
 		{
+			name: "5xx error",
+			err: &googleapi.Error{
+				Code: http.StatusBadGateway,
+				Errors: []googleapi.ErrorItem{
+					{
+						Reason:  "backendError",
+						Message: "Backend Error",
+					},
+				},
+			},
+			want: true,
+		},
+		{
 			name: "other googleapi error",
 			err: &googleapi.Error{
 				Code: http.StatusNotFound,
