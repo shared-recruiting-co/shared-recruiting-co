@@ -194,7 +194,8 @@ func (q *HTTPQueries) ListUserOAuthTokens(ctx context.Context, arg ListUserOAuth
 	query = fmt.Sprintf("%s&provider=eq.%s", query, arg.Provider)
 	query = fmt.Sprintf("%s&is_valid=eq.%t", query, arg.IsValid)
 	// pagination params
-	query = fmt.Sprintf("%s&limit=eq.%d&offset=eq.%d", query, arg.Limit, arg.Offset)
+	query = fmt.Sprintf("%s&limit=%d&offset=%d", query, arg.Limit, arg.Offset)
+	query = fmt.Sprintf("%s&limit=%d&offset=%d", query, arg.Limit, arg.Offset)
 
 	path := fmt.Sprintf("%s?%s", basePath, query)
 	var result []UserOauthToken
@@ -231,7 +232,7 @@ func (q *HTTPQueries) ListCandidateOAuthTokens(ctx context.Context, arg ListCand
 	query = fmt.Sprintf("%s&provider=eq.%s", query, arg.Provider)
 	query = fmt.Sprintf("%s&is_valid=eq.%t", query, arg.IsValid)
 	// pagination params
-	query = fmt.Sprintf("%s&limit=eq.%d&offset=eq.%d", query, arg.Limit, arg.Offset)
+	query = fmt.Sprintf("%s&limit=%d&offset=%d", query, arg.Limit, arg.Offset)
 
 	path := fmt.Sprintf("%s?%s", basePath, query)
 	var result []CandidateOauthToken
@@ -268,7 +269,7 @@ func (q *HTTPQueries) ListRecruiterOAuthTokens(ctx context.Context, arg ListRecr
 	query = fmt.Sprintf("%s&provider=eq.%s", query, arg.Provider)
 	query = fmt.Sprintf("%s&is_valid=eq.%t", query, arg.IsValid)
 	// pagination params
-	query = fmt.Sprintf("%s&limit=eq.%d&offset=eq.%d", query, arg.Limit, arg.Offset)
+	query = fmt.Sprintf("%s&limit=%d&offset=%d", query, arg.Limit, arg.Offset)
 
 	path := fmt.Sprintf("%s?%s", basePath, query)
 	var result []RecruiterOauthToken

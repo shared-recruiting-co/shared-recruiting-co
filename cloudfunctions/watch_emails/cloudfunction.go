@@ -65,6 +65,8 @@ func NewCloudFunction(ctx context.Context) (*CloudFunction, error) {
 		return nil, fmt.Errorf("missing SUPABASE_API_KEY")
 	}
 	queries := db.NewHTTP(apiURL, apiKey)
+	// set debug logging
+	queries.Debug = true
 
 	return &CloudFunction{
 		ctx:                 ctx,
