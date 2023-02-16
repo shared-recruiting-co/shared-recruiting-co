@@ -25,5 +25,15 @@ func (i *Infra) setupTopics() error {
 	}
 	i.Topics.CandidateGmailMessages = candidateGmailMessages
 
+	recruiterGmailMessages, err := pubsub.NewTopic(i.ctx, "recruiter-gmail-messages", &pubsub.TopicArgs{
+		Name:    pulumi.String("recruiter-gmail-messages"),
+		Project: pulumi.String(*i.Project.ProjectId),
+		// TODO: Enforce schema validation
+	}, pulumi.Protect(true))
+	if err != nil {
+		return err
+	}
+	i.Topics.RecruiterGmailMessages = recruiterGmailMessages
+
 	return nil
 }
