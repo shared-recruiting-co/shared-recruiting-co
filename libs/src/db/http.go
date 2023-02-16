@@ -445,3 +445,29 @@ func (q *HTTPQueries) CountUserEmailJobs(ctx context.Context, userID uuid.UUID) 
 	count, err := strconv.ParseInt(parts[1], 10, 64)
 	return count, err
 }
+
+// GetRecruiterByEmail fetches a recruiter profile given their email
+func (q *HTTPQueries) GetRecruiterByEmail(ctx context.Context, email string) (GetRecruiterByEmailRow, error) {
+	basePath := "/recruiter"
+	query := fmt.Sprintf("select=*&email=eq.%s", email)
+	path := fmt.Sprintf("%s?%s", basePath, query)
+	var result GetRecruiterByEmailRow
+
+	resp, err := q.DoRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return result, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return result, fmt.Errorf("error fetching recruiter by email: %s", resp.Status)
+	}
+
+	var profile []GetRecruiterByEmailRow
+	if err := json.NewDecoder(resp.Body).Decode(&profile); err != nil {
+		return result, err
+	}
+
+	result, err = singleOrError(profile)
+	return result, err
+}
