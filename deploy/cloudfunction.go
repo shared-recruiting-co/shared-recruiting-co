@@ -103,6 +103,7 @@ func (i *Infra) fullEmailSyncCF() (*CloudFunction, error) {
 			EntryPoint: pulumi.String("Handler"),
 			EnvironmentVariables: pulumi.StringMap{
 				// Use hash to force redeploy when code changes
+				"FUNCTION_NAME":         pulumi.String(name),
 				"FUNCTION_CONTENT_HASH": obj.Md5hash,
 			},
 			Source: &cloudfunctionsv2.FunctionBuildConfigSourceArgs{
@@ -194,6 +195,7 @@ func (i *Infra) emailPushNotificationCF(fullSync *CloudFunction) (*CloudFunction
 			EntryPoint: pulumi.String("Handler"),
 			EnvironmentVariables: pulumi.StringMap{
 				// Use hash to force redeploy when code changes
+				"FUNCTION_NAME":         pulumi.String(name),
 				"FUNCTION_CONTENT_HASH": obj.Md5hash,
 			},
 			Source: &cloudfunctionsv2.FunctionBuildConfigSourceArgs{
@@ -309,6 +311,7 @@ func (i *Infra) candidateGmailMessages() (*CloudFunction, error) {
 			EntryPoint: pulumi.String("Handler"),
 			EnvironmentVariables: pulumi.StringMap{
 				// Use hash to force redeploy when code changes
+				"FUNCTION_NAME":         pulumi.String(name),
 				"FUNCTION_CONTENT_HASH": obj.Md5hash,
 			},
 			Source: &cloudfunctionsv2.FunctionBuildConfigSourceArgs{
@@ -460,6 +463,7 @@ func (i *Infra) populateJobs() (*CloudFunction, error) {
 			EntryPoint: pulumi.String("PopulateJobs"),
 			EnvironmentVariables: pulumi.StringMap{
 				// Use hash to force redeploy when code changes
+				"FUNCTION_NAME":         pulumi.String(name),
 				"FUNCTION_CONTENT_HASH": obj.Md5hash,
 			},
 			Source: &cloudfunctionsv2.FunctionBuildConfigSourceArgs{
@@ -562,6 +566,7 @@ func (i *Infra) watchCandidateEmails() (*CloudFunction, error) {
 			EntryPoint: pulumi.String("CandidateWatchEmails"),
 			EnvironmentVariables: pulumi.StringMap{
 				// Use hash to force redeploy when code changes
+				"FUNCTION_NAME":         pulumi.String(name),
 				"FUNCTION_CONTENT_HASH": obj.Md5hash,
 			},
 			Source: &cloudfunctionsv2.FunctionBuildConfigSourceArgs{
@@ -665,6 +670,7 @@ func (i *Infra) adhoc() (*CloudFunction, error) {
 			EntryPoint: pulumi.String("Reclassify"),
 			EnvironmentVariables: pulumi.StringMap{
 				// Use hash to force redeploy when code changes
+				"FUNCTION_NAME":         pulumi.String(name),
 				"FUNCTION_CONTENT_HASH": obj.Md5hash,
 			},
 			Source: &cloudfunctionsv2.FunctionBuildConfigSourceArgs{
