@@ -9,17 +9,12 @@ import (
 
 const maxResults = 250
 const historyTypeMessageAdded = "messageAdded"
-const defaultLabelID = "UNREAD"
 
-func fetchNewEmailsSinceHistoryID(srv *srcmail.Service, historyID uint64, labelID string, pageToken string) ([]*gmail.Message, string, error) {
-	if labelID == "" {
-		labelID = defaultLabelID
-	}
-
+func fetchNewEmailsSinceHistoryID(srv *srcmail.Service, historyID uint64, pageToken string) ([]*gmail.Message, string, error) {
 	r, err := srcmail.ExecuteWithRetries(func() (*gmail.ListHistoryResponse, error) {
 		return srv.Users.History.
 			List(srv.UserID).
-			LabelId(labelID).
+			LabelId("UNREAD").
 			StartHistoryId(historyID).
 			HistoryTypes(historyTypeMessageAdded).
 			PageToken(pageToken).
