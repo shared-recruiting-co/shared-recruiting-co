@@ -154,7 +154,7 @@ func recruiterWatchEmails(w http.ResponseWriter, r *http.Request) {
 		// of transactions for performance monitoring.
 		// We recommend adjusting this value in production,
 		TracesSampleRate: 1.0,
-		ServerName:       "recruiter-watch-emails",
+		ServerName:       os.Getenv("FUNCTION_NAME")
 	})
 	if err != nil {
 		log.Printf("sentry.Init: %s", err)
@@ -245,7 +245,7 @@ func candidateWatchEmails(w http.ResponseWriter, r *http.Request) {
 		// of transactions for performance monitoring.
 		// We recommend adjusting this value in production,
 		TracesSampleRate: 1.0,
-		ServerName:       "candidate-watch-emails",
+		ServerName:       os.Getenv("FUNCTION_NAME")
 	})
 	if err != nil {
 		log.Printf("sentry.Init: %s", err)
