@@ -27,6 +27,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.countUserEmailJobsStmt, err = db.PrepareContext(ctx, countUserEmailJobs); err != nil {
 		return nil, fmt.Errorf("error preparing query CountUserEmailJobs: %w", err)
 	}
+	if q.getRecruiterByEmailStmt, err = db.PrepareContext(ctx, getRecruiterByEmail); err != nil {
+		return nil, fmt.Errorf("error preparing query GetRecruiterByEmail: %w", err)
+	}
 	if q.getUserEmailJobStmt, err = db.PrepareContext(ctx, getUserEmailJob); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserEmailJob: %w", err)
 	}
@@ -71,6 +74,11 @@ func (q *Queries) Close() error {
 	if q.countUserEmailJobsStmt != nil {
 		if cerr := q.countUserEmailJobsStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing countUserEmailJobsStmt: %w", cerr)
+		}
+	}
+	if q.getRecruiterByEmailStmt != nil {
+		if cerr := q.getRecruiterByEmailStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getRecruiterByEmailStmt: %w", cerr)
 		}
 	}
 	if q.getUserEmailJobStmt != nil {
@@ -173,6 +181,7 @@ type Queries struct {
 	db                             DBTX
 	tx                             *sql.Tx
 	countUserEmailJobsStmt         *sql.Stmt
+	getRecruiterByEmailStmt        *sql.Stmt
 	getUserEmailJobStmt            *sql.Stmt
 	getUserEmailSyncHistoryStmt    *sql.Stmt
 	getUserOAuthTokenStmt          *sql.Stmt
@@ -192,6 +201,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		db:                             tx,
 		tx:                             tx,
 		countUserEmailJobsStmt:         q.countUserEmailJobsStmt,
+		getRecruiterByEmailStmt:        q.getRecruiterByEmailStmt,
 		getUserEmailJobStmt:            q.getUserEmailJobStmt,
 		getUserEmailSyncHistoryStmt:    q.getUserEmailSyncHistoryStmt,
 		getUserOAuthTokenStmt:          q.getUserOAuthTokenStmt,

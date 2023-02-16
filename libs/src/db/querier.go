@@ -12,6 +12,7 @@ import (
 
 type Querier interface {
 	CountUserEmailJobs(ctx context.Context, userID uuid.UUID) (int64, error)
+	GetRecruiterByEmail(ctx context.Context, email string) (GetRecruiterByEmailRow, error)
 	GetUserEmailJob(ctx context.Context, jobID uuid.UUID) (UserEmailJob, error)
 	GetUserEmailSyncHistory(ctx context.Context, userID uuid.UUID) (UserEmailSyncHistory, error)
 	GetUserOAuthToken(ctx context.Context, arg GetUserOAuthTokenParams) (UserOauthToken, error)

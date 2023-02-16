@@ -128,3 +128,15 @@ values ($1, $2, $3, $4, $5, $6, $7);
 select count(*) as cnt
 from public.user_email_job
 where user_id = $1;
+
+-- name: GetRecruiterByEmail :one
+select 
+    user_id,
+    email,
+    first_name,
+    last_name,
+    company_id,
+    created_at,
+    updated_at
+from recruiter
+where email = $1;

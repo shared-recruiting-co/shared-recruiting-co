@@ -26,6 +26,44 @@ func (q *Queries) CountUserEmailJobs(ctx context.Context, userID uuid.UUID) (int
 	return cnt, err
 }
 
+const getRecruiterByEmail = `-- name: GetRecruiterByEmail :one
+select 
+    user_id,
+    email,
+    first_name,
+    last_name,
+    company_id,
+    created_at,
+    updated_at
+from recruiter
+where email = $1
+`
+
+type GetRecruiterByEmailRow struct {
+	UserID    uuid.UUID `json:"user_id"`
+	Email     string    `json:"email"`
+	FirstName string    `json:"first_name"`
+	LastName  string    `json:"last_name"`
+	CompanyID uuid.UUID `json:"company_id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func (q *Queries) GetRecruiterByEmail(ctx context.Context, email string) (GetRecruiterByEmailRow, error) {
+	row := q.queryRow(ctx, q.getRecruiterByEmailStmt, getRecruiterByEmail, email)
+	var i GetRecruiterByEmailRow
+	err := row.Scan(
+		&i.UserID,
+		&i.Email,
+		&i.FirstName,
+		&i.LastName,
+		&i.CompanyID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getUserEmailJob = `-- name: GetUserEmailJob :one
 select
     job_id,

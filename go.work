@@ -7,6 +7,7 @@ use (
 	./cloudfunctions/adhoc
 	./cloudfunctions/populate_jobs
 	./cloudfunctions/candidate_gmail_messages
+	./cloudfunctions/recruiter_gmail_messages
 	./libs/src
 	./deploy/
 )
