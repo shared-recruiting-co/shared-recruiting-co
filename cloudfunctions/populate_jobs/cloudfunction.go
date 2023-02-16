@@ -125,9 +125,12 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 	apiKey := os.Getenv("SUPABASE_API_KEY")
 	queries := db.NewHTTP(apiURL, apiKey)
 
-	userTokens, err := queries.ListUserOAuthTokens(ctx, db.ListUserOAuthTokensParams{
+	userTokens, err := queries.ListCandidateOAuthTokens(ctx, db.ListCandidateOAuthTokensParams{
 		Provider: "google",
 		IsValid:  true,
+		// Note: Temporary code this will change soon.
+		Limit:  int32(250),
+		Offset: int32(0),
 	})
 	if err != nil {
 		handleError(w, "error fetching user tokens", err)
