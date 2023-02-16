@@ -5,11 +5,56 @@
 package db
 
 import (
+	"database/sql/driver"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	null "gopkg.in/guregu/null.v4"
 )
+
+type InboxType string
+
+const (
+	InboxTypeCandidate InboxType = "candidate"
+	InboxTypeRecruiter InboxType = "recruiter"
+)
+
+func (e *InboxType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = InboxType(s)
+	case string:
+		*e = InboxType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for InboxType: %T", src)
+	}
+	return nil
+}
+
+type NullInboxType struct {
+	InboxType InboxType
+	Valid     bool // Valid is true if InboxType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullInboxType) Scan(value interface{}) error {
+	if value == nil {
+		ns.InboxType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.InboxType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullInboxType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return ns.InboxType, nil
+}
 
 type AuthUser struct {
 	ID    uuid.UUID `json:"id"`
@@ -86,11 +131,13 @@ type UserEmailStat struct {
 }
 
 type UserEmailSyncHistory struct {
-	UserID    uuid.UUID `json:"user_id"`
-	HistoryID int64     `json:"history_id"`
-	SyncedAt  time.Time `json:"synced_at"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	UserID    uuid.UUID   `json:"user_id"`
+	InboxType InboxType   `json:"inbox_type"`
+	Email     null.String `json:"email"`
+	HistoryID int64       `json:"history_id"`
+	SyncedAt  time.Time   `json:"synced_at"`
+	CreatedAt time.Time   `json:"created_at"`
+	UpdatedAt time.Time   `json:"updated_at"`
 }
 
 type UserOauthToken struct {

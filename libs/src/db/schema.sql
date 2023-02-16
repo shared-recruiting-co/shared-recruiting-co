@@ -48,9 +48,13 @@ create policy "Users can update own oauth tokens."
   on public.user_oauth_token for update
   using ( auth.uid() = user_id );
 
+CREATE TYPE inbox_type AS ENUM ('candidate', 'recruiter');
+
 -- User Email Sync History Table
 create table public.user_email_sync_history (
     user_id uuid references auth.users(id) on delete cascade not null,
+    inbox_type inbox_type not null default 'candidate',
+    email text,
     history_id int8 not null,
     -- track successful sync attempts
     synced_at timestamp with time zone not null default now(),

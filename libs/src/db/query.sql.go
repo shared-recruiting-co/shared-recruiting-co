@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	null "gopkg.in/guregu/null.v4"
 )
 
 const countUserEmailJobs = `-- name: CountUserEmailJobs :one
@@ -101,6 +102,8 @@ func (q *Queries) GetUserEmailJob(ctx context.Context, jobID uuid.UUID) (UserEma
 const getUserEmailSyncHistory = `-- name: GetUserEmailSyncHistory :one
 select
     user_id,
+    inbox_type,
+    email,
     history_id,
     synced_at,
     created_at,
@@ -114,6 +117,8 @@ func (q *Queries) GetUserEmailSyncHistory(ctx context.Context, userID uuid.UUID)
 	var i UserEmailSyncHistory
 	err := row.Scan(
 		&i.UserID,
+		&i.InboxType,
+		&i.Email,
 		&i.HistoryID,
 		&i.SyncedAt,
 		&i.CreatedAt,
@@ -457,22 +462,32 @@ func (q *Queries) ListUserOAuthTokens(ctx context.Context, arg ListUserOAuthToke
 }
 
 const upsertUserEmailSyncHistory = `-- name: UpsertUserEmailSyncHistory :exec
-insert into public.user_email_sync_history(user_id, history_id, synced_at)
-values ($1, $2, $3)
+insert into public.user_email_sync_history(user_id, inbox_type, email, history_id, synced_at)
+values ($1, $2, $3, $4, $5)
 on conflict (user_id)
 do update set
     history_id = excluded.history_id,
+    inbox_type = excluded.inbox_type,
+    email = excluded.email,
     synced_at = excluded.synced_at
 `
 
 type UpsertUserEmailSyncHistoryParams struct {
-	UserID    uuid.UUID `json:"user_id"`
-	HistoryID int64     `json:"history_id"`
-	SyncedAt  time.Time `json:"synced_at"`
+	UserID    uuid.UUID   `json:"user_id"`
+	InboxType InboxType   `json:"inbox_type"`
+	Email     null.String `json:"email"`
+	HistoryID int64       `json:"history_id"`
+	SyncedAt  time.Time   `json:"synced_at"`
 }
 
 func (q *Queries) UpsertUserEmailSyncHistory(ctx context.Context, arg UpsertUserEmailSyncHistoryParams) error {
-	_, err := q.exec(ctx, q.upsertUserEmailSyncHistoryStmt, upsertUserEmailSyncHistory, arg.UserID, arg.HistoryID, arg.SyncedAt)
+	_, err := q.exec(ctx, q.upsertUserEmailSyncHistoryStmt, upsertUserEmailSyncHistory,
+		arg.UserID,
+		arg.InboxType,
+		arg.Email,
+		arg.HistoryID,
+		arg.SyncedAt,
+	)
 	return err
 }
 
