@@ -334,20 +334,6 @@ func (i *Infra) emailPushNotificationCF(fullSync *CloudFunction) (*CloudFunction
 		return nil, err
 	}
 
-	_, err = pubsub.NewTopicIAMMember(i.ctx, fmt.Sprintf("%s-publish-to-recruiter-gmail-messages", name), &pubsub.TopicIAMMemberArgs{
-		Topic:   i.Topics.RecruiterGmailMessages.ID(),
-		Role:    pulumi.String("roles/pubsub.publisher"),
-		Member:  pulumi.Sprintf("serviceAccount:%s", sa.Email),
-		Project: pulumi.String(*i.Project.ProjectId),
-	}, pulumi.DependsOn([]pulumi.Resource{
-		cf,
-		sa,
-		i.Topics.RecruiterGmailMessages,
-	}))
-	if err != nil {
-		return nil, err
-	}
-
 	return &CloudFunction{
 		Name:           name,
 		ServiceAccount: sa,
