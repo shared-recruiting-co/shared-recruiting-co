@@ -91,13 +91,16 @@ func (i *Infra) createCloudFunctions() error {
 	return nil
 }
 
-func (i *Infra) uploadCloudFunction(name string) (*storage.BucketObject, error) {
-	snakeName := strings.ReplaceAll(name, "-", "_")
+func (i *Infra) uploadCloudFunction(funcName, objName string) (*storage.BucketObject, error) {
+	if objName == "" {
+		objName = funcName
+	}
+	snakeName := strings.ReplaceAll(funcName, "-", "_")
 	// for now hardcode path
 	dir := "../cloudfunctions"
 
-	return storage.NewBucketObject(i.ctx, fmt.Sprintf("cf-upload-%s", name), &storage.BucketObjectArgs{
-		Name:   pulumi.Sprintf("%s/function.zip", name),
+	return storage.NewBucketObject(i.ctx, fmt.Sprintf("cf-upload-%s", objName), &storage.BucketObjectArgs{
+		Name:   pulumi.Sprintf("%s/function.zip", objName),
 		Bucket: i.GCFBucket.Name,
 		Source: pulumi.NewFileArchive(fmt.Sprintf("%s/%s", dir, snakeName)),
 	}, pulumi.DependsOn([]pulumi.Resource{
@@ -151,7 +154,7 @@ func (i *Infra) fullEmailSyncCF() (*CloudFunction, error) {
 	if err != nil {
 		return nil, err
 	}
-	obj, err := i.uploadCloudFunction(name)
+	obj, err := i.uploadCloudFunction(name, "")
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +246,7 @@ func (i *Infra) emailPushNotificationCF(fullSync *CloudFunction) (*CloudFunction
 	if err != nil {
 		return nil, err
 	}
-	obj, err := i.uploadCloudFunction(name)
+	obj, err := i.uploadCloudFunction(name, "")
 	if err != nil {
 		return nil, err
 	}
@@ -359,7 +362,7 @@ func (i *Infra) candidateGmailMessages() (*CloudFunction, error) {
 	if err != nil {
 		return nil, err
 	}
-	obj, err := i.uploadCloudFunction(name)
+	obj, err := i.uploadCloudFunction(name, "")
 	if err != nil {
 		return nil, err
 	}
@@ -457,7 +460,7 @@ func (i *Infra) recruiterGmailMessages() (*CloudFunction, error) {
 	if err != nil {
 		return nil, err
 	}
-	obj, err := i.uploadCloudFunction(name)
+	obj, err := i.uploadCloudFunction(name, "")
 	if err != nil {
 		return nil, err
 	}
@@ -554,7 +557,7 @@ func (i *Infra) populateJobs() (*CloudFunction, error) {
 	if err != nil {
 		return nil, err
 	}
-	obj, err := i.uploadCloudFunction(name)
+	obj, err := i.uploadCloudFunction(name, "")
 	if err != nil {
 		return nil, err
 	}
@@ -657,7 +660,7 @@ func (i *Infra) watchCandidateEmails() (*CloudFunction, error) {
 		return nil, err
 	}
 	funcName := "watch-emails"
-	obj, err := i.uploadCloudFunction(funcName)
+	obj, err := i.uploadCloudFunction(funcName, name)
 	if err != nil {
 		return nil, err
 	}
@@ -762,7 +765,7 @@ func (i *Infra) watchRecruiterEmails() (*CloudFunction, error) {
 		return nil, err
 	}
 	funcName := "watch-emails"
-	obj, err := i.uploadCloudFunction(funcName)
+	obj, err := i.uploadCloudFunction(funcName, name)
 	if err != nil {
 		return nil, err
 	}
@@ -866,7 +869,7 @@ func (i *Infra) adhoc() (*CloudFunction, error) {
 	if err != nil {
 		return nil, err
 	}
-	obj, err := i.uploadCloudFunction(name)
+	obj, err := i.uploadCloudFunction(name, "")
 	if err != nil {
 		return nil, err
 	}
