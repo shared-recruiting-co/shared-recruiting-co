@@ -111,9 +111,9 @@ func (q *HTTPQueries) GetUserProfileByEmail(ctx context.Context, email string) (
 }
 
 // GetUserEmailSyncHistory fetches a user's email sync history.
-func (q *HTTPQueries) GetUserEmailSyncHistory(ctx context.Context, userID uuid.UUID) (UserEmailSyncHistory, error) {
+func (q *HTTPQueries) GetUserEmailSyncHistory(ctx context.Context, arg GetUserEmailSyncHistoryParams) (UserEmailSyncHistory, error) {
 	basePath := "/user_email_sync_history"
-	query := fmt.Sprintf("select=*&user_id=eq.%s", userID)
+	query := fmt.Sprintf("select=*&user_id=eq.%s&inbox_type=eq.%s&email=eq.%s", arg.UserID, arg.InboxType, arg.Email)
 	path := fmt.Sprintf("%s?%s", basePath, query)
 	var result UserEmailSyncHistory
 

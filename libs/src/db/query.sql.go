@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	null "gopkg.in/guregu/null.v4"
 )
 
 const countUserEmailJobs = `-- name: CountUserEmailJobs :one
@@ -109,11 +108,17 @@ select
     created_at,
     updated_at
 from public.user_email_sync_history
-where user_id = $1
+where user_id = $1 and inbox_type = $2 and email = $3
 `
 
-func (q *Queries) GetUserEmailSyncHistory(ctx context.Context, userID uuid.UUID) (UserEmailSyncHistory, error) {
-	row := q.queryRow(ctx, q.getUserEmailSyncHistoryStmt, getUserEmailSyncHistory, userID)
+type GetUserEmailSyncHistoryParams struct {
+	UserID    uuid.UUID `json:"user_id"`
+	InboxType InboxType `json:"inbox_type"`
+	Email     string    `json:"email"`
+}
+
+func (q *Queries) GetUserEmailSyncHistory(ctx context.Context, arg GetUserEmailSyncHistoryParams) (UserEmailSyncHistory, error) {
+	row := q.queryRow(ctx, q.getUserEmailSyncHistoryStmt, getUserEmailSyncHistory, arg.UserID, arg.InboxType, arg.Email)
 	var i UserEmailSyncHistory
 	err := row.Scan(
 		&i.UserID,
@@ -464,20 +469,18 @@ func (q *Queries) ListUserOAuthTokens(ctx context.Context, arg ListUserOAuthToke
 const upsertUserEmailSyncHistory = `-- name: UpsertUserEmailSyncHistory :exec
 insert into public.user_email_sync_history(user_id, inbox_type, email, history_id, synced_at)
 values ($1, $2, $3, $4, $5)
-on conflict (user_id)
+on conflict (user_id, inbox_type, email)
 do update set
     history_id = excluded.history_id,
-    inbox_type = excluded.inbox_type,
-    email = excluded.email,
     synced_at = excluded.synced_at
 `
 
 type UpsertUserEmailSyncHistoryParams struct {
-	UserID    uuid.UUID   `json:"user_id"`
-	InboxType InboxType   `json:"inbox_type"`
-	Email     null.String `json:"email"`
-	HistoryID int64       `json:"history_id"`
-	SyncedAt  time.Time   `json:"synced_at"`
+	UserID    uuid.UUID `json:"user_id"`
+	InboxType InboxType `json:"inbox_type"`
+	Email     string    `json:"email"`
+	HistoryID int64     `json:"history_id"`
+	SyncedAt  time.Time `json:"synced_at"`
 }
 
 func (q *Queries) UpsertUserEmailSyncHistory(ctx context.Context, arg UpsertUserEmailSyncHistoryParams) error {

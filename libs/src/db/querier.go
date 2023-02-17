@@ -14,7 +14,7 @@ type Querier interface {
 	CountUserEmailJobs(ctx context.Context, userID uuid.UUID) (int64, error)
 	GetRecruiterByEmail(ctx context.Context, email string) (GetRecruiterByEmailRow, error)
 	GetUserEmailJob(ctx context.Context, jobID uuid.UUID) (UserEmailJob, error)
-	GetUserEmailSyncHistory(ctx context.Context, userID uuid.UUID) (UserEmailSyncHistory, error)
+	GetUserEmailSyncHistory(ctx context.Context, arg GetUserEmailSyncHistoryParams) (UserEmailSyncHistory, error)
 	GetUserOAuthToken(ctx context.Context, arg GetUserOAuthTokenParams) (UserOauthToken, error)
 	GetUserProfileByEmail(ctx context.Context, email string) (UserProfile, error)
 	IncrementUserEmailStat(ctx context.Context, arg IncrementUserEmailStatParams) error
