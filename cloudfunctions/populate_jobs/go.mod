@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/GoogleCloudPlatform/functions-framework-go v1.6.1
 	github.com/getsentry/sentry-go v0.17.0
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230216174528-62f62b798444
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230218001723-76b026dd2941
 	google.golang.org/api v0.107.0
 )
 
@@ -39,5 +39,4 @@ require (
 	google.golang.org/genproto v0.0.0-20230113154510-dbe35b8444a5 // indirect
 	google.golang.org/grpc v1.52.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
-	gopkg.in/guregu/null.v4 v4.0.0 // indirect
 )
