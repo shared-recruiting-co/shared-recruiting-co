@@ -82,7 +82,7 @@ func (cf *CloudFunction) syncHistory(
 			// done!
 			return nil
 		} else {
-			messages, pageToken, err = fetchNewEmailsSinceHistoryID(cf.srv, uint64(syncHistory.HistoryID), pageToken)
+			messages, pageToken, err = fetchSentEmailsSinceHistoryID(cf.srv, uint64(syncHistory.HistoryID), pageToken)
 		}
 
 		// for now, abort on error

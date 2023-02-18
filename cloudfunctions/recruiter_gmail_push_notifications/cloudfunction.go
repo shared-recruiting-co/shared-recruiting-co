@@ -132,7 +132,7 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailPushNotification)
 	topic := client.Topic(candidateGmailMessagesTopic)
 
 	topics := &PubSubTopics{
-		CandidateGmailMessages: topic,
+		RecruiterGmailMessages: topic,
 	}
 
 	return &CloudFunction{
