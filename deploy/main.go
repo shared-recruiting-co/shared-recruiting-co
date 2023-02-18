@@ -23,8 +23,6 @@ var (
 // Read about https://www.pulumi.com/docs/guides/testing/
 
 type Topics struct {
-	// Gmail is the deprecated candidate gmail subscription
-	Gmail                      *pubsub.Topic
 	CandidateGmailSubscription *pubsub.Topic
 	RecruiterGmailSubscription *pubsub.Topic
 	CandidateGmailMessages     *pubsub.Topic

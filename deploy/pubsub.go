@@ -6,15 +6,6 @@ import (
 )
 
 func (i *Infra) setupTopics() error {
-	gmailPubSub, err := pubsub.NewTopic(i.ctx, "gmail-default", &pubsub.TopicArgs{
-		Name:    pulumi.String("gmail"),
-		Project: pulumi.String(*i.Project.ProjectId),
-	}, pulumi.Protect(true))
-	if err != nil {
-		return err
-	}
-	i.Topics.Gmail = gmailPubSub
-
 	candidateGmailSubscription, err := pubsub.NewTopic(i.ctx, "candidate-gmail-subscription", &pubsub.TopicArgs{
 		Name:    pulumi.String("candidate-gmail-subscription"),
 		Project: pulumi.String(*i.Project.ProjectId),
