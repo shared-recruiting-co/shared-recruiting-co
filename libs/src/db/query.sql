@@ -72,16 +72,14 @@ select
     created_at,
     updated_at
 from public.user_email_sync_history
-where user_id = $1;
+where user_id = $1 and inbox_type = $2 and email = $3;
 
 -- name: UpsertUserEmailSyncHistory :exec
 insert into public.user_email_sync_history(user_id, inbox_type, email, history_id, synced_at)
 values ($1, $2, $3, $4, $5)
-on conflict (user_id)
+on conflict (user_id, inbox_type, email)
 do update set
     history_id = excluded.history_id,
-    inbox_type = excluded.inbox_type,
-    email = excluded.email,
     synced_at = excluded.synced_at;
 
 -- name: IncrementUserEmailStat :exec

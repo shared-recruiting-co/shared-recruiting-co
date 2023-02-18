@@ -15,7 +15,6 @@ import (
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
 	"github.com/getsentry/sentry-go"
-	"gopkg.in/guregu/null.v4"
 
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/db"
 	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
@@ -187,7 +186,11 @@ func handler(ctx context.Context, e event.Event) error {
 
 	// 5. Make Request to get previous history and proactively save new history (If anything goes wrong, then we reset the history ID to the previous one)
 	// Make Request to Fetch Previous History ID
-	prevSyncHistory, err := cf.queries.GetUserEmailSyncHistory(ctx, cf.user.UserID)
+	prevSyncHistory, err := cf.queries.GetUserEmailSyncHistory(ctx, db.GetUserEmailSyncHistoryParams{
+		UserID:    cf.user.UserID,
+		InboxType: db.InboxTypeCandidate,
+		Email:     cf.payload.Email,
+	})
 	// On first notification, trigger a full sync in the background
 	if err == sql.ErrNoRows {
 		log.Printf("no previous sync history found, triggering full sync in background")
@@ -202,7 +205,7 @@ func handler(ctx context.Context, e event.Event) error {
 		err = cf.queries.UpsertUserEmailSyncHistory(ctx, db.UpsertUserEmailSyncHistoryParams{
 			UserID:    cf.user.UserID,
 			InboxType: db.InboxTypeCandidate,
-			Email:     null.StringFrom(cf.payload.Email),
+			Email:     cf.payload.Email,
 			HistoryID: int64(historyID),
 			SyncedAt:  time.Now(),
 		})
@@ -220,7 +223,7 @@ func handler(ctx context.Context, e event.Event) error {
 	err = cf.queries.UpsertUserEmailSyncHistory(ctx, db.UpsertUserEmailSyncHistoryParams{
 		UserID:    cf.user.UserID,
 		InboxType: db.InboxTypeCandidate,
-		Email:     null.StringFrom(cf.payload.Email),
+		Email:     cf.payload.Email,
 		HistoryID: int64(historyID),
 		SyncedAt:  time.Now(),
 	})
@@ -233,7 +236,7 @@ func handler(ctx context.Context, e event.Event) error {
 		err := cf.queries.UpsertUserEmailSyncHistory(ctx, db.UpsertUserEmailSyncHistoryParams{
 			UserID:    cf.user.UserID,
 			InboxType: db.InboxTypeCandidate,
-			Email:     null.StringFrom(cf.payload.Email),
+			Email:     cf.payload.Email,
 			HistoryID: prevSyncHistory.HistoryID,
 			SyncedAt:  prevSyncHistory.SyncedAt,
 		})

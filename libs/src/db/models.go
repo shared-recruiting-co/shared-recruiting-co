@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	null "gopkg.in/guregu/null.v4"
 )
 
 type InboxType string
@@ -131,13 +130,13 @@ type UserEmailStat struct {
 }
 
 type UserEmailSyncHistory struct {
-	UserID    uuid.UUID   `json:"user_id"`
-	InboxType InboxType   `json:"inbox_type"`
-	Email     null.String `json:"email"`
-	HistoryID int64       `json:"history_id"`
-	SyncedAt  time.Time   `json:"synced_at"`
-	CreatedAt time.Time   `json:"created_at"`
-	UpdatedAt time.Time   `json:"updated_at"`
+	UserID    uuid.UUID `json:"user_id"`
+	InboxType InboxType `json:"inbox_type"`
+	Email     string    `json:"email"`
+	HistoryID int64     `json:"history_id"`
+	SyncedAt  time.Time `json:"synced_at"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type UserOauthToken struct {
