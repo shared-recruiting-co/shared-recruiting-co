@@ -42,7 +42,6 @@ jobs:
       fail-fast: true
       matrix:
         directory: 
-          - "./cloudfunctions/email_push_notifications" 
           - "./cloudfunctions/watch_emails" 
           - "./cloudfunctions/full_email_sync" 
           - "./cloudfunctions/adhoc" 
