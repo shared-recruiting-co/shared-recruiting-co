@@ -800,7 +800,7 @@ func (i *Infra) watchCandidateEmails() (*CloudFunction, error) {
 			MaxInstanceCount: pulumi.Int(1),
 			TimeoutSeconds:   pulumi.Int(MaxHTTPTriggerTimeout),
 			EnvironmentVariables: pulumi.StringMap{
-				"PUBSUB_TOPIC":              i.Topics.Gmail.ID(),
+				"PUBSUB_TOPIC":              i.Topics.CandidateGmailMessages.ID(),
 				"SUPABASE_API_URL":          pulumi.String(i.config.Require("SUPABASE_API_URL")),
 				"SUPABASE_API_KEY":          i.config.RequireSecret("SUPABASE_API_KEY"),
 				"GOOGLE_OAUTH2_CREDENTIALS": i.config.RequireSecret("GOOGLE_OAUTH2_CREDENTIALS"),
@@ -812,7 +812,7 @@ func (i *Infra) watchCandidateEmails() (*CloudFunction, error) {
 			ServiceAccountEmail:        sa.Email,
 		},
 	}, pulumi.DependsOn([]pulumi.Resource{
-		i.Topics.Gmail,
+		i.Topics.CandidateGmailMessages,
 		obj,
 		sa,
 	}))
