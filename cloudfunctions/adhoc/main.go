@@ -17,6 +17,7 @@ func init() {
 	functions.HTTP("PopulateJobs", populateJobs)
 	functions.HTTP("MigrateLabels", migrateLabels)
 	functions.HTTP("Reclassify", reclassify)
+	functions.HTTP("Unsubscribe", unsubscribe)
 }
 
 func jsonFromEnv(env string) ([]byte, error) {

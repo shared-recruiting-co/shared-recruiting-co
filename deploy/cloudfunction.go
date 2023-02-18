@@ -1012,7 +1012,7 @@ func (i *Infra) adhoc() (*CloudFunction, error) {
 		Description: pulumi.String("Adhoc function to run a one-off, manual tasks"),
 		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
 			Runtime:    pulumi.String("go119"),
-			EntryPoint: pulumi.String("Reclassify"),
+			EntryPoint: pulumi.String("Unsubscribe"),
 			EnvironmentVariables: pulumi.StringMap{
 				// Use hash to force redeploy when code changes
 				"FUNCTION_NAME":         pulumi.String(name),
