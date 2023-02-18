@@ -53,7 +53,6 @@ func (i *Infra) createCloudFunctions() error {
 			syncCF.Function,
 			emailPushNotify.Function,
 		}))
-
 	if err != nil {
 		return err
 	}
@@ -450,6 +449,9 @@ func (i *Infra) candidateGmailPushNotifications(fullSync *CloudFunction) (*Cloud
 			fullSync.Function,
 			cf,
 		}))
+	if err != nil {
+		return nil, err
+	}
 
 	_, err = pubsub.NewTopicIAMMember(i.ctx, fmt.Sprintf("%s-publish-to-candidate-gmail-messages", name), &pubsub.TopicIAMMemberArgs{
 		Topic:   i.Topics.CandidateGmailMessages.ID(),
@@ -762,6 +764,9 @@ func (i *Infra) recruiterGmailPushNotifications(fullSync *CloudFunction) (*Cloud
 			fullSync.Function,
 			cf,
 		}))
+	if err != nil {
+		return nil, err
+	}
 
 	_, err = pubsub.NewTopicIAMMember(i.ctx, fmt.Sprintf("%s-publish-to-recruiter-gmail-messages", name), &pubsub.TopicIAMMemberArgs{
 		Topic:   i.Topics.RecruiterGmailMessages.ID(),
