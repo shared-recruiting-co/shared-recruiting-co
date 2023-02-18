@@ -437,7 +437,7 @@ func (i *Infra) candidateGmailPushNotifications(fullSync *CloudFunction) (*Cloud
 	}
 
 	// grant function invoke access to the gmail sync function
-	_, err = cloudrunv2.NewServiceIamMember(i.ctx, fmt.Sprintf("%s-can-invoke-%s", cf.Name, fullSync.Name), &cloudrunv2.ServiceIamMemberArgs{
+	_, err = cloudrunv2.NewServiceIamMember(i.ctx, fmt.Sprintf("%s-can-invoke-%s", name, fullSync.Name), &cloudrunv2.ServiceIamMemberArgs{
 		Project:  pulumi.String(*i.Project.ProjectId),
 		Location: pulumi.String(DefaultRegion),
 		Name:     pulumi.String(fullSync.Name),
@@ -749,7 +749,7 @@ func (i *Infra) recruiterGmailPushNotifications(fullSync *CloudFunction) (*Cloud
 	}
 
 	// grant function invoke access to the gmail sync function
-	_, err = cloudrunv2.NewServiceIamMember(i.ctx, fmt.Sprintf("%s-can-invoke-%s", cf.Name, fullSync.Name), &cloudrunv2.ServiceIamMemberArgs{
+	_, err = cloudrunv2.NewServiceIamMember(i.ctx, fmt.Sprintf("%s-can-invoke-%s", name, fullSync.Name), &cloudrunv2.ServiceIamMemberArgs{
 		Project:  pulumi.String(*i.Project.ProjectId),
 		Location: pulumi.String(DefaultRegion),
 		Name:     pulumi.String(fullSync.Name),
