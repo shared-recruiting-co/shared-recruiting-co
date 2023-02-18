@@ -117,12 +117,32 @@ func (i *Infra) uploadCloudFunction(funcName, objName string) (*storage.BucketOb
 	}))
 }
 
+func shortenAccountId(id string) string {
+	// replace common words with abbreviations
+	id = strings.ReplaceAll(id, "gmail", "gm")
+	id = strings.ReplaceAll(id, "candidate", "ca")
+	id = strings.ReplaceAll(id, "recruiter", "re")
+
+	if len(id) < 30 {
+		return id
+	}
+
+	return id[:30]
+}
+
 func (i *Infra) createCloudFunctionServiceAccount(name string) (*serviceAccount.Account, error) {
 	account := fmt.Sprintf("sa-cf-%s", name)
+	accountId := account
+
+	if len(accountId) > 30 {
+		accountId = shortenAccountId(accountId)
+	}
 
 	sa, err := serviceAccount.NewAccount(i.ctx, account, &serviceAccount.AccountArgs{
-		Project:     pulumi.String(*i.Project.ProjectId),
-		AccountId:   pulumi.String(account),
+		Project: pulumi.String(*i.Project.ProjectId),
+		// AccountId be 6-30 characters long and match the regular expression [a-z]([-a-z0-9]*[a-z0-9])?
+		// https://cloud.google.com/iam/docs/service-accounts#creating_a_service_account
+		AccountId:   pulumi.String(accountId),
 		DisplayName: pulumi.Sprintf("Service account for the %s Cloud Function", name),
 	})
 	if err != nil {
