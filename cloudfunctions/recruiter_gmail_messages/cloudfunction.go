@@ -145,6 +145,15 @@ func handler(ctx context.Context, e event.Event) error {
 		return handleError("error parsing email messages", err)
 	}
 
+	// validate payload
+	// for invalid payloads, we don't want to retry
+	if payload.Email == "" || len(payload.Messages) == 0 {
+		err = fmt.Errorf("received invalid payload: %v", payload)
+		log.Print(err)
+		sentry.CaptureException(err)
+		return nil
+	}
+
 	_, err = NewCloudFunction(ctx, payload)
 	if err != nil {
 		return handleError("error creating cloud function", err)
