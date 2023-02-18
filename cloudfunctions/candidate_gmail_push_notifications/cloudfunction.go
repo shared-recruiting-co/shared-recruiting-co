@@ -128,7 +128,7 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailPushNotification)
 		// TODO: Handle error.
 		log.Printf("failed to create pubsub client: %v", err)
 	}
-	candidateGmailMessagesTopic := os.Getenv("CANDIDATE_GMAIL_MESSAGES_TOPIC")
+	candidateGmailMessagesTopic := os.Getenv("GMAIL_MESSAGES_TOPIC")
 	topic := client.Topic(candidateGmailMessagesTopic)
 
 	topics := &PubSubTopics{

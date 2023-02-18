@@ -290,10 +290,6 @@ func (i *Infra) candidateGmailPushNotifications(fullSync *CloudFunction) (*Cloud
 				"SENTRY_DSN":                i.config.RequireSecret("SENTRY_DSN"),
 				"TRIGGER_FULL_SYNC_URL":     fullSync.Function.ServiceConfig.Uri().Elem(),
 				"GCP_PROJECT_ID":            pulumi.String(*i.Project.ProjectId),
-				// TODO: Delete this
-				"CANDIDATE_GMAIL_MESSAGES_TOPIC": i.Topics.CandidateGmailMessages.Name.ApplyT(func(name string) string {
-					return name
-				}).(pulumi.StringOutput),
 				"GMAIL_MESSAGES_TOPIC": i.Topics.CandidateGmailMessages.Name.ApplyT(func(name string) string {
 					return name
 				}).(pulumi.StringOutput),
