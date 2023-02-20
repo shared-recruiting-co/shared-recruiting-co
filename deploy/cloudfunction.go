@@ -33,7 +33,7 @@ func (i *Infra) createCloudFunctions() error {
 		return err
 	}
 
-	recruiterEmailSync, err := i.candidateEmailSyncCF()
+	recruiterEmailSync, err := i.recruiterEmailSyncCF()
 	if err != nil {
 		return err
 	}
