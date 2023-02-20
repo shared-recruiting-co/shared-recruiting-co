@@ -802,7 +802,7 @@ func (i *Infra) candidateGmailSubscription() (*CloudFunction, error) {
 		Description: pulumi.String("Subscribe to the candidate's email inbox and watch for relevant emails"),
 		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
 			Runtime:    pulumi.String("go119"),
-			EntryPoint: pulumi.String("CandidateWatchEmails"),
+			EntryPoint: pulumi.String("CandidateGmailSubscription"),
 			EnvironmentVariables: pulumi.StringMap{
 				// Use hash to force redeploy when code changes
 				"FUNCTION_NAME":         pulumi.String(name),
@@ -907,7 +907,7 @@ func (i *Infra) recruiterGmailSubscription() (*CloudFunction, error) {
 		Description: pulumi.String("Subscribe to the recruiter's email inbox and watch for relevant emails"),
 		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
 			Runtime:    pulumi.String("go119"),
-			EntryPoint: pulumi.String("RecruiterWatchEmails"),
+			EntryPoint: pulumi.String("RecruiterGmailSubscription"),
 			EnvironmentVariables: pulumi.StringMap{
 				// Use hash to force redeploy when code changes
 				"FUNCTION_NAME":         pulumi.String(name),

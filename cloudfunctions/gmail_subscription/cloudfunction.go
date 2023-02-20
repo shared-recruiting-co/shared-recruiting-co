@@ -24,8 +24,8 @@ const (
 )
 
 func init() {
-	functions.HTTP("CandidateWatchEmails", candidateWatchEmails)
-	functions.HTTP("RecruiterWatchEmails", recruiterWatchEmails)
+	functions.HTTP("CandidateGmailSubscription", candidateGmailSubscription)
+	functions.HTTP("RecruiterGmailSubscription", recruiterGmailSubscription)
 }
 
 func jsonFromEnv(env string) ([]byte, error) {
@@ -44,9 +44,9 @@ func handleError(w http.ResponseWriter, msg string, err error) {
 }
 
 type CloudFunction struct {
-	ctx                 context.Context
-	OAuthCredententials []byte
-	Queries             db.Querier
+	ctx        context.Context
+	oauthCreds []byte
+	queries    db.Querier
 }
 
 func NewCloudFunction(ctx context.Context) (*CloudFunction, error) {
@@ -69,9 +69,9 @@ func NewCloudFunction(ctx context.Context) (*CloudFunction, error) {
 	queries.Debug = true
 
 	return &CloudFunction{
-		ctx:                 ctx,
-		OAuthCredententials: creds,
-		Queries:             queries,
+		ctx:        ctx,
+		oauthCreds: creds,
+		queries:    queries,
 	}, nil
 }
 
@@ -83,7 +83,7 @@ func (cf *CloudFunction) watch(users []db.UserOauthToken, arg *gmail.WatchReques
 	for _, user := range users {
 		auth := []byte(user.Token)
 
-		srv, err = srcmail.NewService(cf.ctx, cf.OAuthCredententials, auth)
+		srv, err = srcmail.NewService(cf.ctx, cf.oauthCreds, auth)
 		if err != nil {
 			err = fmt.Errorf("error creating gmail service: %w", err)
 			errs = append(errs, err)
@@ -101,7 +101,7 @@ func (cf *CloudFunction) watch(users []db.UserOauthToken, arg *gmail.WatchReques
 			if srcmail.IsOAuth2Error(err) {
 				log.Printf("error oauth error: %v", err)
 				// update the user's oauth token
-				err = cf.Queries.UpsertUserOAuthToken(cf.ctx, db.UpsertUserOAuthTokenParams{
+				err = cf.queries.UpsertUserOAuthToken(cf.ctx, db.UpsertUserOAuthTokenParams{
 					UserID:   user.UserID,
 					Provider: provider,
 					Token:    user.Token,
@@ -118,7 +118,7 @@ func (cf *CloudFunction) watch(users []db.UserOauthToken, arg *gmail.WatchReques
 		}
 
 		// validate the user's email is active
-		userProfile, err := cf.Queries.GetUserProfileByEmail(cf.ctx, gmailProfile.EmailAddress)
+		userProfile, err := cf.queries.GetUserProfileByEmail(cf.ctx, gmailProfile.EmailAddress)
 		if err != nil {
 			err = fmt.Errorf("error getting user profile: %w", err)
 			errs = append(errs, err)
@@ -144,7 +144,7 @@ func (cf *CloudFunction) watch(users []db.UserOauthToken, arg *gmail.WatchReques
 	return errs
 }
 
-func recruiterWatchEmails(w http.ResponseWriter, r *http.Request) {
+func recruiterGmailSubscription(w http.ResponseWriter, r *http.Request) {
 	log.Println("received watch trigger")
 	ctx := r.Context()
 
@@ -191,7 +191,7 @@ func recruiterWatchEmails(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		// 1. Fetch valid auth tokens
-		userTokens, err := cf.Queries.ListRecruiterOAuthTokens(ctx, db.ListRecruiterOAuthTokensParams{
+		userTokens, err := cf.queries.ListRecruiterOAuthTokens(ctx, db.ListRecruiterOAuthTokensParams{
 			Provider: provider,
 			IsValid:  true,
 			Limit:    limit,
@@ -235,7 +235,7 @@ func recruiterWatchEmails(w http.ResponseWriter, r *http.Request) {
 	log.Println("done.")
 }
 
-func candidateWatchEmails(w http.ResponseWriter, r *http.Request) {
+func candidateGmailSubscription(w http.ResponseWriter, r *http.Request) {
 	log.Println("received watch trigger")
 	ctx := r.Context()
 
@@ -282,7 +282,7 @@ func candidateWatchEmails(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		// 1. Fetch valid auth tokens
-		userTokens, err := cf.Queries.ListCandidateOAuthTokens(ctx, db.ListCandidateOAuthTokensParams{
+		userTokens, err := cf.queries.ListCandidateOAuthTokens(ctx, db.ListCandidateOAuthTokensParams{
 			Provider: provider,
 			IsValid:  true,
 			Limit:    limit,
