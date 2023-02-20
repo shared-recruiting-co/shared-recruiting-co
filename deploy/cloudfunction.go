@@ -48,12 +48,12 @@ func (i *Infra) createCloudFunctions() error {
 		return err
 	}
 
-	_, err = i.watchCandidateEmails()
+	_, err = i.candidateGmailSubscription()
 	if err != nil {
 		return err
 	}
 
-	_, err = i.watchRecruiterEmails()
+	_, err = i.recruiterGmailSubscription()
 	if err != nil {
 		return err
 	}
@@ -782,13 +782,13 @@ func (i *Infra) populateJobs() (*CloudFunction, error) {
 	}, nil
 }
 
-func (i *Infra) watchCandidateEmails() (*CloudFunction, error) {
-	name := "candidate-watch-emails"
+func (i *Infra) candidateGmailSubscription() (*CloudFunction, error) {
+	name := "candidate-gmail-subscription"
 	sa, err := i.createCloudFunctionServiceAccount(name)
 	if err != nil {
 		return nil, err
 	}
-	funcName := "watch-emails"
+	funcName := "gmail-subscription"
 	obj, err := i.uploadCloudFunction(funcName, name)
 	if err != nil {
 		return nil, err
@@ -887,13 +887,13 @@ func (i *Infra) watchCandidateEmails() (*CloudFunction, error) {
 	}, nil
 }
 
-func (i *Infra) watchRecruiterEmails() (*CloudFunction, error) {
-	name := "recruiter-watch-emails"
+func (i *Infra) recruiterGmailSubscription() (*CloudFunction, error) {
+	name := "recruiter-gmail-subscription"
 	sa, err := i.createCloudFunctionServiceAccount(name)
 	if err != nil {
 		return nil, err
 	}
-	funcName := "watch-emails"
+	funcName := "gmail-subscription"
 	obj, err := i.uploadCloudFunction(funcName, name)
 	if err != nil {
 		return nil, err
