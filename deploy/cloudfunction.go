@@ -28,18 +28,17 @@ type CloudFunction struct {
 }
 
 func (i *Infra) createCloudFunctions() error {
-	syncCF, err := i.fullEmailSyncCF()
-	if err != nil {
-		return err
-	}
-	i.ctx.Export("FullEmailSyncURI", syncCF.Function.ServiceConfig.Uri())
-
-	_, err = i.candidateGmailPushNotifications(syncCF)
+	candidateEmailSync, err := i.candidateEmailSyncCF()
 	if err != nil {
 		return err
 	}
 
-	_, err = i.recruiterGmailPushNotifications(syncCF)
+	_, err = i.candidateGmailPushNotifications(candidateEmailSync)
+	if err != nil {
+		return err
+	}
+
+	_, err = i.recruiterGmailPushNotifications(candidateEmailSync)
 	if err != nil {
 		return err
 	}
@@ -154,8 +153,8 @@ func (i *Infra) createCloudFunctionServiceAccount(name string) (*serviceAccount.
 	return sa, nil
 }
 
-func (i *Infra) fullEmailSyncCF() (*CloudFunction, error) {
-	name := "full-email-sync"
+func (i *Infra) candidateEmailSyncCF() (*CloudFunction, error) {
+	name := "candidate-email-sync"
 	sa, err := i.createCloudFunctionServiceAccount(name)
 	if err != nil {
 		return nil, err
@@ -170,7 +169,7 @@ func (i *Infra) fullEmailSyncCF() (*CloudFunction, error) {
 		// use the same location as the bucket
 		Location:    pulumi.String(DefaultRegion),
 		Project:     pulumi.String(*i.Project.ProjectId),
-		Description: pulumi.String("Sync a user's historic emails starting from a given date"),
+		Description: pulumi.String("Sync a candidate's historic emails starting from a given date"),
 		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
 			Runtime:    pulumi.String("go119"),
 			EntryPoint: pulumi.String("Handler"),
@@ -197,7 +196,7 @@ func (i *Infra) fullEmailSyncCF() (*CloudFunction, error) {
 				"GOOGLE_OAUTH2_CREDENTIALS": i.config.RequireSecret("GOOGLE_OAUTH2_CREDENTIALS"),
 				"SENTRY_DSN":                i.config.RequireSecret("SENTRY_DSN"),
 				"GCP_PROJECT_ID":            pulumi.String(*i.Project.ProjectId),
-				"CANDIDATE_GMAIL_MESSAGES_TOPIC": i.Topics.CandidateGmailMessages.Name.ApplyT(func(name string) string {
+				"GMAIL_MESSAGES_TOPIC": i.Topics.CandidateGmailMessages.Name.ApplyT(func(name string) string {
 					return name
 				}).(pulumi.StringOutput),
 			},
@@ -246,7 +245,7 @@ func (i *Infra) fullEmailSyncCF() (*CloudFunction, error) {
 	}, nil
 }
 
-func (i *Infra) candidateGmailPushNotifications(fullSync *CloudFunction) (*CloudFunction, error) {
+func (i *Infra) candidateGmailPushNotifications(emailSync *CloudFunction) (*CloudFunction, error) {
 	name := "candidate-gmail-push-notifications"
 	sa, err := i.createCloudFunctionServiceAccount(name)
 	if err != nil {
@@ -288,7 +287,7 @@ func (i *Infra) candidateGmailPushNotifications(fullSync *CloudFunction) (*Cloud
 				"SUPABASE_API_KEY":          i.config.RequireSecret("SUPABASE_API_KEY"),
 				"GOOGLE_OAUTH2_CREDENTIALS": i.config.RequireSecret("GOOGLE_OAUTH2_CREDENTIALS"),
 				"SENTRY_DSN":                i.config.RequireSecret("SENTRY_DSN"),
-				"TRIGGER_FULL_SYNC_URL":     fullSync.Function.ServiceConfig.Uri().Elem(),
+				"TRIGGER_EMAIL_SYNC_URL":    emailSync.Function.ServiceConfig.Uri().Elem(),
 				"GCP_PROJECT_ID":            pulumi.String(*i.Project.ProjectId),
 				"GMAIL_MESSAGES_TOPIC": i.Topics.CandidateGmailMessages.Name.ApplyT(func(name string) string {
 					return name
@@ -311,7 +310,7 @@ func (i *Infra) candidateGmailPushNotifications(fullSync *CloudFunction) (*Cloud
 		i.Topics.CandidateGmailMessages,
 		obj,
 		sa,
-		fullSync.Function,
+		emailSync.Function,
 	}))
 	if err != nil {
 		return nil, err
@@ -327,17 +326,17 @@ func (i *Infra) candidateGmailPushNotifications(fullSync *CloudFunction) (*Cloud
 	}
 
 	// grant function invoke access to the gmail sync function
-	_, err = cloudrunv2.NewServiceIamMember(i.ctx, fmt.Sprintf("%s-can-invoke-%s", name, fullSync.Name), &cloudrunv2.ServiceIamMemberArgs{
+	_, err = cloudrunv2.NewServiceIamMember(i.ctx, fmt.Sprintf("%s-can-invoke-%s", name, emailSync.Name), &cloudrunv2.ServiceIamMemberArgs{
 		Project:  pulumi.String(*i.Project.ProjectId),
 		Location: pulumi.String(DefaultRegion),
-		Name:     pulumi.String(fullSync.Name),
+		Name:     pulumi.String(emailSync.Name),
 		Role:     pulumi.String("roles/run.invoker"),
 		Member: sa.Email.ApplyT(func(email string) (string, error) {
 			return fmt.Sprintf("serviceAccount:%v", email), nil
 		}).(pulumi.StringOutput),
 	},
 		pulumi.DependsOn([]pulumi.Resource{
-			fullSync.Function,
+			emailSync.Function,
 			cf,
 		}))
 	if err != nil {
@@ -561,7 +560,7 @@ func (i *Infra) recruiterGmailMessages() (*CloudFunction, error) {
 	}, nil
 }
 
-func (i *Infra) recruiterGmailPushNotifications(fullSync *CloudFunction) (*CloudFunction, error) {
+func (i *Infra) recruiterGmailPushNotifications(emailSync *CloudFunction) (*CloudFunction, error) {
 	name := "recruiter-gmail-push-notifications"
 	sa, err := i.createCloudFunctionServiceAccount(name)
 	if err != nil {
@@ -603,7 +602,7 @@ func (i *Infra) recruiterGmailPushNotifications(fullSync *CloudFunction) (*Cloud
 				"SUPABASE_API_KEY":          i.config.RequireSecret("SUPABASE_API_KEY"),
 				"GOOGLE_OAUTH2_CREDENTIALS": i.config.RequireSecret("GOOGLE_OAUTH2_CREDENTIALS"),
 				"SENTRY_DSN":                i.config.RequireSecret("SENTRY_DSN"),
-				"TRIGGER_FULL_SYNC_URL":     fullSync.Function.ServiceConfig.Uri().Elem(),
+				"TRIGGER_EMAIL_SYNC_URL":    emailSync.Function.ServiceConfig.Uri().Elem(),
 				"GCP_PROJECT_ID":            pulumi.String(*i.Project.ProjectId),
 				"GMAIL_MESSAGES_TOPIC": i.Topics.RecruiterGmailMessages.Name.ApplyT(func(name string) string {
 					return name
@@ -626,7 +625,7 @@ func (i *Infra) recruiterGmailPushNotifications(fullSync *CloudFunction) (*Cloud
 		i.Topics.RecruiterGmailMessages,
 		obj,
 		sa,
-		fullSync.Function,
+		emailSync.Function,
 	}))
 	if err != nil {
 		return nil, err
@@ -642,17 +641,17 @@ func (i *Infra) recruiterGmailPushNotifications(fullSync *CloudFunction) (*Cloud
 	}
 
 	// grant function invoke access to the gmail sync function
-	_, err = cloudrunv2.NewServiceIamMember(i.ctx, fmt.Sprintf("%s-can-invoke-%s", name, fullSync.Name), &cloudrunv2.ServiceIamMemberArgs{
+	_, err = cloudrunv2.NewServiceIamMember(i.ctx, fmt.Sprintf("%s-can-invoke-%s", name, emailSync.Name), &cloudrunv2.ServiceIamMemberArgs{
 		Project:  pulumi.String(*i.Project.ProjectId),
 		Location: pulumi.String(DefaultRegion),
-		Name:     pulumi.String(fullSync.Name),
+		Name:     pulumi.String(emailSync.Name),
 		Role:     pulumi.String("roles/run.invoker"),
 		Member: sa.Email.ApplyT(func(email string) (string, error) {
 			return fmt.Sprintf("serviceAccount:%v", email), nil
 		}).(pulumi.StringOutput),
 	},
 		pulumi.DependsOn([]pulumi.Resource{
-			fullSync.Function,
+			emailSync.Function,
 			cf,
 		}))
 	if err != nil {

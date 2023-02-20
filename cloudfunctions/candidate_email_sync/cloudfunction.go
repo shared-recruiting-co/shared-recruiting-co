@@ -132,9 +132,9 @@ func NewCloudFunction(ctx context.Context, payload EmailSyncRequest) (*CloudFunc
 	if projectID == "" {
 		return nil, fmt.Errorf("GCP_PROJECT_ID is not set")
 	}
-	topicName := os.Getenv("CANDIDATE_GMAIL_MESSAGES_TOPIC")
+	topicName := os.Getenv("GMAIL_MESSAGES_TOPIC")
 	if topicName == "" {
-		return nil, fmt.Errorf("CANDIDATE_GMAIL_MESSAGES_TOPIC is not set")
+		return nil, fmt.Errorf("GMAIL_MESSAGES_TOPIC is not set")
 	}
 	client, err := pubsub.NewClient(ctx, projectID)
 	if err != nil {
