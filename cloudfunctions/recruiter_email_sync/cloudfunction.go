@@ -20,6 +20,7 @@ import (
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/db"
 	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
 	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/label"
+	srcmessage "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/message"
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/pubsub/schema"
 )
 
@@ -61,7 +62,7 @@ type CloudFunction struct {
 	queries db.Querier
 	srv     *srcmail.Service
 	labels  *srclabel.Labels
-	user    db.UserProfile
+	user    db.Recruiter
 	request EmailSyncRequest
 	topic   *pubsub.Topic
 }
@@ -78,9 +79,9 @@ func NewCloudFunction(ctx context.Context, payload EmailSyncRequest) (*CloudFunc
 	queries := db.NewHTTP(apiURL, apiKey)
 
 	// 1. Get User from email address
-	user, err := queries.GetUserProfileByEmail(ctx, payload.Email)
+	user, err := queries.GetRecruiterByEmail(ctx, payload.Email)
 	if err != nil {
-		return nil, fmt.Errorf("error getting user profile by email: %w", err)
+		return nil, fmt.Errorf("error getting recruiter by email: %w", err)
 	}
 
 	// 2. Get User' OAuth Token
@@ -150,7 +151,13 @@ func NewCloudFunction(ctx context.Context, payload EmailSyncRequest) (*CloudFunc
 		queries: queries,
 		srv:     srv,
 		labels:  labels,
-		user:    user,
+		user: db.Recruiter{
+			UserID:    user.UserID,
+			CompanyID: user.CompanyID,
+			Email:     user.Email,
+			FirstName: user.FirstName,
+			LastName:  user.LastName,
+		},
 		request: payload,
 		topic:   topic,
 	}, nil
@@ -238,16 +245,14 @@ func (cf *CloudFunction) Sync() error {
 			if skipThread(thread.Messages, cf.labels.JobsOpportunity.Id) {
 				continue
 			}
-			// get messages before the first reply
-			filtered := filterMessagesAfterReply(thread.Messages)
+			// (for now) we only want to check the first message in a thread
+			srcmessage.SortByDate(messages)
 			// save for processing
-			// TODO consider mimicking real-time sync and process messages sequentially
-			// (i.e do not label second email if the first is positive)
-			messages = append(messages, filtered...)
+			messages = append(messages, thread.Messages[0])
 		}
 
 		if len(messages) == 0 {
-			log.Printf("no new messages to process")
+			log.Printf("no messages to process")
 		} else {
 			// if there are messages to process, push them
 			result, err := cf.PublishMessages(messages)
