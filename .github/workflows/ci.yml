@@ -42,7 +42,7 @@ jobs:
       fail-fast: true
       matrix:
         directory: 
-          - "./cloudfunctions/watch_emails" 
+          - "./cloudfunctions/gmail_subscription" 
           - "./cloudfunctions/candidate_email_sync" 
           - "./cloudfunctions/adhoc" 
           - "./cloudfunctions/populate_jobs" 
