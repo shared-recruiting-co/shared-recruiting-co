@@ -166,7 +166,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		// of transactions for performance monitoring.
 		// We recommend adjusting this value in production,
 		TracesSampleRate: 1.0,
-		ServerName:       "full-email-sync",
+		ServerName:       os.Getenv("FUNCTION_NAME"),
 	})
 	if err != nil {
 		log.Printf("sentry.Init: %s", err)
