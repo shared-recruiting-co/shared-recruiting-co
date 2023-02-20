@@ -61,7 +61,7 @@ type CloudFunction struct {
 	ctx     context.Context
 	queries db.Querier
 	srv     *srcmail.Service
-	labels  *srclabel.Labels
+	labels  *srclabel.RecruiterLabels
 	user    db.Recruiter
 	request EmailSyncRequest
 	topic   *pubsub.Topic
@@ -106,7 +106,7 @@ func NewCloudFunction(ctx context.Context, payload EmailSyncRequest) (*CloudFunc
 	}
 
 	// 4. Get or Create SRC Labels
-	labels, err := srv.GetOrCreateSRCLabels()
+	labels, err := srv.GetOrCreateRecruiterLabels()
 	if err != nil {
 		// first request, so check if the error is an oauth error
 		// if so, update the database
@@ -242,7 +242,7 @@ func (cf *CloudFunction) Sync() error {
 			}
 
 			// check if we already processed this thread
-			if skipThread(thread.Messages, cf.labels.JobsOpportunity.Id) {
+			if skipThread(thread.Messages, cf.labels.RecruitingOutbound.Id) {
 				continue
 			}
 			// (for now) we only want to check the first message in a thread

@@ -101,7 +101,7 @@ func reclassify(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Create SRC Labels
-		labels, err := srv.GetOrCreateSRCLabels()
+		labels, err := srv.GetOrCreateCandidateLabels()
 		if err != nil {
 			// first request, so check if the error is an oauth error
 			// if so, update the database
@@ -222,7 +222,7 @@ func reclassify(w http.ResponseWriter, r *http.Request) {
 	log.Printf("done.")
 }
 
-func handleNonRecruitingEmails(srv *srcmail.Service, labels *srclabel.Labels, messageIDs []string) error {
+func handleNonRecruitingEmails(srv *srcmail.Service, labels *srclabel.CandidateLabels, messageIDs []string) error {
 	if len(messageIDs) == 0 {
 		return nil
 	}
