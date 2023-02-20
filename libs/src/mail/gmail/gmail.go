@@ -145,7 +145,14 @@ func (s *Service) CreateLabel(l *gmail.Label) (*gmail.Label, error) {
 
 // GetOrCreateSRCLabels fetches or creates all of the labels managed by SRC
 // Label IDs are unique to each gmail account, so we need to list all labels and match based off names.
+// DEPRECATED: Use GetOrCreateCandidateLabels instead
 func (s *Service) GetOrCreateSRCLabels() (*srclabel.Labels, error) {
+	return s.GetOrCreateCandidateLabels()
+}
+
+// GetOrCreateCandidateLabels fetches or creates all of the labels managed by SRC
+// Label IDs are unique to each gmail account, so we need to list all labels and match based off names.
+func (s *Service) GetOrCreateCandidateLabels() (*srclabel.Labels, error) {
 	// TODO: What is a better data structure or interface to make this function more DRY?
 	// list all labels
 	labels, err := s.ListLabels()
@@ -224,7 +231,6 @@ func (s *Service) GetOrCreateSRCLabels() (*srclabel.Labels, error) {
 		if err != nil {
 			return nil, err
 		}
-
 	}
 	if result.BlockSender == nil {
 		result.BlockSender, err = s.CreateLabel(&srclabel.BlockSender)
@@ -240,6 +246,54 @@ func (s *Service) GetOrCreateSRCLabels() (*srclabel.Labels, error) {
 	}
 	if result.BlockGraveyard == nil {
 		result.BlockGraveyard, err = s.CreateLabel(&srclabel.BlockGraveyard)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &result, nil
+}
+
+// GetOrCreateRecruiterLabels fetches or creates all of the labels managed by SRC
+// Label IDs are unique to each gmail account, so we need to list all labels and match based off names.
+func (s *Service) GetOrCreateRecruiterLabels() (*srclabel.RecruiterLabels, error) {
+	// TODO: What is a better data structure or interface to make this function more DRY?
+	// list all labels
+	labels, err := s.ListLabels()
+	if err != nil {
+		return nil, err
+	}
+	result := srclabel.RecruiterLabels{}
+
+	// for each label,
+	// if it exists, add it to the struct
+	// if it doesn't exist, create it and add it to the struct
+	for _, label := range labels.Labels {
+		switch label.Name {
+		case srclabel.SRC.Name:
+			result.SRC = label
+		case srclabel.Recruiting.Name:
+			result.Recruiting = label
+		case srclabel.RecruitingOutbound.Name:
+			result.RecruitingOutbound = label
+		}
+	}
+
+	// create any labels that don't exist
+	if result.SRC == nil {
+		result.SRC, err = s.CreateLabel(&srclabel.SRC)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if result.Recruiting == nil {
+		result.Recruiting, err = s.CreateLabel(&srclabel.Recruiting)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if result.RecruitingOutbound == nil {
+		result.RecruitingOutbound, err = s.CreateLabel(&srclabel.RecruitingOutbound)
 		if err != nil {
 			return nil, err
 		}
