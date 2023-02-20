@@ -24,12 +24,12 @@ type FullEmailSyncRequest struct {
 	StartDate time.Time `json:"start_date"`
 }
 
-// triggerBackgroundfFullEmailSync triggers a background function to sync all emails since a given date
+// triggerBackgroundEmailSync triggers a background function to sync all emails since a given date
 // Note: The service account must be a principal with invoker permission on the full sync service
-func (cf *CloudFunction) triggerBackgroundfFullEmailSync(startDate time.Time) error {
-	triggerURL := os.Getenv("TRIGGER_FULL_SYNC_URL")
+func (cf *CloudFunction) triggerBackgroundEmailSync(startDate time.Time) error {
+	triggerURL := os.Getenv("TRIGGER_EMAIL_SYNC_URL")
 	if triggerURL == "" {
-		return errors.New("TRIGGER_FULL_SYNC_URL is not set")
+		return errors.New("TRIGGER_EMAIL_SYNC_URL is not set")
 	}
 	httpClient, err := idtoken.NewClient(cf.ctx, triggerURL)
 	if err != nil {
@@ -75,7 +75,7 @@ func (cf *CloudFunction) syncHistory(
 		// get next set of messages
 		if historyIDExpired {
 			// if history id is expired, trigger async full sync to last sync date
-			err = cf.triggerBackgroundfFullEmailSync(syncHistory.SyncedAt)
+			err = cf.triggerBackgroundEmailSync(syncHistory.SyncedAt)
 			if err != nil {
 				return fmt.Errorf("error triggering full sync: %v", err)
 			}

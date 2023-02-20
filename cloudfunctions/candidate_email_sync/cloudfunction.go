@@ -46,10 +46,14 @@ func handleError(w http.ResponseWriter, msg string, err error) {
 	http.Error(w, err.Error(), http.StatusInternalServerError)
 }
 
-type FullEmailSyncRequest struct {
-	Email     string                       `json:"email"`
-	StartDate time.Time                    `json:"start_date"`
-	Settings  schema.EmailMessagesSettings `json:"settings"`
+type EmailSyncRequest struct {
+	Email string `json:"email"`
+	// StartDate is the date to start syncing from (inclusive)
+	StartDate time.Time `json:"start_date"`
+	// EndDate is optional
+	// if not provided, it will default to the current time
+	EndDate  time.Time                    `json:"end_date"`
+	Settings schema.EmailMessagesSettings `json:"settings"`
 }
 
 type CloudFunction struct {
@@ -58,14 +62,14 @@ type CloudFunction struct {
 	srv     *srcmail.Service
 	labels  *srclabel.Labels
 	user    db.UserProfile
-	request FullEmailSyncRequest
+	request EmailSyncRequest
 	topic   *pubsub.Topic
 }
 
-func NewCloudFunction(ctx context.Context, payload FullEmailSyncRequest) (*CloudFunction, error) {
+func NewCloudFunction(ctx context.Context, payload EmailSyncRequest) (*CloudFunction, error) {
 	creds, err := jsonFromEnv("GOOGLE_OAUTH2_CREDENTIALS")
 	if err != nil {
-		return nil, fmt.Errorf("error parsing GOOGLE_OAUTH2_CREDENTIALScredentials: %w", err)
+		return nil, fmt.Errorf("error parsing GOOGLE_OAUTH2_CREDENTIALS: %w", err)
 	}
 
 	// 0, Create SRC client
@@ -128,9 +132,9 @@ func NewCloudFunction(ctx context.Context, payload FullEmailSyncRequest) (*Cloud
 	if projectID == "" {
 		return nil, fmt.Errorf("GCP_PROJECT_ID is not set")
 	}
-	topicName := os.Getenv("CANDIDATE_GMAIL_MESSAGES_TOPIC")
+	topicName := os.Getenv("GMAIL_MESSAGES_TOPIC")
 	if topicName == "" {
-		return nil, fmt.Errorf("CANDIDATE_GMAIL_MESSAGES_TOPIC is not set")
+		return nil, fmt.Errorf("GMAIL_MESSAGES_TOPIC is not set")
 	}
 	client, err := pubsub.NewClient(ctx, projectID)
 	if err != nil {
@@ -162,7 +166,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		// of transactions for performance monitoring.
 		// We recommend adjusting this value in production,
 		TracesSampleRate: 1.0,
-		ServerName:       "full-email-sync",
+		ServerName:       os.Getenv("FUNCTION_NAME"),
 	})
 	if err != nil {
 		log.Printf("sentry.Init: %s", err)
@@ -180,7 +184,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		handleError(w, "error reading request body", err)
 		return
 	}
-	var data FullEmailSyncRequest
+	var data EmailSyncRequest
 	err = json.Unmarshal(body, &data)
 	if err != nil {
 		handleError(w, "error unmarshalling request body", err)
@@ -214,7 +218,7 @@ func (cf *CloudFunction) Sync() error {
 	for {
 		// get next set of messages
 		// if this is the first notification, trigger a one-time sync
-		threads, pageToken, err = fetchThreadsSinceDate(cf.srv, cf.request.StartDate, pageToken)
+		threads, pageToken, err = fetchThreadsSinceDate(cf.srv, cf.request.StartDate, cf.request.EndDate, pageToken)
 
 		// for now, abort on error
 		if err != nil {

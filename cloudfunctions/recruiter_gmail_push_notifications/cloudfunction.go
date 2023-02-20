@@ -201,7 +201,7 @@ func handler(ctx context.Context, e event.Event) error {
 		log.Printf("no previous sync history found, triggering full sync in background")
 		// scan the past three months of emails
 		startDate := time.Now().AddDate(0, -3, 0)
-		err = cf.triggerBackgroundfFullEmailSync(startDate)
+		err = cf.triggerBackgroundEmailSync(startDate)
 		if err != nil {
 			return handleError("error triggering background full email sync", err)
 		}

@@ -15,9 +15,12 @@ const maxResults = 250
 
 // fetchThreadsSinceDate fetches all threads since the start date
 // It ignores threads of only sent emails and threads already processed by SRC
-func fetchThreadsSinceDate(srv *srcmail.Service, date time.Time, pageToken string) ([]*gmail.Thread, string, error) {
+func fetchThreadsSinceDate(srv *srcmail.Service, start time.Time, end time.Time, pageToken string) ([]*gmail.Thread, string, error) {
 	// get all (including archived) emails after the start date, ignore sent emails and emails already processed by SRC
-	q := fmt.Sprintf("-label:sent -label:%s after:%s", srclabel.SRC.Name, date.Format("2006/01/02"))
+	q := fmt.Sprintf("-label:sent -label:%s after:%s", srclabel.SRC.Name, start.Format("2006/01/02"))
+	if !end.IsZero() {
+		q = fmt.Sprintf("%s before:%s", q, end.Format("2006/01/02"))
+	}
 
 	r, err := srcmail.ExecuteWithRetries(func() (*gmail.ListThreadsResponse, error) {
 		return srv.Users.Threads.

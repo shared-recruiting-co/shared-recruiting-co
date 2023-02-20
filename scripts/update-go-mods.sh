@@ -1,6 +1,6 @@
 libs=("./libs/src")
 pkgs=(
-"./cloudfunctions/full_email_sync"
+"./cloudfunctions/candidate_email_sync"
 "./cloudfunctions/watch_emails"
 "./cloudfunctions/adhoc"
 "./cloudfunctions/populate_jobs"
