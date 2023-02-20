@@ -1,4 +1,4 @@
-module github.com/shared-recruiting-co/shared-recruiting-co/cloudfunctions/candidate_email_sync
+module github.com/shared-recruiting-co/shared-recruiting-co/cloudfunctions/recruiter_email_sync
 
 go 1.19
 

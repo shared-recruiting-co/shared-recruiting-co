@@ -33,12 +33,17 @@ func (i *Infra) createCloudFunctions() error {
 		return err
 	}
 
+	recruiterEmailSync, err := i.recruiterEmailSyncCF()
+	if err != nil {
+		return err
+	}
+
 	_, err = i.candidateGmailPushNotifications(candidateEmailSync)
 	if err != nil {
 		return err
 	}
 
-	_, err = i.recruiterGmailPushNotifications(candidateEmailSync)
+	_, err = i.recruiterGmailPushNotifications(recruiterEmailSync)
 	if err != nil {
 		return err
 	}
@@ -222,6 +227,98 @@ func (i *Infra) candidateEmailSyncCF() (*CloudFunction, error) {
 		cf,
 		sa,
 		i.Topics.CandidateGmailMessages,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	srv, err := cloudrun.LookupService(i.ctx, &cloudrun.LookupServiceArgs{
+		Name:     name,
+		Location: DefaultRegion,
+		Project:  i.Project.ProjectId,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &CloudFunction{
+		Name:           name,
+		ServiceAccount: sa,
+		Function:       cf,
+		Service:        srv,
+	}, nil
+}
+
+func (i *Infra) recruiterEmailSyncCF() (*CloudFunction, error) {
+	name := "recruiter-email-sync"
+	sa, err := i.createCloudFunctionServiceAccount(name)
+	if err != nil {
+		return nil, err
+	}
+	obj, err := i.uploadCloudFunction(name, "")
+	if err != nil {
+		return nil, err
+	}
+
+	cf, err := cloudfunctionsv2.NewFunction(i.ctx, name, &cloudfunctionsv2.FunctionArgs{
+		Name: pulumi.String(name),
+		// use the same location as the bucket
+		Location:    pulumi.String(DefaultRegion),
+		Project:     pulumi.String(*i.Project.ProjectId),
+		Description: pulumi.String("Sync a recruiter's historic emails starting from a given date"),
+		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
+			Runtime:    pulumi.String("go119"),
+			EntryPoint: pulumi.String("Handler"),
+			EnvironmentVariables: pulumi.StringMap{
+				// Use hash to force redeploy when code changes
+				"FUNCTION_NAME":         pulumi.String(name),
+				"FUNCTION_CONTENT_HASH": obj.Md5hash,
+			},
+			Source: &cloudfunctionsv2.FunctionBuildConfigSourceArgs{
+				StorageSource: &cloudfunctionsv2.FunctionBuildConfigSourceStorageSourceArgs{
+					Bucket: i.GCFBucket.Name,
+					Object: obj.Name,
+				},
+			},
+		},
+		ServiceConfig: &cloudfunctionsv2.FunctionServiceConfigArgs{
+			AvailableMemory:  pulumi.String("256M"),
+			MinInstanceCount: pulumi.Int(0),
+			MaxInstanceCount: pulumi.Int(1),
+			TimeoutSeconds:   pulumi.Int(MaxHTTPTriggerTimeout),
+			EnvironmentVariables: pulumi.StringMap{
+				"SUPABASE_API_URL":          pulumi.String(i.config.Require("SUPABASE_API_URL")),
+				"SUPABASE_API_KEY":          i.config.RequireSecret("SUPABASE_API_KEY"),
+				"GOOGLE_OAUTH2_CREDENTIALS": i.config.RequireSecret("GOOGLE_OAUTH2_CREDENTIALS"),
+				"SENTRY_DSN":                i.config.RequireSecret("SENTRY_DSN"),
+				"GCP_PROJECT_ID":            pulumi.String(*i.Project.ProjectId),
+				"GMAIL_MESSAGES_TOPIC": i.Topics.RecruiterGmailMessages.Name.ApplyT(func(name string) string {
+					return name
+				}).(pulumi.StringOutput),
+			},
+			IngressSettings:            pulumi.String("ALLOW_ALL"),
+			AllTrafficOnLatestRevision: pulumi.Bool(true),
+			ServiceAccountEmail:        sa.Email,
+		},
+	}, pulumi.DependsOn([]pulumi.Resource{
+		obj,
+		sa,
+	}))
+
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = pubsub.NewTopicIAMMember(i.ctx, fmt.Sprintf("%s-publish-to-recruiter-gmail-messages", name), &pubsub.TopicIAMMemberArgs{
+		Topic:   i.Topics.RecruiterGmailMessages.ID(),
+		Role:    pulumi.String("roles/pubsub.publisher"),
+		Member:  pulumi.Sprintf("serviceAccount:%s", sa.Email),
+		Project: pulumi.String(*i.Project.ProjectId),
+	}, pulumi.DependsOn([]pulumi.Resource{
+		cf,
+		sa,
+		i.Topics.RecruiterGmailMessages,
 	}))
 	if err != nil {
 		return nil, err
