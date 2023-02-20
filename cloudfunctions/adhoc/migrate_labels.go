@@ -52,7 +52,7 @@ func migrateLabels(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		// Get new labels
-		newLabels, err := srv.GetOrCreateSRCLabels()
+		newLabels, err := srv.GetOrCreateCandidateLabels()
 		if err != nil {
 			log.Printf("error getting new labels: %v", err)
 			hasError = true
@@ -140,7 +140,7 @@ func migrateLabels(w http.ResponseWriter, r *http.Request) {
 }
 
 // Consider moving into shared lib if this becomes a common operation
-func syncLabels(srv *srcmail.Service, labels *srclabel.Labels) error {
+func syncLabels(srv *srcmail.Service, labels *srclabel.CandidateLabels) error {
 	// Update each label to update properties
 	_, err := srv.Users.Labels.Update(srv.UserID, labels.SRC.Id, &srclabel.SRC).Do()
 	if err != nil {
