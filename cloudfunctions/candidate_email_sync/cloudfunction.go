@@ -60,7 +60,7 @@ type CloudFunction struct {
 	ctx     context.Context
 	queries db.Querier
 	srv     *srcmail.Service
-	labels  *srclabel.Labels
+	labels  *srclabel.CandidateLabels
 	user    db.UserProfile
 	request EmailSyncRequest
 	topic   *pubsub.Topic
@@ -105,7 +105,7 @@ func NewCloudFunction(ctx context.Context, payload EmailSyncRequest) (*CloudFunc
 	}
 
 	// 4. Get or Create SRC Labels
-	labels, err := srv.GetOrCreateSRCLabels()
+	labels, err := srv.GetOrCreateCandidateLabels()
 	if err != nil {
 		// first request, so check if the error is an oauth error
 		// if so, update the database
