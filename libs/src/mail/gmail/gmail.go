@@ -143,23 +143,16 @@ func (s *Service) CreateLabel(l *gmail.Label) (*gmail.Label, error) {
 	})
 }
 
-// GetOrCreateSRCLabels fetches or creates all of the labels managed by SRC
-// Label IDs are unique to each gmail account, so we need to list all labels and match based off names.
-// DEPRECATED: Use GetOrCreateCandidateLabels instead
-func (s *Service) GetOrCreateSRCLabels() (*srclabel.Labels, error) {
-	return s.GetOrCreateCandidateLabels()
-}
-
 // GetOrCreateCandidateLabels fetches or creates all of the labels managed by SRC
 // Label IDs are unique to each gmail account, so we need to list all labels and match based off names.
-func (s *Service) GetOrCreateCandidateLabels() (*srclabel.Labels, error) {
+func (s *Service) GetOrCreateCandidateLabels() (*srclabel.CandidateLabels, error) {
 	// TODO: What is a better data structure or interface to make this function more DRY?
 	// list all labels
 	labels, err := s.ListLabels()
 	if err != nil {
 		return nil, err
 	}
-	result := srclabel.Labels{}
+	result := srclabel.CandidateLabels{}
 
 	// for each label,
 	// if it exists, add it to the struct
