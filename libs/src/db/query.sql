@@ -15,6 +15,7 @@ where email = $1;
 -- name: ListUserOAuthTokens :many
 select
     user_id,
+    email,
     provider,
     token,
     is_valid,
@@ -46,6 +47,7 @@ offset $4;
 -- name: GetUserOAuthToken :one
 select
     user_id,
+    email,
     provider,
     token,
     is_valid,
@@ -55,10 +57,11 @@ from public.user_oauth_token
 where user_id = $1 and provider = $2;
 
 -- name: UpsertUserOAuthToken :exec
-insert into public.user_oauth_token (user_id, provider, token, is_valid)
-values ($1, $2, $3, $4)
+insert into public.user_oauth_token (user_id, email, provider, token, is_valid)
+values ($1, $2, $3, $4, $5)
 on conflict (user_id, provider)
 do update set
+    email = excluded.email,
     token = excluded.token,
     is_valid = excluded.is_valid;
 
