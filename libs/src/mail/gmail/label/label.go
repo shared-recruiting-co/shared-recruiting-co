@@ -7,6 +7,8 @@ import (
 // Labels contains all labels managed by @SRC.
 // IDs are unique per gmail account.
 // The rest of the fields should be the same across all accounts.
+//
+// TODO: Merge with CandidateLabels & RecruiterLabels.
 type Labels struct {
 	// SRC is the @SRC parent label for all @SRC labels.
 	SRC *gmail.Label
@@ -45,21 +47,6 @@ var (
 			BackgroundColor: "#4986e7",
 			TextColor:       "#ffffff",
 		},
-	}
-	// Jobs is the @SRC/Jobs folder for all @SRC job labels.
-	Jobs = gmail.Label{
-		Name: SRC.Name + "/Jobs",
-		// Hide folder labels
-		MessageListVisibility: "hide",
-		Color:                 SRC.Color,
-	}
-	// JobsOpportunity is the @SRC/Jobs/Opportunity label for identified job opportunities.
-	JobsOpportunity = gmail.Label{
-		Name: Jobs.Name + "/Opportunity",
-		// Show leaf labels
-		MessageListVisibility: "show",
-		// use same color as parent
-		Color: Jobs.Color,
 	}
 	// Allow is the @SRC/Allow folder for senders and domains that always bypass SRC
 	Allow = gmail.Label{
