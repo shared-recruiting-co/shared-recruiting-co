@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	null "gopkg.in/guregu/null.v4"
 )
 
 const countUserEmailJobs = `-- name: CountUserEmailJobs :one
@@ -143,16 +142,17 @@ select
     created_at,
     updated_at
 from public.user_oauth_token
-where user_id = $1 and provider = $2
+where user_id = $1 and email = $2 and provider = $3
 `
 
 type GetUserOAuthTokenParams struct {
 	UserID   uuid.UUID `json:"user_id"`
+	Email    string    `json:"email"`
 	Provider string    `json:"provider"`
 }
 
 func (q *Queries) GetUserOAuthToken(ctx context.Context, arg GetUserOAuthTokenParams) (UserOauthToken, error) {
-	row := q.queryRow(ctx, q.getUserOAuthTokenStmt, getUserOAuthToken, arg.UserID, arg.Provider)
+	row := q.queryRow(ctx, q.getUserOAuthTokenStmt, getUserOAuthToken, arg.UserID, arg.Email, arg.Provider)
 	var i UserOauthToken
 	err := row.Scan(
 		&i.UserID,
@@ -504,16 +504,15 @@ func (q *Queries) UpsertUserEmailSyncHistory(ctx context.Context, arg UpsertUser
 const upsertUserOAuthToken = `-- name: UpsertUserOAuthToken :exec
 insert into public.user_oauth_token (user_id, email, provider, token, is_valid)
 values ($1, $2, $3, $4, $5)
-on conflict (user_id, provider)
+on conflict (user_id, email, provider)
 do update set
-    email = excluded.email,
     token = excluded.token,
     is_valid = excluded.is_valid
 `
 
 type UpsertUserOAuthTokenParams struct {
 	UserID   uuid.UUID       `json:"user_id"`
-	Email    null.String     `json:"email"`
+	Email    string          `json:"email"`
 	Provider string          `json:"provider"`
 	Token    json.RawMessage `json:"token"`
 	IsValid  bool            `json:"is_valid"`
