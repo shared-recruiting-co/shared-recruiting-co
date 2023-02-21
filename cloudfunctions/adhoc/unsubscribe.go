@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/getsentry/sentry-go"
+	"gopkg.in/guregu/null.v4"
 
 	"google.golang.org/api/gmail/v1"
 
@@ -80,6 +81,7 @@ func (cf *CloudFunction) stop(users []db.UserOauthToken) []error {
 				// update the user's oauth token
 				err = cf.Queries.UpsertUserOAuthToken(cf.ctx, db.UpsertUserOAuthTokenParams{
 					UserID:   user.UserID,
+					Email:    null.StringFrom(gmailProfile.EmailAddress),
 					Provider: provider,
 					Token:    user.Token,
 					IsValid:  false,
