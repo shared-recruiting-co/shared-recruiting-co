@@ -87,11 +87,15 @@ func singleOrError[T any](slice []T) (T, error) {
 // GetUserProfileByEmail fetches a user profile by email.
 func (q *HTTPQueries) GetUserProfileByEmail(ctx context.Context, email string) (UserProfile, error) {
 	basePath := "/rpc/get_user_profile_by_email"
-	query := fmt.Sprintf("input=%s", email)
-	path := fmt.Sprintf("%s?%s", basePath, query)
+	path := basePath
 	var result UserProfile
 
-	resp, err := q.DoRequest(ctx, http.MethodGet, path, nil)
+	body, err := json.Marshal(map[string]string{"input": email})
+	if err != nil {
+		return result, err
+	}
+
+	resp, err := q.DoRequest(ctx, http.MethodPost, path, bytes.NewReader(body))
 	if err != nil {
 		return result, err
 	}
@@ -101,12 +105,10 @@ func (q *HTTPQueries) GetUserProfileByEmail(ctx context.Context, email string) (
 		return result, fmt.Errorf("fetch user profile by email: %s", resp.Status)
 	}
 
-	var profile []UserProfile
-	if err := json.NewDecoder(resp.Body).Decode(&profile); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return result, err
 	}
 
-	result, err = singleOrError(profile)
 	return result, err
 }
 
@@ -449,11 +451,15 @@ func (q *HTTPQueries) CountUserEmailJobs(ctx context.Context, userID uuid.UUID) 
 // GetRecruiterByEmail fetches a recruiter profile given their email
 func (q *HTTPQueries) GetRecruiterByEmail(ctx context.Context, email string) (GetRecruiterByEmailRow, error) {
 	basePath := "/rpc/get_recruiter_by_email"
-	query := fmt.Sprintf("input=%s", email)
-	path := fmt.Sprintf("%s?%s", basePath, query)
+	path := basePath
 	var result GetRecruiterByEmailRow
 
-	resp, err := q.DoRequest(ctx, http.MethodGet, path, nil)
+	body, err := json.Marshal(map[string]string{"input": email})
+	if err != nil {
+		return result, err
+	}
+
+	resp, err := q.DoRequest(ctx, http.MethodPost, path, bytes.NewReader(body))
 	if err != nil {
 		return result, err
 	}
@@ -463,11 +469,9 @@ func (q *HTTPQueries) GetRecruiterByEmail(ctx context.Context, email string) (Ge
 		return result, fmt.Errorf("error fetching recruiter by email: %s", resp.Status)
 	}
 
-	var profile []GetRecruiterByEmailRow
-	if err := json.NewDecoder(resp.Body).Decode(&profile); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return result, err
 	}
 
-	result, err = singleOrError(profile)
 	return result, err
 }
