@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	null "gopkg.in/guregu/null.v4"
 )
 
 const countUserEmailJobs = `-- name: CountUserEmailJobs :one
@@ -135,6 +136,7 @@ func (q *Queries) GetUserEmailSyncHistory(ctx context.Context, arg GetUserEmailS
 const getUserOAuthToken = `-- name: GetUserOAuthToken :one
 select
     user_id,
+    email,
     provider,
     token,
     is_valid,
@@ -154,6 +156,7 @@ func (q *Queries) GetUserOAuthToken(ctx context.Context, arg GetUserOAuthTokenPa
 	var i UserOauthToken
 	err := row.Scan(
 		&i.UserID,
+		&i.Email,
 		&i.Provider,
 		&i.Token,
 		&i.IsValid,
@@ -250,7 +253,7 @@ func (q *Queries) InsertUserEmailJob(ctx context.Context, arg InsertUserEmailJob
 
 const listCandidateOAuthTokens = `-- name: ListCandidateOAuthTokens :many
 select
-    user_id, provider, token, is_valid, created_at, updated_at
+    user_id, email, provider, token, is_valid, created_at, updated_at
 from public.candidate_oauth_token
 where provider = $1 and is_valid = $2
 limit $3
@@ -280,6 +283,7 @@ func (q *Queries) ListCandidateOAuthTokens(ctx context.Context, arg ListCandidat
 		var i CandidateOauthToken
 		if err := rows.Scan(
 			&i.UserID,
+			&i.Email,
 			&i.Provider,
 			&i.Token,
 			&i.IsValid,
@@ -301,7 +305,7 @@ func (q *Queries) ListCandidateOAuthTokens(ctx context.Context, arg ListCandidat
 
 const listRecruiterOAuthTokens = `-- name: ListRecruiterOAuthTokens :many
 select
-    user_id, provider, token, is_valid, created_at, updated_at
+    user_id, email, provider, token, is_valid, created_at, updated_at
 from public.recruiter_oauth_token
 where provider = $1 and is_valid = $2
 limit $3
@@ -331,6 +335,7 @@ func (q *Queries) ListRecruiterOAuthTokens(ctx context.Context, arg ListRecruite
 		var i RecruiterOauthToken
 		if err := rows.Scan(
 			&i.UserID,
+			&i.Email,
 			&i.Provider,
 			&i.Token,
 			&i.IsValid,
@@ -412,6 +417,7 @@ func (q *Queries) ListUserEmailJobs(ctx context.Context, arg ListUserEmailJobsPa
 const listUserOAuthTokens = `-- name: ListUserOAuthTokens :many
 select
     user_id,
+    email,
     provider,
     token,
     is_valid,
@@ -447,6 +453,7 @@ func (q *Queries) ListUserOAuthTokens(ctx context.Context, arg ListUserOAuthToke
 		var i UserOauthToken
 		if err := rows.Scan(
 			&i.UserID,
+			&i.Email,
 			&i.Provider,
 			&i.Token,
 			&i.IsValid,
@@ -495,16 +502,18 @@ func (q *Queries) UpsertUserEmailSyncHistory(ctx context.Context, arg UpsertUser
 }
 
 const upsertUserOAuthToken = `-- name: UpsertUserOAuthToken :exec
-insert into public.user_oauth_token (user_id, provider, token, is_valid)
-values ($1, $2, $3, $4)
+insert into public.user_oauth_token (user_id, email, provider, token, is_valid)
+values ($1, $2, $3, $4, $5)
 on conflict (user_id, provider)
 do update set
+    email = excluded.email,
     token = excluded.token,
     is_valid = excluded.is_valid
 `
 
 type UpsertUserOAuthTokenParams struct {
 	UserID   uuid.UUID       `json:"user_id"`
+	Email    null.String     `json:"email"`
 	Provider string          `json:"provider"`
 	Token    json.RawMessage `json:"token"`
 	IsValid  bool            `json:"is_valid"`
@@ -513,6 +522,7 @@ type UpsertUserOAuthTokenParams struct {
 func (q *Queries) UpsertUserOAuthToken(ctx context.Context, arg UpsertUserOAuthTokenParams) error {
 	_, err := q.exec(ctx, q.upsertUserOAuthTokenStmt, upsertUserOAuthToken,
 		arg.UserID,
+		arg.Email,
 		arg.Provider,
 		arg.Token,
 		arg.IsValid,

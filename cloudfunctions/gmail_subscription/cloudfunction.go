@@ -103,6 +103,7 @@ func (cf *CloudFunction) watch(users []db.UserOauthToken, arg *gmail.WatchReques
 				// update the user's oauth token
 				err = cf.queries.UpsertUserOAuthToken(cf.ctx, db.UpsertUserOAuthTokenParams{
 					UserID:   user.UserID,
+					Email:    user.Email,
 					Provider: provider,
 					Token:    user.Token,
 					IsValid:  false,

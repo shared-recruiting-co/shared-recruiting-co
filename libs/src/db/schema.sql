@@ -22,6 +22,8 @@ commit;
 -- User OAuth Token Table
 create table public.user_oauth_token (
     user_id uuid references auth.users(id) on delete cascade not null,
+    -- temporarily null until we backfill
+    email text,
     provider text not null,
     token jsonb not null,
     is_valid boolean not null default true,

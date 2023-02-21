@@ -8,6 +8,7 @@ require (
 	github.com/jaytaylor/html2text v0.0.0-20211105163654-bc68cce691ba
 	golang.org/x/oauth2 v0.4.0
 	google.golang.org/api v0.107.0
+	gopkg.in/guregu/null.v4 v4.0.0
 )
 
 require (

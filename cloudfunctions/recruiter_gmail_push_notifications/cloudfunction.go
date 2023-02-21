@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
+	"gopkg.in/guregu/null.v4"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
@@ -106,6 +107,7 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailPushNotification)
 			// update the user's oauth token
 			err = queries.UpsertUserOAuthToken(ctx, db.UpsertUserOAuthTokenParams{
 				UserID:   userToken.UserID,
+				Email:    null.StringFrom(payload.Email),
 				Provider: provider,
 				Token:    userToken.Token,
 				IsValid:  false,

@@ -163,6 +163,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 				// update the user's oauth token
 				err = queries.UpsertUserOAuthToken(ctx, db.UpsertUserOAuthTokenParams{
 					UserID:   userToken.UserID,
+					Email:    userToken.Email,
 					Provider: provider,
 					Token:    userToken.Token,
 					IsValid:  false,

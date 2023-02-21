@@ -13,6 +13,7 @@ import (
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/getsentry/sentry-go"
+	"gopkg.in/guregu/null.v4"
 
 	"cloud.google.com/go/pubsub"
 	"google.golang.org/api/gmail/v1"
@@ -114,6 +115,7 @@ func NewCloudFunction(ctx context.Context, payload EmailSyncRequest) (*CloudFunc
 			// update the user's oauth token
 			err = queries.UpsertUserOAuthToken(ctx, db.UpsertUserOAuthTokenParams{
 				UserID:   userToken.UserID,
+				Email:    null.StringFrom(payload.Email),
 				Provider: provider,
 				Token:    userToken.Token,
 				IsValid:  false,
