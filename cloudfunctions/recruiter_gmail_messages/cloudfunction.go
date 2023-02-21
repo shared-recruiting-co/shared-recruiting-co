@@ -363,6 +363,9 @@ func (cf *CloudFunction) processMessage(id string) error {
 		ToEmail:           srcmessage.RecipientEmail(firstMsg),
 		SentAt:            srcmessage.CreatedAt(firstMsg),
 	})
+	if err != nil {
+		return fmt.Errorf("error inserting message: %w", err)
+	}
 
 	// label thread
 	_, err = srcmail.ExecuteWithRetries(func() (interface{}, error) {
