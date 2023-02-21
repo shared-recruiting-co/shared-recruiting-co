@@ -208,7 +208,7 @@ export interface Database {
 			user_oauth_token: {
 				Row: {
 					created_at: string;
-					email: string | null;
+					email: string;
 					is_valid: boolean;
 					provider: string;
 					token: Json;
@@ -217,7 +217,7 @@ export interface Database {
 				};
 				Insert: {
 					created_at?: string;
-					email?: string | null;
+					email: string;
 					is_valid?: boolean;
 					provider: string;
 					token: Json;
@@ -226,7 +226,7 @@ export interface Database {
 				};
 				Update: {
 					created_at?: string;
-					email?: string | null;
+					email?: string;
 					is_valid?: boolean;
 					provider?: string;
 					token?: Json;
