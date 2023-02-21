@@ -29,6 +29,8 @@ create table public.user_oauth_token (
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
 
+    -- Add a unique constraint to prevent duplicate tokens
+    unique (email, provider),
     primary key (user_id, email, provider)
 );
 
