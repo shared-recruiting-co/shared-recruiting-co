@@ -514,7 +514,7 @@ create policy "Recruiters can delete their outbound templates"
   on public.recruiter_outbound_template for delete
   using ( auth.uid() = recruiter_id );
 
-create or replace function list_similar_recruiter_outbound_templates (user_id uuid, email text)
+create or replace function list_similar_recruiter_outbound_templates (user_id uuid, input text)
 returns table (
   recruiter_id uuid,
   template_id uuid,
@@ -536,10 +536,10 @@ select
     metadata,
     created_at,
     updated_at,
-    similarity(subject || ' ' || body, email) as "similarity"
+    similarity(subject || ' ' || body, input) as "similarity"
 from public.recruiter_outbound_template
 where recruiter_id = user_id
-and (subject || ' ' || body) % email
+and (subject || ' ' || body) % input
 order by 9 desc;
 $$
 language sql stable;

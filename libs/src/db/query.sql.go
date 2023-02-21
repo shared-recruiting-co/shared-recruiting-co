@@ -456,16 +456,16 @@ select
     metadata,
     created_at,
     updated_at,
-    similarity(subject || ' ' || body, $2) as "similarity"
+    similarity(subject || ' ' || body, $1::text) as "similarity"
 from public.recruiter_outbound_template
-where recruiter_id = $1 
-and (subject || ' ' || body) % $2
+where recruiter_id = $2::uuid
+and (subject || ' ' || body) % $1::text
 order by 9 desc
 `
 
 type ListSimilarRecruiterOutboundTemplatesParams struct {
-	RecruiterID uuid.UUID `json:"recruiter_id"`
-	Similarity  string    `json:"similarity"`
+	Input  string    `json:"input"`
+	UserID uuid.UUID `json:"user_id"`
 }
 
 type ListSimilarRecruiterOutboundTemplatesRow struct {
@@ -481,7 +481,7 @@ type ListSimilarRecruiterOutboundTemplatesRow struct {
 }
 
 func (q *Queries) ListSimilarRecruiterOutboundTemplates(ctx context.Context, arg ListSimilarRecruiterOutboundTemplatesParams) ([]ListSimilarRecruiterOutboundTemplatesRow, error) {
-	rows, err := q.query(ctx, q.listSimilarRecruiterOutboundTemplatesStmt, listSimilarRecruiterOutboundTemplates, arg.RecruiterID, arg.Similarity)
+	rows, err := q.query(ctx, q.listSimilarRecruiterOutboundTemplatesStmt, listSimilarRecruiterOutboundTemplates, arg.Input, arg.UserID)
 	if err != nil {
 		return nil, err
 	}

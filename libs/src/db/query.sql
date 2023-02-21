@@ -179,8 +179,8 @@ select
     metadata,
     created_at,
     updated_at,
-    similarity(subject || ' ' || body, $2) as "similarity"
+    similarity(subject || ' ' || body, @input::text) as "similarity"
 from public.recruiter_outbound_template
-where recruiter_id = $1 
-and (subject || ' ' || body) % $2
+where recruiter_id = @user_id::uuid
+and (subject || ' ' || body) % @input::text
 order by 9 desc;
