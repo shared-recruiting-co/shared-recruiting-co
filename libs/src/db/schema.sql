@@ -34,7 +34,9 @@ begin;
   create publication supabase_realtime;
 commit;
 
--- User OAuth Token Table
+--------------------------------
+-- Start: User OAuth Token Table
+--------------------------------
 create table public.user_oauth_token (
     user_id uuid references auth.users(id) on delete cascade not null,
     email text not null,
@@ -65,7 +67,14 @@ create policy "Users can insert their own oauth tokens."
 create policy "Users can update own oauth tokens."
   on public.user_oauth_token for update
   using ( auth.uid() = user_id );
+ 
+--------------------------------
+-- End: User OAuth Token Table
+--------------------------------
 
+--------------------------------
+-- Start: User Email Sync History Table
+--------------------------------
 create type inbox_type as enum ('candidate', 'recruiter');
 
 -- User Email Sync History Table
@@ -96,6 +105,14 @@ create policy "Users can view their own email sync history"
 -- enable realtime
 alter publication supabase_realtime add table user_email_sync_history;
 
+--------------------------------
+-- End: User Email Sync History Table
+--------------------------------
+
+--------------------------------
+-- Start: Waitlist Table
+--------------------------------
+
 -- Waitlist table
 create table public.waitlist (
     user_id uuid references auth.users(id) on delete cascade not null,
@@ -121,6 +138,14 @@ alter table public.waitlist enable row level security;
 create policy "Users can view their own waitlist entry"
   on public.waitlist for select
   using ( auth.uid() = user_id );
+
+--------------------------------
+-- End: Waitlist Table
+--------------------------------
+
+--------------------------------
+-- Start: User (Candidate) Profile Table
+--------------------------------
 
 -- user_profile table
 create table public.user_profile (
@@ -152,6 +177,14 @@ create policy "Users can view their own profile"
 create policy "Users can update their own profile"
   on public.user_profile for update
   using ( auth.uid() = user_id );
+
+--------------------------------
+-- End: User (Candidate) Profile Table
+--------------------------------
+
+--------------------------------
+-- Start: User (Candidate) Email Stat Table
+--------------------------------
 
 -- user_email_stat table
 -- simple table to keep track of realtime user facing statistics
@@ -192,6 +225,14 @@ $$
 $$
 language sql volatile;
 
+--------------------------------
+-- End: User (Candidate) Email Stat Table
+--------------------------------
+
+--------------------------------
+-- Start: User (Candidate) Email Job Table
+--------------------------------
+
 
 -- user_email_job
 create table public.user_email_job (
@@ -231,6 +272,14 @@ create policy "Users can view their own jobs"
 
 -- for now jobs are read only
 
+--------------------------------
+-- End: User (Candidate) Email Job Table
+--------------------------------
+
+--------------------------------
+-- Start: Company Table
+--------------------------------
+
 -- company table
 create table public.company (
     company_id uuid not null default uuid_generate_v4(),
@@ -248,6 +297,14 @@ create trigger handle_updated_at_company before update on public.company
 -- enable realtime
 alter publication supabase_realtime add table public.company;
 alter table public.company enable row level security;
+
+--------------------------------
+-- End: Company Table
+--------------------------------
+
+--------------------------------
+-- Start: Recruiter Table
+--------------------------------
 
 -- recruiter table
 -- similar to user_profile but for recruiters
@@ -300,6 +357,14 @@ create policy "Recruiters can view their own company"
       where user_id = auth.uid()
   ));
 
+--------------------------------
+-- End: Recruiter Table
+--------------------------------
+
+--------------------------------
+-- Start: Jobs Table
+--------------------------------
+
 -- jobs
 create table public.job (
     job_id uuid not null default uuid_generate_v4(),
@@ -346,6 +411,13 @@ create policy "Companies can view their jobs"
       where user_id = auth.uid()
   ));
 
+--------------------------------
+-- End: Jobs Table
+--------------------------------
+
+--------------------------------
+-- Start: Views on User OAuth Tokens
+--------------------------------
 
 -- views on oauth tokens
 create view candidate_oauth_token as
@@ -359,6 +431,14 @@ select
   user_oauth_token.*
 from user_oauth_token
 inner join recruiter using (user_id);
+
+--------------------------------
+-- End: Views on User OAuth Tokens
+--------------------------------
+
+--------------------------------
+-- Start: Get Candidate/Recruiter Given Connected Email
+--------------------------------
 
 create or replace function get_user_profile_by_email (input text)
 returns user_profile as 
