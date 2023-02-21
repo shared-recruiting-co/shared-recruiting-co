@@ -109,6 +109,10 @@ func (q *HTTPQueries) GetUserProfileByEmail(ctx context.Context, email string) (
 		return result, err
 	}
 
+	if result.Email == "" {
+		return result, sql.ErrNoRows
+	}
+
 	return result, err
 }
 
@@ -471,6 +475,10 @@ func (q *HTTPQueries) GetRecruiterByEmail(ctx context.Context, email string) (Ge
 
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return result, err
+	}
+
+	if result.Email == "" {
+		return result, sql.ErrNoRows
 	}
 
 	return result, err
