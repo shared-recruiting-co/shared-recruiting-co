@@ -68,19 +68,13 @@ const connectEmail = async ({
 
 	// verify emails match
 	const { email } = idTokenPayload;
-	if (email !== session.user.email) {
-		console.log('authorized user does not match session user');
-		throw error(
-			400,
-			`You must connect with the same email as your SRC account. Please connect with ${session.user.email}`
-		);
-	}
 
 	// save oauth tokens
 	console.log('saving user oauth token...');
 	// format tokens for db
 	const { error: tokenSaveError } = await supabaseClient.from('user_oauth_token').upsert({
 		user_id: session.user.id,
+		email,
 		provider: 'google',
 		token: {
 			access_token,

@@ -71,6 +71,7 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailMessages) (*Cloud
 	// 2. Get User' OAuth Token
 	userToken, err := queries.GetUserOAuthToken(ctx, db.GetUserOAuthTokenParams{
 		UserID:   user.UserID,
+		Email:    payload.Email,
 		Provider: provider,
 	})
 	if err != nil {

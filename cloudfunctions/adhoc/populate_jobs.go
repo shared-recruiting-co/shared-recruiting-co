@@ -79,6 +79,7 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 	// Get User' OAuth Token
 	userToken, err := queries.GetUserOAuthToken(ctx, db.GetUserOAuthTokenParams{
 		UserID:   user.UserID,
+		Email:    data.Email,
 		Provider: provider,
 	})
 	if err != nil {

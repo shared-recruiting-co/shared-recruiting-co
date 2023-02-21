@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	null "gopkg.in/guregu/null.v4"
 )
 
 const countUserEmailJobs = `-- name: CountUserEmailJobs :one
@@ -29,15 +28,16 @@ func (q *Queries) CountUserEmailJobs(ctx context.Context, userID uuid.UUID) (int
 
 const getRecruiterByEmail = `-- name: GetRecruiterByEmail :one
 select 
-    user_id,
-    email,
-    first_name,
-    last_name,
-    company_id,
-    created_at,
-    updated_at
+    recruiter.user_id,
+    recruiter.email,
+    recruiter.first_name,
+    recruiter.last_name,
+    recruiter.company_id,
+    recruiter.created_at,
+    recruiter.updated_at
 from recruiter
-where email = $1
+inner join public.user_oauth_token using (user_id)
+where recruiter.email = $1 OR user_oauth_token.email = $1
 `
 
 type GetRecruiterByEmailRow struct {
@@ -143,16 +143,17 @@ select
     created_at,
     updated_at
 from public.user_oauth_token
-where user_id = $1 and provider = $2
+where user_id = $1 and email = $2 and provider = $3
 `
 
 type GetUserOAuthTokenParams struct {
 	UserID   uuid.UUID `json:"user_id"`
+	Email    string    `json:"email"`
 	Provider string    `json:"provider"`
 }
 
 func (q *Queries) GetUserOAuthToken(ctx context.Context, arg GetUserOAuthTokenParams) (UserOauthToken, error) {
-	row := q.queryRow(ctx, q.getUserOAuthTokenStmt, getUserOAuthToken, arg.UserID, arg.Provider)
+	row := q.queryRow(ctx, q.getUserOAuthTokenStmt, getUserOAuthToken, arg.UserID, arg.Email, arg.Provider)
 	var i UserOauthToken
 	err := row.Scan(
 		&i.UserID,
@@ -168,17 +169,18 @@ func (q *Queries) GetUserOAuthToken(ctx context.Context, arg GetUserOAuthTokenPa
 
 const getUserProfileByEmail = `-- name: GetUserProfileByEmail :one
 select
-    user_id,
-    email,
-    first_name,
-    last_name,
-    is_active,
-    auto_archive,
-    auto_contribute,
-    created_at,
-    updated_at
+    user_profile.user_id,
+    user_profile.email,
+    user_profile.first_name,
+    user_profile.last_name,
+    user_profile.is_active,
+    user_profile.auto_archive,
+    user_profile.auto_contribute,
+    user_profile.created_at,
+    user_profile.updated_at
 from public.user_profile
-where email = $1
+inner join public.user_oauth_token using (user_id)
+where user_profile.email = $1 OR user_oauth_token.email = $1
 `
 
 func (q *Queries) GetUserProfileByEmail(ctx context.Context, email string) (UserProfile, error) {
@@ -504,16 +506,15 @@ func (q *Queries) UpsertUserEmailSyncHistory(ctx context.Context, arg UpsertUser
 const upsertUserOAuthToken = `-- name: UpsertUserOAuthToken :exec
 insert into public.user_oauth_token (user_id, email, provider, token, is_valid)
 values ($1, $2, $3, $4, $5)
-on conflict (user_id, provider)
+on conflict (user_id, email, provider)
 do update set
-    email = excluded.email,
     token = excluded.token,
     is_valid = excluded.is_valid
 `
 
 type UpsertUserOAuthTokenParams struct {
 	UserID   uuid.UUID       `json:"user_id"`
-	Email    null.String     `json:"email"`
+	Email    string          `json:"email"`
 	Provider string          `json:"provider"`
 	Token    json.RawMessage `json:"token"`
 	IsValid  bool            `json:"is_valid"`

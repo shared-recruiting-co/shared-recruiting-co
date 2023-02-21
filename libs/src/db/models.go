@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	null "gopkg.in/guregu/null.v4"
 )
 
 type InboxType string
@@ -63,7 +62,7 @@ type AuthUser struct {
 
 type CandidateOauthToken struct {
 	UserID    uuid.UUID       `json:"user_id"`
-	Email     null.String     `json:"email"`
+	Email     string          `json:"email"`
 	Provider  string          `json:"provider"`
 	Token     json.RawMessage `json:"token"`
 	IsValid   bool            `json:"is_valid"`
@@ -102,7 +101,7 @@ type Recruiter struct {
 
 type RecruiterOauthToken struct {
 	UserID    uuid.UUID       `json:"user_id"`
-	Email     null.String     `json:"email"`
+	Email     string          `json:"email"`
 	Provider  string          `json:"provider"`
 	Token     json.RawMessage `json:"token"`
 	IsValid   bool            `json:"is_valid"`
@@ -144,7 +143,7 @@ type UserEmailSyncHistory struct {
 
 type UserOauthToken struct {
 	UserID    uuid.UUID       `json:"user_id"`
-	Email     null.String     `json:"email"`
+	Email     string          `json:"email"`
 	Provider  string          `json:"provider"`
 	Token     json.RawMessage `json:"token"`
 	IsValid   bool            `json:"is_valid"`

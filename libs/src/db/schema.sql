@@ -22,15 +22,14 @@ commit;
 -- User OAuth Token Table
 create table public.user_oauth_token (
     user_id uuid references auth.users(id) on delete cascade not null,
-    -- temporarily null until we backfill
-    email text,
+    email text not null,
     provider text not null,
     token jsonb not null,
     is_valid boolean not null default true,
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
 
-    primary key (user_id, provider)
+    primary key (user_id, email, provider)
 );
 
 create trigger handle_updated_at_user_oauth_token before update on public.user_oauth_token
@@ -343,3 +342,25 @@ select
   user_oauth_token.*
 from user_oauth_token
 inner join recruiter using (user_id);
+
+create or replace function get_user_profile_by_email (input text)
+returns user_profile as 
+$$
+select
+  user_profile.*
+from public.user_profile
+inner join public.user_oauth_token using (user_id)
+where user_profile.email = input OR user_oauth_token.email = input;
+$$
+language sql stable;
+
+create or replace function get_recruiter_by_email (input text)
+returns recruiter as 
+$$
+select
+  recruiter.*
+from public.recruiter
+inner join public.user_oauth_token using (user_id)
+where recruiter.email = input OR user_oauth_token.email = input;
+$$
+language sql stable;
