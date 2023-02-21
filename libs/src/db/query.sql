@@ -1,16 +1,17 @@
 -- name: GetUserProfileByEmail :one
 select
-    user_id,
-    email,
-    first_name,
-    last_name,
-    is_active,
-    auto_archive,
-    auto_contribute,
-    created_at,
-    updated_at
+    user_profile.user_id,
+    user_profile.email,
+    user_profile.first_name,
+    user_profile.last_name,
+    user_profile.is_active,
+    user_profile.auto_archive,
+    user_profile.auto_contribute,
+    user_profile.created_at,
+    user_profile.updated_at
 from public.user_profile
-where email = $1;
+inner join public.user_oauth_token using (user_id)
+where user_profile.email = $1 OR user_oauth_token.email = $1;
 
 -- name: ListUserOAuthTokens :many
 select
@@ -54,14 +55,13 @@ select
     created_at,
     updated_at
 from public.user_oauth_token
-where user_id = $1 and provider = $2;
+where user_id = $1 and email = $2 and provider = $3;
 
 -- name: UpsertUserOAuthToken :exec
 insert into public.user_oauth_token (user_id, email, provider, token, is_valid)
 values ($1, $2, $3, $4, $5)
-on conflict (user_id, provider)
+on conflict (user_id, email, provider)
 do update set
-    email = excluded.email,
     token = excluded.token,
     is_valid = excluded.is_valid;
 
@@ -136,12 +136,13 @@ where user_id = $1;
 
 -- name: GetRecruiterByEmail :one
 select 
-    user_id,
-    email,
-    first_name,
-    last_name,
-    company_id,
-    created_at,
-    updated_at
+    recruiter.user_id,
+    recruiter.email,
+    recruiter.first_name,
+    recruiter.last_name,
+    recruiter.company_id,
+    recruiter.created_at,
+    recruiter.updated_at
 from recruiter
-where email = $1;
+inner join public.user_oauth_token using (user_id)
+where recruiter.email = $1 OR user_oauth_token.email = $1;
