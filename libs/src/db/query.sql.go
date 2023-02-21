@@ -290,9 +290,10 @@ func (q *Queries) InsertRecruiterOutboundMessage(ctx context.Context, arg Insert
 	return err
 }
 
-const insertRecruiterOutboundTemplate = `-- name: InsertRecruiterOutboundTemplate :exec
+const insertRecruiterOutboundTemplate = `-- name: InsertRecruiterOutboundTemplate :one
 insert into public.recruiter_outbound_template(recruiter_id, job_id, subject, body, metadata)
 values ($1, $2, $3, $4, $5)
+returning template_id, recruiter_id, job_id, subject, body, metadata, created_at, updated_at
 `
 
 type InsertRecruiterOutboundTemplateParams struct {
@@ -303,15 +304,26 @@ type InsertRecruiterOutboundTemplateParams struct {
 	Metadata    json.RawMessage `json:"metadata"`
 }
 
-func (q *Queries) InsertRecruiterOutboundTemplate(ctx context.Context, arg InsertRecruiterOutboundTemplateParams) error {
-	_, err := q.exec(ctx, q.insertRecruiterOutboundTemplateStmt, insertRecruiterOutboundTemplate,
+func (q *Queries) InsertRecruiterOutboundTemplate(ctx context.Context, arg InsertRecruiterOutboundTemplateParams) (RecruiterOutboundTemplate, error) {
+	row := q.queryRow(ctx, q.insertRecruiterOutboundTemplateStmt, insertRecruiterOutboundTemplate,
 		arg.RecruiterID,
 		arg.JobID,
 		arg.Subject,
 		arg.Body,
 		arg.Metadata,
 	)
-	return err
+	var i RecruiterOutboundTemplate
+	err := row.Scan(
+		&i.TemplateID,
+		&i.RecruiterID,
+		&i.JobID,
+		&i.Subject,
+		&i.Body,
+		&i.Metadata,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const insertUserEmailJob = `-- name: InsertUserEmailJob :exec

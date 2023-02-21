@@ -165,9 +165,10 @@ where recruiter_id = $1 and message_id = $2;
 insert into public.recruiter_outbound_message(recruiter_id, message_id, internal_message_id, from_email, to_email, sent_at, template_id)
 values ($1, $2, $3, $4, $5, $6, $7);
 
--- name: InsertRecruiterOutboundTemplate :exec
+-- name: InsertRecruiterOutboundTemplate :one
 insert into public.recruiter_outbound_template(recruiter_id, job_id, subject, body, metadata)
-values ($1, $2, $3, $4, $5);
+values ($1, $2, $3, $4, $5)
+returning *;
 
 -- name: ListSimilarRecruiterOutboundTemplates :many
 select

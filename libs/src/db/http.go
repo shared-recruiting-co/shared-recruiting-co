@@ -62,7 +62,9 @@ func (q *HTTPQueries) DoRequest(ctx context.Context, method, path string, body i
 	req.Header.Set("Range-Unit", "items")
 	// always upsert on POST (aka insert)
 	if method == http.MethodPost {
-		req.Header.Set("Prefer", "resolution=merge-duplicates")
+		req.Header.Add("Prefer", "resolution=merge-duplicates")
+		// always return the inserted object
+		req.Header.Add("Prefer", "return=representation")
 	}
 
 	return q.client.Do(req)
@@ -533,25 +535,30 @@ func (q *HTTPQueries) InsertRecruiterOutboundMessage(ctx context.Context, arg In
 }
 
 // InsertRecruiterOutboundTemplate inserts a recruiter's outbound template
-func (q *HTTPQueries) InsertRecruiterOutboundTemplate(ctx context.Context, arg InsertRecruiterOutboundTemplateParams) error {
+func (q *HTTPQueries) InsertRecruiterOutboundTemplate(ctx context.Context, arg InsertRecruiterOutboundTemplateParams) (RecruiterOutboundTemplate, error) {
 	basePath := "/recruiter_outbound_template"
 	path := basePath
 	body, err := json.Marshal(arg)
+	var result RecruiterOutboundTemplate
 	if err != nil {
-		return err
+		return result, err
 	}
 
 	resp, err := q.DoRequest(ctx, http.MethodPost, path, bytes.NewReader(body))
 	if err != nil {
-		return err
+		return result, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
-		return fmt.Errorf("insert recruiter outbound template: %s", resp.Status)
+		return result, fmt.Errorf("insert recruiter outbound template: %s", resp.Status)
 	}
 
-	return nil
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return result, err
+	}
+
+	return result, nil
 }
 
 func (q *HTTPQueries) ListSimilarRecruiterOutboundTemplates(ctx context.Context, arg ListSimilarRecruiterOutboundTemplatesParams) ([]ListSimilarRecruiterOutboundTemplatesRow, error) {
