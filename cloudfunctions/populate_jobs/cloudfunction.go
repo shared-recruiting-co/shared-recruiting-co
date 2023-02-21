@@ -138,16 +138,6 @@ func populateJobs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, userToken := range userTokens {
-		// Get User' OAuth Token
-		userToken, err := queries.GetUserOAuthToken(ctx, db.GetUserOAuthTokenParams{
-			UserID:   userToken.UserID,
-			Provider: provider,
-		})
-		if err != nil {
-			handleError(w, "error getting user oauth token", err)
-			return
-		}
-
 		// Create Gmail Service
 		auth := []byte(userToken.Token)
 		srv, err := srcmail.NewService(ctx, creds, auth)

@@ -14,7 +14,6 @@ import (
 	"github.com/getsentry/sentry-go"
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/idtoken"
-	"gopkg.in/guregu/null.v4"
 
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/db"
 	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
@@ -130,6 +129,7 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailMessages) (*Cloud
 	// 2. Get User' OAuth Token
 	userToken, err := queries.GetUserOAuthToken(ctx, db.GetUserOAuthTokenParams{
 		UserID:   user.UserID,
+		Email:    payload.Email,
 		Provider: provider,
 	})
 	if err != nil {
@@ -158,7 +158,7 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailMessages) (*Cloud
 			// update the user's oauth token
 			err = queries.UpsertUserOAuthToken(ctx, db.UpsertUserOAuthTokenParams{
 				UserID:   userToken.UserID,
-				Email:    null.StringFrom(payload.Email),
+				Email:    payload.Email,
 				Provider: provider,
 				Token:    userToken.Token,
 				IsValid:  false,
