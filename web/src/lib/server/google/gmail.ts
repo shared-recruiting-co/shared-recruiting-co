@@ -1,5 +1,5 @@
 import { dev } from '$app/environment';
-import { NEW_EMAIL_PUBSUB_TOPIC } from '$env/static/private';
+import { CANDIDATE_GMAIL_PUBSUB_TOPIC } from '$env/static/private';
 
 // Until we have a better local development and testing story,
 // We will always return true for dev
@@ -19,7 +19,7 @@ export const watch = async (accessToken: string) =>
 					// TODO: Parameterize once we have use cases for multiple topics or labels
 					labelIds: ['UNREAD'],
 					labelFilterAction: 'include',
-					topicName: NEW_EMAIL_PUBSUB_TOPIC
+					topicName: CANDIDATE_GMAIL_PUBSUB_TOPIC
 				})
 		  });
 
