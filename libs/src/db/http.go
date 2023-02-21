@@ -139,7 +139,7 @@ func (q *HTTPQueries) GetUserEmailSyncHistory(ctx context.Context, arg GetUserEm
 // GetUserOAuthToken fetches a user's oauth token.
 func (q *HTTPQueries) GetUserOAuthToken(ctx context.Context, arg GetUserOAuthTokenParams) (UserOauthToken, error) {
 	basePath := "/user_oauth_token"
-	query := fmt.Sprintf("select=*&user_id=eq.%s&provider=eq.%s", arg.UserID, arg.Provider)
+	query := fmt.Sprintf("select=*&user_id=eq.%s&email=eq.%s&provider=eq.%s", arg.UserID, arg.Email, arg.Provider)
 	path := fmt.Sprintf("%s?%s", basePath, query)
 	var result UserOauthToken
 
