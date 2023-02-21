@@ -1,14 +1,29 @@
+--------------------------------
 -- Start: Supabase auth.users table
+--------------------------------
 -- Include a simplified Supabase auth.users table in the schema for SQLC compilation
 create schema if not exists auth;
 create table auth.users (
     id uuid primary key,
     email text not null
 );
+--------------------------------
 -- End: Supabase auth.users table
+--------------------------------
+
+--------------------------------
+-- Start: Postgres Extensions
+--------------------------------
 
 -- Add moddatetime extension
 create extension if not exists moddatetime schema extensions;
+
+-- Add pg_trgm extension
+create extension if not exists pg_trgm schema extensions;
+
+--------------------------------
+-- End: Postgres Extensions
+--------------------------------
 
 -- Enable Suapbase Realtime
 begin;
