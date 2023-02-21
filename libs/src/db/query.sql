@@ -183,5 +183,4 @@ select
 from public.recruiter_outbound_template
 where recruiter_id = $1 
 and (subject || ' ' || body) % $2
-order by 9 desc
-limit 5;
+order by 9 desc;

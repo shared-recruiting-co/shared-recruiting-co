@@ -109,6 +109,29 @@ type RecruiterOauthToken struct {
 	UpdatedAt time.Time       `json:"updated_at"`
 }
 
+type RecruiterOutboundMessage struct {
+	RecruiterID       uuid.UUID     `json:"recruiter_id"`
+	MessageID         string        `json:"message_id"`
+	InternalMessageID string        `json:"internal_message_id"`
+	FromEmail         string        `json:"from_email"`
+	ToEmail           string        `json:"to_email"`
+	SentAt            time.Time     `json:"sent_at"`
+	TemplateID        uuid.NullUUID `json:"template_id"`
+	CreatedAt         time.Time     `json:"created_at"`
+	UpdatedAt         time.Time     `json:"updated_at"`
+}
+
+type RecruiterOutboundTemplate struct {
+	TemplateID  uuid.UUID       `json:"template_id"`
+	RecruiterID uuid.UUID       `json:"recruiter_id"`
+	JobID       uuid.NullUUID   `json:"job_id"`
+	Subject     string          `json:"subject"`
+	Body        string          `json:"body"`
+	Metadata    json.RawMessage `json:"metadata"`
+	CreatedAt   time.Time       `json:"created_at"`
+	UpdatedAt   time.Time       `json:"updated_at"`
+}
+
 type UserEmailJob struct {
 	JobID         uuid.UUID       `json:"job_id"`
 	UserID        uuid.UUID       `json:"user_id"`

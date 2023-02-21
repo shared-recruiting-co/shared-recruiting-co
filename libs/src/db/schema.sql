@@ -540,8 +540,7 @@ select
 from public.recruiter_outbound_template
 where recruiter_id = user_id
 and (subject || ' ' || body) % email
-order by 9 desc
-limit 5;
+order by 9 desc;
 $$
 language sql stable;
 

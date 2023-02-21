@@ -30,6 +30,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getRecruiterByEmailStmt, err = db.PrepareContext(ctx, getRecruiterByEmail); err != nil {
 		return nil, fmt.Errorf("error preparing query GetRecruiterByEmail: %w", err)
 	}
+	if q.getRecruiterOutboundMessageStmt, err = db.PrepareContext(ctx, getRecruiterOutboundMessage); err != nil {
+		return nil, fmt.Errorf("error preparing query GetRecruiterOutboundMessage: %w", err)
+	}
 	if q.getUserEmailJobStmt, err = db.PrepareContext(ctx, getUserEmailJob); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserEmailJob: %w", err)
 	}
@@ -45,6 +48,12 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.incrementUserEmailStatStmt, err = db.PrepareContext(ctx, incrementUserEmailStat); err != nil {
 		return nil, fmt.Errorf("error preparing query IncrementUserEmailStat: %w", err)
 	}
+	if q.insertRecruiterOutboundMessageStmt, err = db.PrepareContext(ctx, insertRecruiterOutboundMessage); err != nil {
+		return nil, fmt.Errorf("error preparing query InsertRecruiterOutboundMessage: %w", err)
+	}
+	if q.insertRecruiterOutboundTemplateStmt, err = db.PrepareContext(ctx, insertRecruiterOutboundTemplate); err != nil {
+		return nil, fmt.Errorf("error preparing query InsertRecruiterOutboundTemplate: %w", err)
+	}
 	if q.insertUserEmailJobStmt, err = db.PrepareContext(ctx, insertUserEmailJob); err != nil {
 		return nil, fmt.Errorf("error preparing query InsertUserEmailJob: %w", err)
 	}
@@ -53,6 +62,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.listRecruiterOAuthTokensStmt, err = db.PrepareContext(ctx, listRecruiterOAuthTokens); err != nil {
 		return nil, fmt.Errorf("error preparing query ListRecruiterOAuthTokens: %w", err)
+	}
+	if q.listSimilarRecruiterOutboundTemplatesStmt, err = db.PrepareContext(ctx, listSimilarRecruiterOutboundTemplates); err != nil {
+		return nil, fmt.Errorf("error preparing query ListSimilarRecruiterOutboundTemplates: %w", err)
 	}
 	if q.listUserEmailJobsStmt, err = db.PrepareContext(ctx, listUserEmailJobs); err != nil {
 		return nil, fmt.Errorf("error preparing query ListUserEmailJobs: %w", err)
@@ -81,6 +93,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getRecruiterByEmailStmt: %w", cerr)
 		}
 	}
+	if q.getRecruiterOutboundMessageStmt != nil {
+		if cerr := q.getRecruiterOutboundMessageStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getRecruiterOutboundMessageStmt: %w", cerr)
+		}
+	}
 	if q.getUserEmailJobStmt != nil {
 		if cerr := q.getUserEmailJobStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getUserEmailJobStmt: %w", cerr)
@@ -106,6 +123,16 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing incrementUserEmailStatStmt: %w", cerr)
 		}
 	}
+	if q.insertRecruiterOutboundMessageStmt != nil {
+		if cerr := q.insertRecruiterOutboundMessageStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing insertRecruiterOutboundMessageStmt: %w", cerr)
+		}
+	}
+	if q.insertRecruiterOutboundTemplateStmt != nil {
+		if cerr := q.insertRecruiterOutboundTemplateStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing insertRecruiterOutboundTemplateStmt: %w", cerr)
+		}
+	}
 	if q.insertUserEmailJobStmt != nil {
 		if cerr := q.insertUserEmailJobStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing insertUserEmailJobStmt: %w", cerr)
@@ -119,6 +146,11 @@ func (q *Queries) Close() error {
 	if q.listRecruiterOAuthTokensStmt != nil {
 		if cerr := q.listRecruiterOAuthTokensStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listRecruiterOAuthTokensStmt: %w", cerr)
+		}
+	}
+	if q.listSimilarRecruiterOutboundTemplatesStmt != nil {
+		if cerr := q.listSimilarRecruiterOutboundTemplatesStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listSimilarRecruiterOutboundTemplatesStmt: %w", cerr)
 		}
 	}
 	if q.listUserEmailJobsStmt != nil {
@@ -178,41 +210,49 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                             DBTX
-	tx                             *sql.Tx
-	countUserEmailJobsStmt         *sql.Stmt
-	getRecruiterByEmailStmt        *sql.Stmt
-	getUserEmailJobStmt            *sql.Stmt
-	getUserEmailSyncHistoryStmt    *sql.Stmt
-	getUserOAuthTokenStmt          *sql.Stmt
-	getUserProfileByEmailStmt      *sql.Stmt
-	incrementUserEmailStatStmt     *sql.Stmt
-	insertUserEmailJobStmt         *sql.Stmt
-	listCandidateOAuthTokensStmt   *sql.Stmt
-	listRecruiterOAuthTokensStmt   *sql.Stmt
-	listUserEmailJobsStmt          *sql.Stmt
-	listUserOAuthTokensStmt        *sql.Stmt
-	upsertUserEmailSyncHistoryStmt *sql.Stmt
-	upsertUserOAuthTokenStmt       *sql.Stmt
+	db                                        DBTX
+	tx                                        *sql.Tx
+	countUserEmailJobsStmt                    *sql.Stmt
+	getRecruiterByEmailStmt                   *sql.Stmt
+	getRecruiterOutboundMessageStmt           *sql.Stmt
+	getUserEmailJobStmt                       *sql.Stmt
+	getUserEmailSyncHistoryStmt               *sql.Stmt
+	getUserOAuthTokenStmt                     *sql.Stmt
+	getUserProfileByEmailStmt                 *sql.Stmt
+	incrementUserEmailStatStmt                *sql.Stmt
+	insertRecruiterOutboundMessageStmt        *sql.Stmt
+	insertRecruiterOutboundTemplateStmt       *sql.Stmt
+	insertUserEmailJobStmt                    *sql.Stmt
+	listCandidateOAuthTokensStmt              *sql.Stmt
+	listRecruiterOAuthTokensStmt              *sql.Stmt
+	listSimilarRecruiterOutboundTemplatesStmt *sql.Stmt
+	listUserEmailJobsStmt                     *sql.Stmt
+	listUserOAuthTokensStmt                   *sql.Stmt
+	upsertUserEmailSyncHistoryStmt            *sql.Stmt
+	upsertUserOAuthTokenStmt                  *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                             tx,
-		tx:                             tx,
-		countUserEmailJobsStmt:         q.countUserEmailJobsStmt,
-		getRecruiterByEmailStmt:        q.getRecruiterByEmailStmt,
-		getUserEmailJobStmt:            q.getUserEmailJobStmt,
-		getUserEmailSyncHistoryStmt:    q.getUserEmailSyncHistoryStmt,
-		getUserOAuthTokenStmt:          q.getUserOAuthTokenStmt,
-		getUserProfileByEmailStmt:      q.getUserProfileByEmailStmt,
-		incrementUserEmailStatStmt:     q.incrementUserEmailStatStmt,
-		insertUserEmailJobStmt:         q.insertUserEmailJobStmt,
-		listCandidateOAuthTokensStmt:   q.listCandidateOAuthTokensStmt,
-		listRecruiterOAuthTokensStmt:   q.listRecruiterOAuthTokensStmt,
-		listUserEmailJobsStmt:          q.listUserEmailJobsStmt,
-		listUserOAuthTokensStmt:        q.listUserOAuthTokensStmt,
-		upsertUserEmailSyncHistoryStmt: q.upsertUserEmailSyncHistoryStmt,
-		upsertUserOAuthTokenStmt:       q.upsertUserOAuthTokenStmt,
+		db:                                        tx,
+		tx:                                        tx,
+		countUserEmailJobsStmt:                    q.countUserEmailJobsStmt,
+		getRecruiterByEmailStmt:                   q.getRecruiterByEmailStmt,
+		getRecruiterOutboundMessageStmt:           q.getRecruiterOutboundMessageStmt,
+		getUserEmailJobStmt:                       q.getUserEmailJobStmt,
+		getUserEmailSyncHistoryStmt:               q.getUserEmailSyncHistoryStmt,
+		getUserOAuthTokenStmt:                     q.getUserOAuthTokenStmt,
+		getUserProfileByEmailStmt:                 q.getUserProfileByEmailStmt,
+		incrementUserEmailStatStmt:                q.incrementUserEmailStatStmt,
+		insertRecruiterOutboundMessageStmt:        q.insertRecruiterOutboundMessageStmt,
+		insertRecruiterOutboundTemplateStmt:       q.insertRecruiterOutboundTemplateStmt,
+		insertUserEmailJobStmt:                    q.insertUserEmailJobStmt,
+		listCandidateOAuthTokensStmt:              q.listCandidateOAuthTokensStmt,
+		listRecruiterOAuthTokensStmt:              q.listRecruiterOAuthTokensStmt,
+		listSimilarRecruiterOutboundTemplatesStmt: q.listSimilarRecruiterOutboundTemplatesStmt,
+		listUserEmailJobsStmt:                     q.listUserEmailJobsStmt,
+		listUserOAuthTokensStmt:                   q.listUserOAuthTokensStmt,
+		upsertUserEmailSyncHistoryStmt:            q.upsertUserEmailSyncHistoryStmt,
+		upsertUserOAuthTokenStmt:                  q.upsertUserOAuthTokenStmt,
 	}
 }
