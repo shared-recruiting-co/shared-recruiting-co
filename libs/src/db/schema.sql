@@ -514,6 +514,37 @@ create policy "Recruiters can delete their outbound templates"
   on public.recruiter_outbound_template for delete
   using ( auth.uid() = recruiter_id );
 
+create or replace function list_similar_recruiter_outbound_templates (user_id uuid, email text)
+returns table (
+  recruiter_id uuid,
+  template_id uuid,
+  job_id uuid,
+  subject text,
+  body text,
+  metadata jsonb,
+  created_at timestamp with time zone,
+  updated_at timestamp with time zone,
+  similarity real
+) as 
+$$
+select
+    recruiter_id,
+    template_id,
+    job_id,
+    subject,
+    body,
+    metadata,
+    created_at,
+    updated_at,
+    similarity(subject || ' ' || body, email) as "similarity"
+from public.recruiter_outbound_template
+where recruiter_id = user_id
+and (subject || ' ' || body) % email
+order by 9 desc
+limit 5;
+$$
+language sql stable;
+
 --------------------------------
 --------------------------------
 
@@ -526,6 +557,8 @@ create table public.recruiter_outbound_message (
   from_email text not null,
   to_email text not null,
   sent_at timestamp with time zone not null,
+
+  template_id uuid references public.recruiter_outbound_template(template_id) on delete set null,
 
   created_at timestamp with time zone not null default now(),
   updated_at timestamp with time zone not null default now(),
@@ -546,36 +579,6 @@ create policy "Recruiters can view their outbound messages"
   on public.recruiter_outbound_message for select
   using ( auth.uid() = recruiter_id );
 
---------------------------------
---------------------------------
-
--- link sent messages to templates
-create table public.recruiter_outbound_template_message (
-  template_id uuid references public.recruiter_outbound_template(template_id) on delete cascade not null,
-  message_id text references public.recruiter_outbound_message(message_id) on delete cascade not null,
-
-  created_at timestamp with time zone not null default now(),
-  updated_at timestamp with time zone not null default now(),
-
-  primary key (template_id, message_id)
-);
-
-create trigger handle_updated_at_recruiter_outbound_template_message before update on public.recruiter_outbound_template_message
-  for each row execute procedure moddatetime (updated_at);
-
--- enable real-time
-alter publication supabase_realtime add table public.recruiter_outbound_template_message;
-
--- enable RLS
-alter table public.recruiter_outbound_template_message enable row level security;
-
-create policy "Recruiters can view their outbound template messages"
-  on public.recruiter_outbound_template_message for select
-  using ( template_id in (
-      select template_id
-      from public.recruiter_outbound_template
-      where recruiter_id = auth.uid()
-  ));
 --------------------------------
 -- End: Recruiter Outbound Tables
 --------------------------------
