@@ -86,8 +86,8 @@ func singleOrError[T any](slice []T) (T, error) {
 
 // GetUserProfileByEmail fetches a user profile by email.
 func (q *HTTPQueries) GetUserProfileByEmail(ctx context.Context, email string) (UserProfile, error) {
-	basePath := "/user_profile"
-	query := fmt.Sprintf("select=*&email=eq.%s", email)
+	basePath := "/rpc/get_user_profile_by_email"
+	query := fmt.Sprintf("input=%s", email)
 	path := fmt.Sprintf("%s?%s", basePath, query)
 	var result UserProfile
 
@@ -448,8 +448,8 @@ func (q *HTTPQueries) CountUserEmailJobs(ctx context.Context, userID uuid.UUID) 
 
 // GetRecruiterByEmail fetches a recruiter profile given their email
 func (q *HTTPQueries) GetRecruiterByEmail(ctx context.Context, email string) (GetRecruiterByEmailRow, error) {
-	basePath := "/recruiter"
-	query := fmt.Sprintf("select=*&email=eq.%s", email)
+	basePath := "/rpc/get_recruiter_by_email"
+	query := fmt.Sprintf("input=%s", email)
 	path := fmt.Sprintf("%s?%s", basePath, query)
 	var result GetRecruiterByEmailRow
 

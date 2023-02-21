@@ -342,3 +342,25 @@ select
   user_oauth_token.*
 from user_oauth_token
 inner join recruiter using (user_id);
+
+create or replace function get_user_profile_by_email (input text)
+returns user_profile as 
+$$
+select
+  user_profile.*
+from public.user_profile
+inner join public.user_oauth_token using (user_id)
+where user_profile.email = input OR user_oauth_token.email = input;
+$$
+language sql stable;
+
+create or replace function get_recruiter_by_email (input text)
+returns recruiter as 
+$$
+select
+  recruiter.*
+from public.recruiter
+inner join public.user_oauth_token using (user_id)
+where recruiter.email = input OR user_oauth_token.email = input;
+$$
+language sql stable;
