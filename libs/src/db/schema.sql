@@ -22,15 +22,14 @@ commit;
 -- User OAuth Token Table
 create table public.user_oauth_token (
     user_id uuid references auth.users(id) on delete cascade not null,
-    -- temporarily null until we backfill
-    email text,
+    email text not null,
     provider text not null,
     token jsonb not null,
     is_valid boolean not null default true,
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
 
-    primary key (user_id, provider)
+    primary key (user_id, email, provider)
 );
 
 create trigger handle_updated_at_user_oauth_token before update on public.user_oauth_token
