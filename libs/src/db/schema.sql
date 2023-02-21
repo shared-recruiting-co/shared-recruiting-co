@@ -461,3 +461,121 @@ inner join public.user_oauth_token using (user_id)
 where recruiter.email = input OR user_oauth_token.email = input;
 $$
 language sql stable;
+
+--------------------------------
+-- End: Get Candidate/Recruiter Given Connected Email
+--------------------------------
+
+--------------------------------
+-- Start: Recruiter Outbound Tables
+--------------------------------
+
+
+-- Recruiter outbound tables
+-- These tables help us connect recruiter's existing outbound to SRC
+create table public.recruiter_outbound_template (
+  template_id uuid not null default uuid_generate_v4(),
+  recruiter_id uuid references public.recruiter(user_id) on delete cascade not null,
+  -- nullable job_id
+  job_id uuid references public.job(job_id) on delete set null, 
+
+  subject text not null,
+  body text not null,
+  metadata jsonb not null default '{}'::jsonb,
+
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now(),
+
+  primary key (template_id)
+);
+
+create trigger handle_updated_at_recruiter_outbound_template before update on public.recruiter_outbound_template
+  for each row execute procedure moddatetime (updated_at);
+
+-- enable real-time
+alter publication supabase_realtime add table public.recruiter_outbound_template;
+
+-- enable RLS
+alter table public.recruiter_outbound_template enable row level security;
+
+create policy "Recruiters can view their outbound templates"
+  on public.recruiter_outbound_template for select
+  using ( auth.uid() = recruiter_id );
+
+create policy "Recruiters can insert their outbound templates"
+  on public.recruiter_outbound_template for insert
+  with check ( auth.uid() = recruiter_id );
+
+create policy "Recruiters can update their outbound templates"
+  on public.recruiter_outbound_template for update
+  using ( auth.uid() = recruiter_id );
+
+create policy "Recruiters can delete their outbound templates"
+  on public.recruiter_outbound_template for delete
+  using ( auth.uid() = recruiter_id );
+
+--------------------------------
+--------------------------------
+
+create table public.recruiter_outbound_message (
+  recruiter_id uuid references public.recruiter(user_id) on delete cascade not null,
+  -- message ID from the email provider
+  message_id text not null,
+  -- RFC2822 Message ID
+  internal_message_id text not null,
+  from_email text not null,
+  to_email text not null,
+  sent_at timestamp with time zone not null,
+
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now(),
+
+  primary key (message_id)
+);
+
+create trigger handle_updated_at_recruiter_outbound_message before update on public.recruiter_outbound_message
+  for each row execute procedure moddatetime (updated_at);
+
+-- enable real-time
+alter publication supabase_realtime add table public.recruiter_outbound_message;
+
+-- enable RLS
+alter table public.recruiter_outbound_message enable row level security;
+
+create policy "Recruiters can view their outbound messages"
+  on public.recruiter_outbound_message for select
+  using ( auth.uid() = recruiter_id );
+
+--------------------------------
+--------------------------------
+
+-- link sent messages to templates
+create table public.recruiter_outbound_template_message (
+  template_id uuid references public.recruiter_outbound_template(template_id) on delete cascade not null,
+  message_id text references public.recruiter_outbound_message(message_id) on delete cascade not null,
+
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now(),
+
+  primary key (template_id, message_id)
+);
+
+create trigger handle_updated_at_recruiter_outbound_template_message before update on public.recruiter_outbound_template_message
+  for each row execute procedure moddatetime (updated_at);
+
+-- enable real-time
+alter publication supabase_realtime add table public.recruiter_outbound_template_message;
+
+-- enable RLS
+alter table public.recruiter_outbound_template_message enable row level security;
+
+create policy "Recruiters can view their outbound template messages"
+  on public.recruiter_outbound_template_message for select
+  using ( template_id in (
+      select template_id
+      from public.recruiter_outbound_template
+      where recruiter_id = auth.uid()
+  ));
+--------------------------------
+-- End: Recruiter Outbound Tables
+--------------------------------
