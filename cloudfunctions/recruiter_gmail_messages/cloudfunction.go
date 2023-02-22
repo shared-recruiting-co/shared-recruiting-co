@@ -260,13 +260,13 @@ func (cf *CloudFunction) processMessage(id string) error {
 	// extract first message subject and body text
 	subject := srcmessage.Subject(firstMsg)
 	body := srcmessage.Body(firstMsg)
-	formattedBody := cleanBody(body)
-	input := fmt.Sprintf("%s %s", subject, formattedBody)
+	normalizedBody := normalizeBody(body)
+	normalizedContent := fmt.Sprintf("%s %s", subject, normalizedBody)
 
 	// 6. If it doesn't check for a matching template
 	templates, err := cf.queries.ListSimilarRecruiterOutboundTemplates(cf.ctx, db.ListSimilarRecruiterOutboundTemplatesParams{
 		UserID: cf.user.UserID,
-		Input:  input,
+		Input:  normalizedContent,
 	})
 	if err != nil {
 		return fmt.Errorf("error getting similar templates: %w", err)
@@ -342,10 +342,11 @@ func (cf *CloudFunction) processMessage(id string) error {
 		return fmt.Errorf("error marshaling template metadata: %w", err)
 	}
 	template, err := cf.queries.InsertRecruiterOutboundTemplate(cf.ctx, db.InsertRecruiterOutboundTemplateParams{
-		RecruiterID: cf.user.UserID,
-		Subject:     subject,
-		Body:        formattedBody,
-		Metadata:    metadataJSON,
+		RecruiterID:       cf.user.UserID,
+		Subject:           subject,
+		Body:              body,
+		NormalizedContent: normalizedContent,
+		Metadata:          metadataJSON,
 	})
 	if err != nil {
 		return fmt.Errorf("error inserting template: %w", err)
@@ -407,7 +408,7 @@ func isThreadStartedByUser(messages []*gmail.Message) bool {
 	return srcmessage.IsSent(firstMsg)
 }
 
-func cleanBody(body string) string {
+func normalizeBody(body string) string {
 	// convert to text if it's HTML
 	mime := http.DetectContentType([]byte(body))
 	// mime will be "text/html; charset=utf-8"
