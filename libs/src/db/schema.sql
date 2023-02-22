@@ -447,7 +447,8 @@ select
   user_profile.*
 from public.user_profile
 inner join public.user_oauth_token using (user_id)
-where user_profile.email = input OR user_oauth_token.email = input;
+where user_profile.email = input OR user_oauth_token.email = input
+limit 1;
 $$
 language sql stable;
 
@@ -458,7 +459,8 @@ select
   recruiter.*
 from public.recruiter
 inner join public.user_oauth_token using (user_id)
-where recruiter.email = input OR user_oauth_token.email = input;
+where recruiter.email = input OR user_oauth_token.email = input
+limit 1;
 $$
 language sql stable;
 

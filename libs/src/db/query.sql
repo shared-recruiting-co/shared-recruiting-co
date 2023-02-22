@@ -11,7 +11,8 @@ select
     user_profile.updated_at
 from public.user_profile
 inner join public.user_oauth_token using (user_id)
-where user_profile.email = $1 OR user_oauth_token.email = $1;
+where user_profile.email = $1 OR user_oauth_token.email = $1
+limit 1;
 
 -- name: ListUserOAuthTokens :many
 select
@@ -145,7 +146,8 @@ select
     recruiter.updated_at
 from recruiter
 inner join public.user_oauth_token using (user_id)
-where recruiter.email = $1 OR user_oauth_token.email = $1;
+where recruiter.email = $1 OR user_oauth_token.email = $1
+limit 1;
 
 -- name: GetRecruiterOutboundMessage :one
 select
