@@ -284,31 +284,10 @@ func (cf *CloudFunction) processMessage(id string) error {
 		// match to the first template
 		template := templates[0]
 
-		err = cf.queries.InsertRecruiterOutboundMessage(cf.ctx, db.InsertRecruiterOutboundMessageParams{
-			RecruiterID: cf.user.UserID,
-			MessageID:   firstMsg.Id,
-			TemplateID: uuid.NullUUID{
-				UUID:  template.TemplateID,
-				Valid: true,
-			},
-			InternalMessageID: srcmessage.HostMessageID(firstMsg),
-			FromEmail:         srcmessage.SenderEmail(firstMsg),
-			ToEmail:           srcmessage.RecipientEmail(firstMsg),
-			SentAt:            srcmessage.CreatedAt(firstMsg),
-		})
+		// save and label message
+		err = cf.saveMessage(firstMsg, template.TemplateID)
 		if err != nil {
-			return fmt.Errorf("error inserting message: %w", err)
-		}
-
-		// label thread
-		_, err = srcmail.ExecuteWithRetries(func() (interface{}, error) {
-			return cf.srv.Users.Threads.Modify(cf.srv.UserID, thread.Id, &gmail.ModifyThreadRequest{
-				// Add job opportunity label and parent folder labels
-				AddLabelIds: []string{cf.labels.SRC.Id, cf.labels.Recruiting.Id, cf.labels.RecruitingOutbound.Id},
-			}).Do()
-		})
-		if err != nil {
-			return fmt.Errorf("error labeling thread: %w", err)
+			return fmt.Errorf("error saving message: %w", err)
 		}
 
 		// done
@@ -352,17 +331,26 @@ func (cf *CloudFunction) processMessage(id string) error {
 		return fmt.Errorf("error inserting template: %w", err)
 	}
 
-	err = cf.queries.InsertRecruiterOutboundMessage(cf.ctx, db.InsertRecruiterOutboundMessageParams{
+	err = cf.saveMessage(firstMsg, template.TemplateID)
+	if err != nil {
+		return fmt.Errorf("error saving message: %w", err)
+	}
+
+	return nil
+}
+
+func (cf *CloudFunction) saveMessage(msg *gmail.Message, templateID uuid.UUID) error {
+	err := cf.queries.InsertRecruiterOutboundMessage(cf.ctx, db.InsertRecruiterOutboundMessageParams{
 		RecruiterID: cf.user.UserID,
-		MessageID:   firstMsg.Id,
+		MessageID:   msg.Id,
 		TemplateID: uuid.NullUUID{
-			UUID:  template.TemplateID,
+			UUID:  templateID,
 			Valid: true,
 		},
-		InternalMessageID: srcmessage.HostMessageID(firstMsg),
-		FromEmail:         srcmessage.SenderEmail(firstMsg),
-		ToEmail:           srcmessage.RecipientEmail(firstMsg),
-		SentAt:            srcmessage.CreatedAt(firstMsg),
+		InternalMessageID: srcmessage.HostMessageID(msg),
+		FromEmail:         srcmessage.SenderEmail(msg),
+		ToEmail:           srcmessage.RecipientEmail(msg),
+		SentAt:            srcmessage.CreatedAt(msg),
 	})
 	if err != nil {
 		return fmt.Errorf("error inserting message: %w", err)
@@ -370,7 +358,7 @@ func (cf *CloudFunction) processMessage(id string) error {
 
 	// label thread
 	_, err = srcmail.ExecuteWithRetries(func() (interface{}, error) {
-		return cf.srv.Users.Threads.Modify(cf.srv.UserID, thread.Id, &gmail.ModifyThreadRequest{
+		return cf.srv.Users.Threads.Modify(cf.srv.UserID, msg.ThreadId, &gmail.ModifyThreadRequest{
 			// Add job opportunity label and parent folder labels
 			AddLabelIds: []string{cf.labels.SRC.Id, cf.labels.Recruiting.Id, cf.labels.RecruitingOutbound.Id},
 		}).Do()
