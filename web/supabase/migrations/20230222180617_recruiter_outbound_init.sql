@@ -125,4 +125,4 @@ CREATE TRIGGER handle_updated_at_recruiter_outbound_message BEFORE UPDATE ON pub
 
 CREATE TRIGGER handle_updated_at_recruiter_outbound_template BEFORE UPDATE ON public.recruiter_outbound_template FOR EACH ROW EXECUTE FUNCTION moddatetime('updated_at');
 
-
+set pg_trgm.similarity_threshold = 0.5;
