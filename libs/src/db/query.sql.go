@@ -38,6 +38,7 @@ select
 from recruiter
 inner join public.user_oauth_token using (user_id)
 where recruiter.email = $1 OR user_oauth_token.email = $1
+limit 1
 `
 
 type GetRecruiterByEmailRow struct {
@@ -218,6 +219,7 @@ select
 from public.user_profile
 inner join public.user_oauth_token using (user_id)
 where user_profile.email = $1 OR user_oauth_token.email = $1
+limit 1
 `
 
 func (q *Queries) GetUserProfileByEmail(ctx context.Context, email string) (UserProfile, error) {
