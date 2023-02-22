@@ -424,14 +424,15 @@ func normalizeBody(body string) string {
 	// remove html tags
 	body = html.UnescapeString(body)
 
+	// strip links because they are often customized per recipient
+	re := regexp.MustCompile(`https?://\S+`)
+	body = re.ReplaceAllString(body, "")
+
 	// remove extra spaces
 	body = strings.ReplaceAll(body, "\n", " ")
 	body = strings.ReplaceAll(body, "\t", " ")
 	body = strings.ReplaceAll(body, "  ", " ")
-
-	// strip links because they are often customized per recipient
-	re := regexp.MustCompile(`https?://\S+`)
-	body = re.ReplaceAllString(body, "")
+	body = strings.TrimSpace(body)
 
 	return body
 }
