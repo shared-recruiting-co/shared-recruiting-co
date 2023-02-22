@@ -211,6 +211,13 @@ func (cf *CloudFunction) processMessage(id string) error {
 		return fmt.Errorf("error getting message: %w", err)
 	}
 
+	// For now, skip messages that are not SENT
+	// This will change once we handle candidate replies
+	if !srcmessage.IsSent(msg) {
+		log.Printf("skipping message %s because it is not sent", id)
+		return nil
+	}
+
 	// 2. Get Thread
 	thread, err := cf.srv.GetThread(msg.ThreadId, "minimal")
 	if err != nil {
