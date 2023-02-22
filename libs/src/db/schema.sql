@@ -481,6 +481,7 @@ create table public.recruiter_outbound_template (
 
   subject text not null,
   body text not null,
+  normalized_content text not null,
   metadata jsonb not null default '{}'::jsonb,
 
   created_at timestamp with time zone not null default now(),
@@ -516,8 +517,8 @@ create policy "Recruiters can delete their outbound templates"
 
 create or replace function list_similar_recruiter_outbound_templates (user_id uuid, input text)
 returns table (
-  recruiter_id uuid,
   template_id uuid,
+  recruiter_id uuid,
   job_id uuid,
   subject text,
   body text,
@@ -536,10 +537,10 @@ select
     metadata,
     created_at,
     updated_at,
-    similarity(subject || ' ' || body, input) as "similarity"
+    similarity(normalized_content, input) as "similarity"
 from public.recruiter_outbound_template
 where recruiter_id = user_id
-and (subject || ' ' || body) % input
+and normalized_content % input
 order by 9 desc;
 $$
 language sql stable;

@@ -172,16 +172,16 @@ returning *;
 
 -- name: ListSimilarRecruiterOutboundTemplates :many
 select
-    recruiter_id,
     template_id,
+    recruiter_id,
     job_id,
     subject,
     body,
     metadata,
     created_at,
     updated_at,
-    similarity(subject || ' ' || body, @input::text) as "similarity"
+    similarity(normalized_content, @input::text) as "similarity"
 from public.recruiter_outbound_template
 where recruiter_id = @user_id::uuid
-and (subject || ' ' || body) % @input::text
+and normalized_content % @input::text
 order by 9 desc;

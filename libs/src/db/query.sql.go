@@ -293,7 +293,7 @@ func (q *Queries) InsertRecruiterOutboundMessage(ctx context.Context, arg Insert
 const insertRecruiterOutboundTemplate = `-- name: InsertRecruiterOutboundTemplate :one
 insert into public.recruiter_outbound_template(recruiter_id, job_id, subject, body, metadata)
 values ($1, $2, $3, $4, $5)
-returning template_id, recruiter_id, job_id, subject, body, metadata, created_at, updated_at
+returning template_id, recruiter_id, job_id, subject, body, normalized_content, metadata, created_at, updated_at
 `
 
 type InsertRecruiterOutboundTemplateParams struct {
@@ -319,6 +319,7 @@ func (q *Queries) InsertRecruiterOutboundTemplate(ctx context.Context, arg Inser
 		&i.JobID,
 		&i.Subject,
 		&i.Body,
+		&i.NormalizedContent,
 		&i.Metadata,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -460,18 +461,18 @@ func (q *Queries) ListRecruiterOAuthTokens(ctx context.Context, arg ListRecruite
 
 const listSimilarRecruiterOutboundTemplates = `-- name: ListSimilarRecruiterOutboundTemplates :many
 select
-    recruiter_id,
     template_id,
+    recruiter_id,
     job_id,
     subject,
     body,
     metadata,
     created_at,
     updated_at,
-    similarity(subject || ' ' || body, $1::text) as "similarity"
+    similarity(normalized_content, $1::text) as "similarity"
 from public.recruiter_outbound_template
 where recruiter_id = $2::uuid
-and (subject || ' ' || body) % $1::text
+and normalized_content % $1::text
 order by 9 desc
 `
 
@@ -481,8 +482,8 @@ type ListSimilarRecruiterOutboundTemplatesParams struct {
 }
 
 type ListSimilarRecruiterOutboundTemplatesRow struct {
-	RecruiterID uuid.UUID       `json:"recruiter_id"`
 	TemplateID  uuid.UUID       `json:"template_id"`
+	RecruiterID uuid.UUID       `json:"recruiter_id"`
 	JobID       uuid.NullUUID   `json:"job_id"`
 	Subject     string          `json:"subject"`
 	Body        string          `json:"body"`
@@ -502,8 +503,8 @@ func (q *Queries) ListSimilarRecruiterOutboundTemplates(ctx context.Context, arg
 	for rows.Next() {
 		var i ListSimilarRecruiterOutboundTemplatesRow
 		if err := rows.Scan(
-			&i.RecruiterID,
 			&i.TemplateID,
+			&i.RecruiterID,
 			&i.JobID,
 			&i.Subject,
 			&i.Body,
