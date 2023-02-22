@@ -545,6 +545,13 @@ order by 9 desc;
 $$
 language sql stable;
 
+-- add index for similarity search
+create index idx_recruiter_outbound_template_normalized_content on public.recruiter_outbound_template using gin (normalized_content gin_trgm_ops);
+
+-- default is 0.3
+-- TODO: Adjust once we have more data
+set pg_trgm.similarity_threshold = 0.5;
+
 --------------------------------
 --------------------------------
 
