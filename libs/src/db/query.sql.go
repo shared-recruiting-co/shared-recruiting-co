@@ -291,17 +291,18 @@ func (q *Queries) InsertRecruiterOutboundMessage(ctx context.Context, arg Insert
 }
 
 const insertRecruiterOutboundTemplate = `-- name: InsertRecruiterOutboundTemplate :one
-insert into public.recruiter_outbound_template(recruiter_id, job_id, subject, body, metadata)
-values ($1, $2, $3, $4, $5)
+insert into public.recruiter_outbound_template(recruiter_id, job_id, subject, body, normalized_content, metadata)
+values ($1, $2, $3, $4, $5, $6)
 returning template_id, recruiter_id, job_id, subject, body, normalized_content, metadata, created_at, updated_at
 `
 
 type InsertRecruiterOutboundTemplateParams struct {
-	RecruiterID uuid.UUID       `json:"recruiter_id"`
-	JobID       uuid.NullUUID   `json:"job_id"`
-	Subject     string          `json:"subject"`
-	Body        string          `json:"body"`
-	Metadata    json.RawMessage `json:"metadata"`
+	RecruiterID       uuid.UUID       `json:"recruiter_id"`
+	JobID             uuid.NullUUID   `json:"job_id"`
+	Subject           string          `json:"subject"`
+	Body              string          `json:"body"`
+	NormalizedContent string          `json:"normalized_content"`
+	Metadata          json.RawMessage `json:"metadata"`
 }
 
 func (q *Queries) InsertRecruiterOutboundTemplate(ctx context.Context, arg InsertRecruiterOutboundTemplateParams) (RecruiterOutboundTemplate, error) {
@@ -310,6 +311,7 @@ func (q *Queries) InsertRecruiterOutboundTemplate(ctx context.Context, arg Inser
 		arg.JobID,
 		arg.Subject,
 		arg.Body,
+		arg.NormalizedContent,
 		arg.Metadata,
 	)
 	var i RecruiterOutboundTemplate

@@ -166,8 +166,8 @@ insert into public.recruiter_outbound_message(recruiter_id, message_id, internal
 values ($1, $2, $3, $4, $5, $6, $7);
 
 -- name: InsertRecruiterOutboundTemplate :one
-insert into public.recruiter_outbound_template(recruiter_id, job_id, subject, body, metadata)
-values ($1, $2, $3, $4, $5)
+insert into public.recruiter_outbound_template(recruiter_id, job_id, subject, body, normalized_content, metadata)
+values ($1, $2, $3, $4, $5, $6)
 returning *;
 
 -- name: ListSimilarRecruiterOutboundTemplates :many
