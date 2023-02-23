@@ -591,3 +591,55 @@ create policy "Recruiters can view their outbound messages"
 --------------------------------
 -- End: Recruiter Outbound Tables
 --------------------------------
+
+--------------------------------
+-- Start: Candidate Company Inbound Tables & Triggers
+--------------------------------
+
+-- Candidate Company Inbound Tables
+-- These tables help us generate a job board for candidates from recruiter outbound
+create table public.candidate_company_inbound (
+  candidate_email text not null,
+  -- nullable
+  candidate_id uuid references public.user_profile(user_id) on delete set null,
+  company_id uuid references public.company(company_id) on delete cascade not null,
+  recruiter_id uuid references public.recruiter(user_id) on delete set null,
+  template_id uuid references public.recruiter_outbound_template(template_id) on delete cascade not null,
+  -- nullable
+  job_id uuid references public.job(job_id) on delete set null, 
+
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now(),
+
+  primary key (candidate_email, company_id, template_id)
+);
+
+create trigger handle_updated_at_candidate_company_inbound before update on public.candidate_company_inbound
+  for each row execute procedure moddatetime (updated_at);
+
+-- enable real-time
+alter publication supabase_realtime add table public.candidate_company_inbound;
+
+-- enable RLS
+alter table public.candidate_company_inbound enable row level security;
+
+-- TODO: Figure out company RLS policy
+create policy "Recruiters can view their inbound candidates"
+  on public.candidate_company_inbound for select
+  using ( auth.uid() = recruiter_id );
+
+create policy "Candidates can view their inbound"
+  on public.candidate_company_inbound for select
+  using ( auth.uid() = candidate_id );
+
+create policy "Candidates can view inbound to their emails"
+  on public.company for select
+  using ( candidate_email in (
+      select email
+      from public.user_oauth_token
+      where user_id = auth.uid()
+  ));
+
+--------------------------------
+-- End: Candidate Company Inbound Tables & Triggers
+--------------------------------
