@@ -36,6 +36,13 @@ func NewHTTP(url, apiKey string) *HTTPQueries {
 	}
 }
 
+// sanitize user input according to: ://github.com/shared-recruiting-co/shared-recruiting-co/security/code-scanning/8
+func sanitize(s string) string {
+	s = strings.ReplaceAll(s, "\n", "")
+	s = strings.ReplaceAll(s, "\r", "")
+	return s
+}
+
 // DoRequest performs a request to the PostgREST API.
 func (q *HTTPQueries) DoRequest(ctx context.Context, method, path string, body io.Reader) (*http.Response, error) {
 	reqPath, err := url.JoinPath(q.URL, path)
@@ -53,7 +60,7 @@ func (q *HTTPQueries) DoRequest(ctx context.Context, method, path string, body i
 		return nil, err
 	}
 	if q.Debug {
-		log.Printf("request: %s %s\n", req.Method, req.URL.String())
+		log.Printf("request: %s %s\n", req.Method, sanitize(req.URL.String()))
 	}
 
 	req.Header.Set("apikey", q.APIKey)
