@@ -447,7 +447,8 @@ select
   user_profile.*
 from public.user_profile
 inner join public.user_oauth_token using (user_id)
-where user_profile.email = input OR user_oauth_token.email = input;
+where user_profile.email = input OR user_oauth_token.email = input
+limit 1;
 $$
 language sql stable;
 
@@ -458,7 +459,8 @@ select
   recruiter.*
 from public.recruiter
 inner join public.user_oauth_token using (user_id)
-where recruiter.email = input OR user_oauth_token.email = input;
+where recruiter.email = input OR user_oauth_token.email = input
+limit 1;
 $$
 language sql stable;
 
@@ -481,6 +483,7 @@ create table public.recruiter_outbound_template (
 
   subject text not null,
   body text not null,
+  normalized_content text not null,
   metadata jsonb not null default '{}'::jsonb,
 
   created_at timestamp with time zone not null default now(),
@@ -514,10 +517,10 @@ create policy "Recruiters can delete their outbound templates"
   on public.recruiter_outbound_template for delete
   using ( auth.uid() = recruiter_id );
 
-create or replace function list_similar_recruiter_outbound_templates (user_id uuid, email text)
+create or replace function list_similar_recruiter_outbound_templates (user_id uuid, input text)
 returns table (
-  recruiter_id uuid,
   template_id uuid,
+  recruiter_id uuid,
   job_id uuid,
   subject text,
   body text,
@@ -536,13 +539,20 @@ select
     metadata,
     created_at,
     updated_at,
-    similarity(subject || ' ' || body, email) as "similarity"
+    similarity(normalized_content, input) as "similarity"
 from public.recruiter_outbound_template
 where recruiter_id = user_id
-and (subject || ' ' || body) % email
+and normalized_content % input
 order by 9 desc;
 $$
 language sql stable;
+
+-- add index for similarity search
+create index idx_recruiter_outbound_template_normalized_content on public.recruiter_outbound_template using gin (normalized_content gin_trgm_ops);
+
+-- default is 0.3
+-- TODO: Adjust once we have more data
+set pg_trgm.similarity_threshold = 0.5;
 
 --------------------------------
 --------------------------------

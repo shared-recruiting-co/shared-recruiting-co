@@ -122,14 +122,15 @@ type RecruiterOutboundMessage struct {
 }
 
 type RecruiterOutboundTemplate struct {
-	TemplateID  uuid.UUID       `json:"template_id"`
-	RecruiterID uuid.UUID       `json:"recruiter_id"`
-	JobID       uuid.NullUUID   `json:"job_id"`
-	Subject     string          `json:"subject"`
-	Body        string          `json:"body"`
-	Metadata    json.RawMessage `json:"metadata"`
-	CreatedAt   time.Time       `json:"created_at"`
-	UpdatedAt   time.Time       `json:"updated_at"`
+	TemplateID        uuid.UUID       `json:"template_id"`
+	RecruiterID       uuid.UUID       `json:"recruiter_id"`
+	JobID             uuid.NullUUID   `json:"job_id"`
+	Subject           string          `json:"subject"`
+	Body              string          `json:"body"`
+	NormalizedContent string          `json:"normalized_content"`
+	Metadata          json.RawMessage `json:"metadata"`
+	CreatedAt         time.Time       `json:"created_at"`
+	UpdatedAt         time.Time       `json:"updated_at"`
 }
 
 type UserEmailJob struct {

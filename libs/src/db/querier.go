@@ -20,7 +20,7 @@ type Querier interface {
 	GetUserProfileByEmail(ctx context.Context, email string) (UserProfile, error)
 	IncrementUserEmailStat(ctx context.Context, arg IncrementUserEmailStatParams) error
 	InsertRecruiterOutboundMessage(ctx context.Context, arg InsertRecruiterOutboundMessageParams) error
-	InsertRecruiterOutboundTemplate(ctx context.Context, arg InsertRecruiterOutboundTemplateParams) error
+	InsertRecruiterOutboundTemplate(ctx context.Context, arg InsertRecruiterOutboundTemplateParams) (RecruiterOutboundTemplate, error)
 	InsertUserEmailJob(ctx context.Context, arg InsertUserEmailJobParams) error
 	ListCandidateOAuthTokens(ctx context.Context, arg ListCandidateOAuthTokensParams) ([]CandidateOauthToken, error)
 	ListRecruiterOAuthTokens(ctx context.Context, arg ListRecruiterOAuthTokensParams) ([]RecruiterOauthToken, error)

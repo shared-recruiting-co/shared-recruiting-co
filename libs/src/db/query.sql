@@ -11,7 +11,8 @@ select
     user_profile.updated_at
 from public.user_profile
 inner join public.user_oauth_token using (user_id)
-where user_profile.email = $1 OR user_oauth_token.email = $1;
+where user_profile.email = $1 OR user_oauth_token.email = $1
+limit 1;
 
 -- name: ListUserOAuthTokens :many
 select
@@ -145,7 +146,8 @@ select
     recruiter.updated_at
 from recruiter
 inner join public.user_oauth_token using (user_id)
-where recruiter.email = $1 OR user_oauth_token.email = $1;
+where recruiter.email = $1 OR user_oauth_token.email = $1
+limit 1;
 
 -- name: GetRecruiterOutboundMessage :one
 select
@@ -165,22 +167,23 @@ where recruiter_id = $1 and message_id = $2;
 insert into public.recruiter_outbound_message(recruiter_id, message_id, internal_message_id, from_email, to_email, sent_at, template_id)
 values ($1, $2, $3, $4, $5, $6, $7);
 
--- name: InsertRecruiterOutboundTemplate :exec
-insert into public.recruiter_outbound_template(recruiter_id, job_id, subject, body, metadata)
-values ($1, $2, $3, $4, $5);
+-- name: InsertRecruiterOutboundTemplate :one
+insert into public.recruiter_outbound_template(recruiter_id, job_id, subject, body, normalized_content, metadata)
+values ($1, $2, $3, $4, $5, $6)
+returning *;
 
 -- name: ListSimilarRecruiterOutboundTemplates :many
 select
-    recruiter_id,
     template_id,
+    recruiter_id,
     job_id,
     subject,
     body,
     metadata,
     created_at,
     updated_at,
-    similarity(subject || ' ' || body, $2) as "similarity"
+    similarity(normalized_content, @input::text) as "similarity"
 from public.recruiter_outbound_template
-where recruiter_id = $1 
-and (subject || ' ' || body) % $2
+where recruiter_id = @user_id::uuid
+and normalized_content % @input::text
 order by 9 desc;
