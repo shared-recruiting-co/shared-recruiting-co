@@ -420,13 +420,13 @@ create policy "Companies can view their jobs"
 --------------------------------
 
 -- views on oauth tokens
-create view candidate_oauth_token as
+create or replace view candidate_oauth_token with (security_invoker) as
 select
   user_oauth_token.*
 from user_oauth_token
 inner join user_profile using (user_id);
 
-create view recruiter_oauth_token as
+create or replace view recruiter_oauth_token with (security_invoker) as
 select
   user_oauth_token.*
 from user_oauth_token
