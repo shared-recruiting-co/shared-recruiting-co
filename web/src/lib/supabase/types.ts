@@ -379,6 +379,7 @@ export interface Database {
 			candidate_oauth_token: {
 				Row: {
 					created_at: string | null;
+					email: string | null;
 					is_valid: boolean | null;
 					provider: string | null;
 					token: Json | null;
@@ -389,6 +390,7 @@ export interface Database {
 			recruiter_oauth_token: {
 				Row: {
 					created_at: string | null;
+					email: string | null;
 					is_valid: boolean | null;
 					provider: string | null;
 					token: Json | null;
