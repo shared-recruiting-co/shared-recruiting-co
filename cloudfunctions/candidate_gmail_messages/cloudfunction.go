@@ -243,7 +243,7 @@ func handler(ctx context.Context, e event.Event) error {
 		return handleError("error creating cloud function", err)
 	}
 
-	err = cf.proccessMessages(payload.Messages)
+	err = cf.processMessages(payload.Messages)
 	if err != nil {
 		return handleError("error processing messages", err)
 	}
@@ -251,8 +251,23 @@ func handler(ctx context.Context, e event.Event) error {
 	return nil
 }
 
-func (cf *CloudFunction) proccessMessages(messageIDs []string) error {
+func (cf *CloudFunction) processMessages(messageIDs []string) error {
+	mlServiceBaseURL := os.Getenv("ML_SERVICE_URL")
+	idTokenSource, err := idtoken.NewTokenSource(cf.ctx, mlServiceBaseURL)
+	if err != nil {
+		return err
+	}
+	idToken, err := idTokenSource.Token()
+	if err != nil {
+		return err
+	}
+	parser := ml.NewService(cf.ctx, ml.NewServiceArg{
+		BaseURL:   mlServiceBaseURL,
+		AuthToken: idToken.AccessToken,
+	})
+
 	examples := map[string]*ml.ClassifyRequest{}
+
 	for _, id := range messageIDs {
 		// payload isn't included in the list endpoint responses
 		message, err := cf.srv.GetMessage(id)
@@ -308,6 +323,57 @@ func (cf *CloudFunction) proccessMessages(messageIDs []string) error {
 			continue
 		}
 
+		parseRequest := ml.ParseJobRequest{
+			From:    srcmessage.Sender(message),
+			Subject: srcmessage.Subject(message),
+			Body:    srcmessage.Body(message),
+		}
+
+		log.Printf("parsing email: %s", message.Id)
+		job, err := parser.ParseJob(&parseRequest)
+		// for now, abort on error
+		if err != nil {
+			return err
+		}
+
+		// if fields are missing, skip
+		if job.Company == "" || job.Title == "" || job.Recruiter == "" {
+			// print sender and subject
+			log.Printf("skipping job: %v", job)
+			continue
+		}
+		recruiterEmail := srcmessage.SenderEmail(message)
+		data := map[string]interface{}{
+			"recruiter":       job.Recruiter,
+			"recruiter_email": recruiterEmail,
+		}
+
+		// turn data into json.RawMessage
+		b, err := json.Marshal(data)
+		if err != nil {
+			return err
+		}
+
+		// convert epoch ms to time.Time
+		emailedAt := time.Unix(message.InternalDate/1000, 0)
+
+		err = cf.queries.InsertUserEmailJob(cf.ctx, db.InsertUserEmailJobParams{
+			UserID: cf.user.UserID,
+			// is this correct? `profile.EmailAddress` in populate_jobs
+			UserEmail:     cf.user.Email,
+			EmailThreadID: message.ThreadId,
+			EmailedAt:     emailedAt,
+			Company:       job.Company,
+			JobTitle:      job.Title,
+			Data:          b,
+		})
+
+		// for now, continue on error
+		if err != nil {
+			log.Printf("error inserting job (%v): %v", job, err)
+			continue
+		}
+
 		// get the message thread
 		thread, err := cf.srv.GetThread(message.ThreadId, "minimal")
 		if err != nil {
@@ -355,6 +421,7 @@ func (cf *CloudFunction) proccessMessages(messageIDs []string) error {
 
 	// Label new recruiting emails
 	err = cf.processRecruitingEmails(recruitingEmailIDs)
+
 	if err != nil {
 		return fmt.Errorf("error processing recruiting emails: %v", err)
 	}
