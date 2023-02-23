@@ -90,7 +90,7 @@ func TestHTTPQueriesDoRequest(t *testing.T) {
 func TestHTTPGetUserProfileByEmail(t *testing.T) {
 	apikey := "apikey"
 	email := "example@test.com"
-	wantPath := fmt.Sprintf("/user_profile?select=*&email=eq.%s", email)
+	wantPath := "/rpc/get_user_profile_by_email"
 	want := db.UserProfile{
 		UserID:    uuid.New(),
 		Email:     email,
@@ -101,7 +101,7 @@ func TestHTTPGetUserProfileByEmail(t *testing.T) {
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
+		if r.Method != http.MethodPost {
 			t.Errorf("got %v, want %v", r.Method, http.MethodGet)
 		}
 		if r.URL.String() != wantPath {
@@ -121,7 +121,7 @@ func TestHTTPGetUserProfileByEmail(t *testing.T) {
 		}
 
 		// return a dummy list of user profiles
-		resp := []db.UserProfile{want}
+		resp := want
 		if err := json.NewEncoder(w).Encode(resp); err != nil {
 			t.Errorf("failed to encode response: %v", err)
 		}

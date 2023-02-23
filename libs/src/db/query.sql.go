@@ -65,6 +65,43 @@ func (q *Queries) GetRecruiterByEmail(ctx context.Context, email string) (GetRec
 	return i, err
 }
 
+const getRecruiterOutboundMessage = `-- name: GetRecruiterOutboundMessage :one
+select
+    recruiter_id,
+    message_id,
+    internal_message_id,
+    from_email,
+    to_email,
+    sent_at,
+    template_id,
+    created_at,
+    updated_at
+from public.recruiter_outbound_message
+where recruiter_id = $1 and message_id = $2
+`
+
+type GetRecruiterOutboundMessageParams struct {
+	RecruiterID uuid.UUID `json:"recruiter_id"`
+	MessageID   string    `json:"message_id"`
+}
+
+func (q *Queries) GetRecruiterOutboundMessage(ctx context.Context, arg GetRecruiterOutboundMessageParams) (RecruiterOutboundMessage, error) {
+	row := q.queryRow(ctx, q.getRecruiterOutboundMessageStmt, getRecruiterOutboundMessage, arg.RecruiterID, arg.MessageID)
+	var i RecruiterOutboundMessage
+	err := row.Scan(
+		&i.RecruiterID,
+		&i.MessageID,
+		&i.InternalMessageID,
+		&i.FromEmail,
+		&i.ToEmail,
+		&i.SentAt,
+		&i.TemplateID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getUserEmailJob = `-- name: GetUserEmailJob :one
 select
     job_id,
@@ -225,6 +262,58 @@ func (q *Queries) IncrementUserEmailStat(ctx context.Context, arg IncrementUserE
 	return err
 }
 
+const insertRecruiterOutboundMessage = `-- name: InsertRecruiterOutboundMessage :exec
+insert into public.recruiter_outbound_message(recruiter_id, message_id, internal_message_id, from_email, to_email, sent_at, template_id)
+values ($1, $2, $3, $4, $5, $6, $7)
+`
+
+type InsertRecruiterOutboundMessageParams struct {
+	RecruiterID       uuid.UUID     `json:"recruiter_id"`
+	MessageID         string        `json:"message_id"`
+	InternalMessageID string        `json:"internal_message_id"`
+	FromEmail         string        `json:"from_email"`
+	ToEmail           string        `json:"to_email"`
+	SentAt            time.Time     `json:"sent_at"`
+	TemplateID        uuid.NullUUID `json:"template_id"`
+}
+
+func (q *Queries) InsertRecruiterOutboundMessage(ctx context.Context, arg InsertRecruiterOutboundMessageParams) error {
+	_, err := q.exec(ctx, q.insertRecruiterOutboundMessageStmt, insertRecruiterOutboundMessage,
+		arg.RecruiterID,
+		arg.MessageID,
+		arg.InternalMessageID,
+		arg.FromEmail,
+		arg.ToEmail,
+		arg.SentAt,
+		arg.TemplateID,
+	)
+	return err
+}
+
+const insertRecruiterOutboundTemplate = `-- name: InsertRecruiterOutboundTemplate :exec
+insert into public.recruiter_outbound_template(recruiter_id, job_id, subject, body, metadata)
+values ($1, $2, $3, $4, $5)
+`
+
+type InsertRecruiterOutboundTemplateParams struct {
+	RecruiterID uuid.UUID       `json:"recruiter_id"`
+	JobID       uuid.NullUUID   `json:"job_id"`
+	Subject     string          `json:"subject"`
+	Body        string          `json:"body"`
+	Metadata    json.RawMessage `json:"metadata"`
+}
+
+func (q *Queries) InsertRecruiterOutboundTemplate(ctx context.Context, arg InsertRecruiterOutboundTemplateParams) error {
+	_, err := q.exec(ctx, q.insertRecruiterOutboundTemplateStmt, insertRecruiterOutboundTemplate,
+		arg.RecruiterID,
+		arg.JobID,
+		arg.Subject,
+		arg.Body,
+		arg.Metadata,
+	)
+	return err
+}
+
 const insertUserEmailJob = `-- name: InsertUserEmailJob :exec
 insert into public.user_email_job(user_id, user_email, email_thread_id, emailed_at, company, job_title, data)
 values ($1, $2, $3, $4, $5, $6, $7)
@@ -343,6 +432,73 @@ func (q *Queries) ListRecruiterOAuthTokens(ctx context.Context, arg ListRecruite
 			&i.IsValid,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSimilarRecruiterOutboundTemplates = `-- name: ListSimilarRecruiterOutboundTemplates :many
+select
+    recruiter_id,
+    template_id,
+    job_id,
+    subject,
+    body,
+    metadata,
+    created_at,
+    updated_at,
+    similarity(subject || ' ' || body, $2) as "similarity"
+from public.recruiter_outbound_template
+where recruiter_id = $1 
+and (subject || ' ' || body) % $2
+order by 9 desc
+`
+
+type ListSimilarRecruiterOutboundTemplatesParams struct {
+	RecruiterID uuid.UUID `json:"recruiter_id"`
+	Similarity  string    `json:"similarity"`
+}
+
+type ListSimilarRecruiterOutboundTemplatesRow struct {
+	RecruiterID uuid.UUID       `json:"recruiter_id"`
+	TemplateID  uuid.UUID       `json:"template_id"`
+	JobID       uuid.NullUUID   `json:"job_id"`
+	Subject     string          `json:"subject"`
+	Body        string          `json:"body"`
+	Metadata    json.RawMessage `json:"metadata"`
+	CreatedAt   time.Time       `json:"created_at"`
+	UpdatedAt   time.Time       `json:"updated_at"`
+	Similarity  float32         `json:"similarity"`
+}
+
+func (q *Queries) ListSimilarRecruiterOutboundTemplates(ctx context.Context, arg ListSimilarRecruiterOutboundTemplatesParams) ([]ListSimilarRecruiterOutboundTemplatesRow, error) {
+	rows, err := q.query(ctx, q.listSimilarRecruiterOutboundTemplatesStmt, listSimilarRecruiterOutboundTemplates, arg.RecruiterID, arg.Similarity)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListSimilarRecruiterOutboundTemplatesRow
+	for rows.Next() {
+		var i ListSimilarRecruiterOutboundTemplatesRow
+		if err := rows.Scan(
+			&i.RecruiterID,
+			&i.TemplateID,
+			&i.JobID,
+			&i.Subject,
+			&i.Body,
+			&i.Metadata,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Similarity,
 		); err != nil {
 			return nil, err
 		}

@@ -1,14 +1,29 @@
+--------------------------------
 -- Start: Supabase auth.users table
+--------------------------------
 -- Include a simplified Supabase auth.users table in the schema for SQLC compilation
 create schema if not exists auth;
 create table auth.users (
     id uuid primary key,
     email text not null
 );
+--------------------------------
 -- End: Supabase auth.users table
+--------------------------------
+
+--------------------------------
+-- Start: Postgres Extensions
+--------------------------------
 
 -- Add moddatetime extension
 create extension if not exists moddatetime schema extensions;
+
+-- Add pg_trgm extension
+create extension if not exists pg_trgm schema extensions;
+
+--------------------------------
+-- End: Postgres Extensions
+--------------------------------
 
 -- Enable Suapbase Realtime
 begin;
@@ -19,7 +34,9 @@ begin;
   create publication supabase_realtime;
 commit;
 
--- User OAuth Token Table
+--------------------------------
+-- Start: User OAuth Token Table
+--------------------------------
 create table public.user_oauth_token (
     user_id uuid references auth.users(id) on delete cascade not null,
     email text not null,
@@ -50,7 +67,14 @@ create policy "Users can insert their own oauth tokens."
 create policy "Users can update own oauth tokens."
   on public.user_oauth_token for update
   using ( auth.uid() = user_id );
+ 
+--------------------------------
+-- End: User OAuth Token Table
+--------------------------------
 
+--------------------------------
+-- Start: User Email Sync History Table
+--------------------------------
 create type inbox_type as enum ('candidate', 'recruiter');
 
 -- User Email Sync History Table
@@ -81,6 +105,14 @@ create policy "Users can view their own email sync history"
 -- enable realtime
 alter publication supabase_realtime add table user_email_sync_history;
 
+--------------------------------
+-- End: User Email Sync History Table
+--------------------------------
+
+--------------------------------
+-- Start: Waitlist Table
+--------------------------------
+
 -- Waitlist table
 create table public.waitlist (
     user_id uuid references auth.users(id) on delete cascade not null,
@@ -106,6 +138,14 @@ alter table public.waitlist enable row level security;
 create policy "Users can view their own waitlist entry"
   on public.waitlist for select
   using ( auth.uid() = user_id );
+
+--------------------------------
+-- End: Waitlist Table
+--------------------------------
+
+--------------------------------
+-- Start: User (Candidate) Profile Table
+--------------------------------
 
 -- user_profile table
 create table public.user_profile (
@@ -137,6 +177,14 @@ create policy "Users can view their own profile"
 create policy "Users can update their own profile"
   on public.user_profile for update
   using ( auth.uid() = user_id );
+
+--------------------------------
+-- End: User (Candidate) Profile Table
+--------------------------------
+
+--------------------------------
+-- Start: User (Candidate) Email Stat Table
+--------------------------------
 
 -- user_email_stat table
 -- simple table to keep track of realtime user facing statistics
@@ -177,6 +225,14 @@ $$
 $$
 language sql volatile;
 
+--------------------------------
+-- End: User (Candidate) Email Stat Table
+--------------------------------
+
+--------------------------------
+-- Start: User (Candidate) Email Job Table
+--------------------------------
+
 
 -- user_email_job
 create table public.user_email_job (
@@ -216,6 +272,14 @@ create policy "Users can view their own jobs"
 
 -- for now jobs are read only
 
+--------------------------------
+-- End: User (Candidate) Email Job Table
+--------------------------------
+
+--------------------------------
+-- Start: Company Table
+--------------------------------
+
 -- company table
 create table public.company (
     company_id uuid not null default uuid_generate_v4(),
@@ -233,6 +297,14 @@ create trigger handle_updated_at_company before update on public.company
 -- enable realtime
 alter publication supabase_realtime add table public.company;
 alter table public.company enable row level security;
+
+--------------------------------
+-- End: Company Table
+--------------------------------
+
+--------------------------------
+-- Start: Recruiter Table
+--------------------------------
 
 -- recruiter table
 -- similar to user_profile but for recruiters
@@ -285,6 +357,14 @@ create policy "Recruiters can view their own company"
       where user_id = auth.uid()
   ));
 
+--------------------------------
+-- End: Recruiter Table
+--------------------------------
+
+--------------------------------
+-- Start: Jobs Table
+--------------------------------
+
 -- jobs
 create table public.job (
     job_id uuid not null default uuid_generate_v4(),
@@ -331,6 +411,13 @@ create policy "Companies can view their jobs"
       where user_id = auth.uid()
   ));
 
+--------------------------------
+-- End: Jobs Table
+--------------------------------
+
+--------------------------------
+-- Start: Views on User OAuth Tokens
+--------------------------------
 
 -- views on oauth tokens
 create view candidate_oauth_token as
@@ -344,6 +431,14 @@ select
   user_oauth_token.*
 from user_oauth_token
 inner join recruiter using (user_id);
+
+--------------------------------
+-- End: Views on User OAuth Tokens
+--------------------------------
+
+--------------------------------
+-- Start: Get Candidate/Recruiter Given Connected Email
+--------------------------------
 
 create or replace function get_user_profile_by_email (input text)
 returns user_profile as 
@@ -366,3 +461,123 @@ inner join public.user_oauth_token using (user_id)
 where recruiter.email = input OR user_oauth_token.email = input;
 $$
 language sql stable;
+
+--------------------------------
+-- End: Get Candidate/Recruiter Given Connected Email
+--------------------------------
+
+--------------------------------
+-- Start: Recruiter Outbound Tables
+--------------------------------
+
+
+-- Recruiter outbound tables
+-- These tables help us connect recruiter's existing outbound to SRC
+create table public.recruiter_outbound_template (
+  template_id uuid not null default uuid_generate_v4(),
+  recruiter_id uuid references public.recruiter(user_id) on delete cascade not null,
+  -- nullable job_id
+  job_id uuid references public.job(job_id) on delete set null, 
+
+  subject text not null,
+  body text not null,
+  metadata jsonb not null default '{}'::jsonb,
+
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now(),
+
+  primary key (template_id)
+);
+
+create trigger handle_updated_at_recruiter_outbound_template before update on public.recruiter_outbound_template
+  for each row execute procedure moddatetime (updated_at);
+
+-- enable real-time
+alter publication supabase_realtime add table public.recruiter_outbound_template;
+
+-- enable RLS
+alter table public.recruiter_outbound_template enable row level security;
+
+create policy "Recruiters can view their outbound templates"
+  on public.recruiter_outbound_template for select
+  using ( auth.uid() = recruiter_id );
+
+create policy "Recruiters can insert their outbound templates"
+  on public.recruiter_outbound_template for insert
+  with check ( auth.uid() = recruiter_id );
+
+create policy "Recruiters can update their outbound templates"
+  on public.recruiter_outbound_template for update
+  using ( auth.uid() = recruiter_id );
+
+create policy "Recruiters can delete their outbound templates"
+  on public.recruiter_outbound_template for delete
+  using ( auth.uid() = recruiter_id );
+
+create or replace function list_similar_recruiter_outbound_templates (user_id uuid, email text)
+returns table (
+  recruiter_id uuid,
+  template_id uuid,
+  job_id uuid,
+  subject text,
+  body text,
+  metadata jsonb,
+  created_at timestamp with time zone,
+  updated_at timestamp with time zone,
+  similarity real
+) as 
+$$
+select
+    recruiter_id,
+    template_id,
+    job_id,
+    subject,
+    body,
+    metadata,
+    created_at,
+    updated_at,
+    similarity(subject || ' ' || body, email) as "similarity"
+from public.recruiter_outbound_template
+where recruiter_id = user_id
+and (subject || ' ' || body) % email
+order by 9 desc;
+$$
+language sql stable;
+
+--------------------------------
+--------------------------------
+
+create table public.recruiter_outbound_message (
+  recruiter_id uuid references public.recruiter(user_id) on delete cascade not null,
+  -- message ID from the email provider
+  message_id text not null,
+  -- RFC2822 Message ID
+  internal_message_id text not null,
+  from_email text not null,
+  to_email text not null,
+  sent_at timestamp with time zone not null,
+
+  template_id uuid references public.recruiter_outbound_template(template_id) on delete set null,
+
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now(),
+
+  primary key (message_id)
+);
+
+create trigger handle_updated_at_recruiter_outbound_message before update on public.recruiter_outbound_message
+  for each row execute procedure moddatetime (updated_at);
+
+-- enable real-time
+alter publication supabase_realtime add table public.recruiter_outbound_message;
+
+-- enable RLS
+alter table public.recruiter_outbound_message enable row level security;
+
+create policy "Recruiters can view their outbound messages"
+  on public.recruiter_outbound_message for select
+  using ( auth.uid() = recruiter_id );
+
+--------------------------------
+-- End: Recruiter Outbound Tables
+--------------------------------
