@@ -695,17 +695,17 @@ create trigger insert_candidate_company_inbound_trigger_after_insert after inser
   for each row execute function insert_candidate_company_inbound_trigger();
 
 -- create a trigger for inserts into to recruiter_outbound_template
-create trigger update_job_for_template_candidate_company_inbound_trigger_insert_update after insert or update on public.recruiter_outbound_template
+create trigger candidate_company_inbound_trigger_recruiter_outbound_template after insert or update on public.recruiter_outbound_template
   for each row 
   when (new.job_id is not null)
   execute function update_job_for_template_candidate_company_inbound_trigger();
 
 -- create a trigger for inserts into to user_oauth_token
-create trigger update_candidate_for_email_candidate_company_inbound_trigger_user_oauth_token after insert or update on public.user_oauth_token
+create trigger candidate_company_inbound_trigger_user_oauth_token after insert or update on public.user_oauth_token
   for each row execute function update_candidate_for_email_candidate_company_inbound_trigger(); 
 
 -- create a trigger for inserts into to user_profile
-create trigger update_candidate_for_email_candidate_company_inbound_trigger_user_profile after insert on public.user_profile
+create trigger candidate_company_inbound_trigger_user_profile after insert on public.user_profile
   for each row execute function update_candidate_for_email_candidate_company_inbound_trigger();
 
 --------------------------------
