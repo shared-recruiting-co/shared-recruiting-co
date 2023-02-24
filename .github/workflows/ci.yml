@@ -27,6 +27,10 @@ jobs:
         working-directory: ./web
         run: supabase start
 
+      - name: "Run Supabase DB Tests"
+        working-directory: ./web
+        run: supabase test db
+
       - name: "Verify generated types are up-to-date"
         working-directory: ./web
         run: |
