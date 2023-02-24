@@ -633,12 +633,63 @@ create policy "Candidates can view their inbound"
   using ( auth.uid() = candidate_id );
 
 create policy "Candidates can view inbound to their emails"
-  on public.company for select
+  on public.candidate_company_inbound for select
   using ( candidate_email in (
       select email
       from public.user_oauth_token
       where user_id = auth.uid()
   ));
+
+-- create function to update job_id for a given template_id
+create or replace function update_job_for_template_candidate_company_inbound (template_id uuid, job_id uuid)
+returns void as
+$$
+update public.candidate_company_inbound
+set job_id = job_id
+where template_id = template_id;
+$$
+language sql volatile;
+
+-- create function to update candidate_id for a given candidate_email
+create or replace function update_candidate_for_email_candidate_company_inbound (candidate_email text, candidate_id uuid)
+returns void as
+$$
+update public.candidate_company_inbound
+set candidate_id = candidate_id
+where candidate_email = candidate_email;
+$$
+language sql volatile;
+
+-- create function to insert a row
+create or replace function insert_candidate_company_inbound (
+  candidate_email text,
+  recruiter_id uuid,
+  template_id uuid
+) returns void as 
+$$
+with input(candidate_email, recruiter_id, template_id) as (
+  values (
+    candidate_email,
+    recruiter_id,
+    template_id
+  )
+)
+insert into public.candidate_company_inbound (
+  candidate_email,
+  company_id,
+  template_id,
+  recruiter_id
+) 
+select 
+  input.candidate_email,
+  input.template_id,
+  input.recruiter_id,
+  r.company_id
+from input
+inner join public.recruiter r on r.user_id = input.recruiter_id
+on conflict do nothing;
+$$
+language sql volatile;
 
 --------------------------------
 -- End: Candidate Company Inbound Tables & Triggers
