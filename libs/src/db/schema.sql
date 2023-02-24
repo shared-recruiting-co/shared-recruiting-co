@@ -641,39 +641,34 @@ create policy "Candidates can view inbound to their emails"
   ));
 
 -- create function to update job_id for a given template_id
-create or replace function update_job_for_template_candidate_company_inbound (template_id uuid, job_id uuid)
-returns void as
+create or replace function update_job_for_template_candidate_company_inbound_trigger()
+returns trigger as
 $$
+begin
 update public.candidate_company_inbound
-set job_id = job_id
-where template_id = template_id;
+set job_id = new.job_id
+where template_id = new.template_id;
+end;
 $$
-language sql volatile;
+language plpgsql volatile;
 
 -- create function to update candidate_id for a given candidate_email
-create or replace function update_candidate_for_email_candidate_company_inbound (candidate_email text, candidate_id uuid)
-returns void as
+create or replace function update_candidate_for_email_candidate_company_inbound_trigger()
+returns trigger as
 $$
+begin
 update public.candidate_company_inbound
-set candidate_id = candidate_id
-where candidate_email = candidate_email;
+set candidate_id = new.candidate_id
+where candidate_email = new.candidate_email;
+end;
 $$
-language sql volatile;
+language plpgsql volatile;
 
 -- create function to insert a row
-create or replace function insert_candidate_company_inbound (
-  candidate_email text,
-  recruiter_id uuid,
-  template_id uuid
-) returns void as 
+create or replace function insert_candidate_company_inbound_trigger()
+returns trigger as 
 $$
-with input(candidate_email, recruiter_id, template_id) as (
-  values (
-    candidate_email,
-    recruiter_id,
-    template_id
-  )
-)
+begin
 insert into public.candidate_company_inbound (
   candidate_email,
   company_id,
@@ -681,15 +676,34 @@ insert into public.candidate_company_inbound (
   recruiter_id
 ) 
 select 
-  input.candidate_email,
-  input.template_id,
-  input.recruiter_id,
+  new.candidate_email,
+  new.template_id,
+  new.recruiter_id,
   r.company_id
-from input
-inner join public.recruiter r on r.user_id = input.recruiter_id
+from new
+inner join public.recruiter r on r.user_id = new.recruiter_id
 on conflict do nothing;
+end;
 $$
-language sql volatile;
+language plpgsql volatile;
+
+-- create a trigger for inserts into to recruiter_outbound_message
+create trigger insert_candidate_company_inbound_trigger_after_insert after insert on public.recruiter_outbound_message
+  for each row execute function insert_candidate_company_inbound_trigger();
+
+-- create a trigger for inserts into to recruiter_outbound_template
+create trigger update_job_for_template_candidate_company_inbound_trigger_insert_update after insert or update on public.recruiter_outbound_template
+  for each row 
+  when (new.job_id is not null)
+  execute function update_job_for_template_candidate_company_inbound_trigger();
+
+-- create a trigger for inserts into to user_oauth_token
+create trigger update_candidate_for_email_candidate_company_inbound_trigger_user_oauth_token after insert or update on public.user_oauth_token
+  for each row execute function update_candidate_for_email_candidate_company_inbound_trigger(); 
+
+-- create a trigger for inserts into to user_profile
+create trigger update_candidate_for_email_candidate_company_inbound_trigger_user_profile after insert on public.user_profile
+  for each row execute function update_candidate_for_email_candidate_company_inbound_trigger();
 
 --------------------------------
 -- End: Candidate Company Inbound Tables & Triggers
