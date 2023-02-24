@@ -21,6 +21,9 @@ create extension if not exists moddatetime schema extensions;
 -- Add pg_trgm extension
 create extension if not exists pg_trgm schema extensions;
 
+-- Enable the pgtap extension for testing
+create extension pgtap with schema extensions;
+
 --------------------------------
 -- End: Postgres Extensions
 --------------------------------
