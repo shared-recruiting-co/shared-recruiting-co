@@ -1,7 +1,8 @@
---------------
+----------------------------
 -- Candidate Company Inbound
---------------
--- This should always pass. If it doesn't the test infra is broken.
+----------------------------
+-- candidate_company_inbound is populated and maintained by a set of complex triggers.
+-- these tests verify that the triggers are working as expected.
 --------------
 begin;
 select plan( 6 );
