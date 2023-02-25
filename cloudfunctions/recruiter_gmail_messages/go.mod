@@ -6,7 +6,9 @@ require (
 	github.com/GoogleCloudPlatform/functions-framework-go v1.6.1
 	github.com/cloudevents/sdk-go/v2 v2.13.0
 	github.com/getsentry/sentry-go v0.18.0
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230221023426-b11df83c005a
+	github.com/google/uuid v1.3.0
+	github.com/jaytaylor/html2text v0.0.0-20211105163654-bc68cce691ba
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230223170458-b100b21d537f
 	google.golang.org/api v0.107.0
 )
 
@@ -16,10 +18,8 @@ require (
 	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.1 // indirect
 	github.com/googleapis/gax-go/v2 v2.7.0 // indirect
-	github.com/jaytaylor/html2text v0.0.0-20211105163654-bc68cce691ba // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect

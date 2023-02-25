@@ -112,6 +112,76 @@ export interface Database {
 					user_id?: string;
 				};
 			};
+			recruiter_outbound_message: {
+				Row: {
+					created_at: string;
+					from_email: string;
+					internal_message_id: string;
+					message_id: string;
+					recruiter_id: string;
+					sent_at: string;
+					template_id: string | null;
+					to_email: string;
+					updated_at: string;
+				};
+				Insert: {
+					created_at?: string;
+					from_email: string;
+					internal_message_id: string;
+					message_id: string;
+					recruiter_id: string;
+					sent_at: string;
+					template_id?: string | null;
+					to_email: string;
+					updated_at?: string;
+				};
+				Update: {
+					created_at?: string;
+					from_email?: string;
+					internal_message_id?: string;
+					message_id?: string;
+					recruiter_id?: string;
+					sent_at?: string;
+					template_id?: string | null;
+					to_email?: string;
+					updated_at?: string;
+				};
+			};
+			recruiter_outbound_template: {
+				Row: {
+					body: string;
+					created_at: string;
+					job_id: string | null;
+					metadata: Json;
+					normalized_content: string;
+					recruiter_id: string;
+					subject: string;
+					template_id: string;
+					updated_at: string;
+				};
+				Insert: {
+					body: string;
+					created_at?: string;
+					job_id?: string | null;
+					metadata?: Json;
+					normalized_content: string;
+					recruiter_id: string;
+					subject: string;
+					template_id?: string;
+					updated_at?: string;
+				};
+				Update: {
+					body?: string;
+					created_at?: string;
+					job_id?: string | null;
+					metadata?: Json;
+					normalized_content?: string;
+					recruiter_id?: string;
+					subject?: string;
+					template_id?: string;
+					updated_at?: string;
+				};
+			};
 			user_email_job: {
 				Row: {
 					company: string;
@@ -309,6 +379,7 @@ export interface Database {
 			candidate_oauth_token: {
 				Row: {
 					created_at: string | null;
+					email: string | null;
 					is_valid: boolean | null;
 					provider: string | null;
 					token: Json | null;
@@ -319,6 +390,7 @@ export interface Database {
 			recruiter_oauth_token: {
 				Row: {
 					created_at: string | null;
+					email: string | null;
 					is_valid: boolean | null;
 					provider: string | null;
 					token: Json | null;
@@ -328,6 +400,37 @@ export interface Database {
 			};
 		};
 		Functions: {
+			get_recruiter_by_email: {
+				Args: {
+					input: string;
+				};
+				Returns: {
+					company_id: string;
+					created_at: string;
+					email: string;
+					first_name: string;
+					last_name: string;
+					responses: Json;
+					updated_at: string;
+					user_id: string;
+				};
+			};
+			get_user_profile_by_email: {
+				Args: {
+					input: string;
+				};
+				Returns: {
+					auto_archive: boolean;
+					auto_contribute: boolean;
+					created_at: string;
+					email: string;
+					first_name: string;
+					is_active: boolean;
+					last_name: string;
+					updated_at: string;
+					user_id: string;
+				};
+			};
 			increment_user_email_stat: {
 				Args: {
 					user_id: string;
@@ -336,6 +439,23 @@ export interface Database {
 					stat_value: number;
 				};
 				Returns: undefined;
+			};
+			list_similar_recruiter_outbound_templates: {
+				Args: {
+					user_id: string;
+					input: string;
+				};
+				Returns: {
+					template_id: string;
+					recruiter_id: string;
+					job_id: string;
+					subject: string;
+					body: string;
+					metadata: Json;
+					created_at: string;
+					updated_at: string;
+					similarity: number;
+				}[];
 			};
 		};
 		Enums: {

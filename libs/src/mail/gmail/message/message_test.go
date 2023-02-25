@@ -3,6 +3,7 @@ package message_test
 import (
 	"encoding/base64"
 	"testing"
+	"time"
 
 	message "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/message"
 	"google.golang.org/api/gmail/v1"
@@ -234,6 +235,82 @@ func TestMessageSenderEmail(t *testing.T) {
 	}
 }
 
+func TestMessageRecipientEmail(t *testing.T) {
+	tests := []struct {
+		name    string
+		message *gmail.Message
+		want    string
+	}{
+		{
+			name: "Only Email",
+			message: &gmail.Message{
+				Payload: &gmail.MessagePart{
+					Headers: []*gmail.MessagePartHeader{
+						{
+							Name:  "to",
+							Value: "test@example.com",
+						},
+					},
+				},
+			},
+			want: "test@example.com",
+		},
+		{
+			name: "Display Name",
+			message: &gmail.Message{
+				Payload: &gmail.MessagePart{
+					Headers: []*gmail.MessagePartHeader{
+						{
+							Name:  "to",
+							Value: "Test Test <test@example.com>",
+						},
+					},
+				},
+			},
+			want: "test@example.com",
+		},
+		{
+			name: "Whitespace",
+			message: &gmail.Message{
+				Payload: &gmail.MessagePart{
+					Headers: []*gmail.MessagePartHeader{
+						{
+							Name:  "To",
+							Value: "Test Test < test@example.com>",
+						},
+					},
+				},
+			},
+			want: "test@example.com",
+		},
+		{
+			name: "Empty",
+			message: &gmail.Message{
+				Payload: &gmail.MessagePart{
+					Headers: []*gmail.MessagePartHeader{
+						{
+							Name:  "To",
+							Value: "",
+						},
+					},
+				},
+			},
+			want: "",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := message.RecipientEmail(tc.message)
+			if got != tc.want {
+				t.Fail()
+			}
+		})
+	}
+}
+
 func TestMessageHasLabel(t *testing.T) {
 	label := "label"
 	msg := &gmail.Message{
@@ -297,6 +374,33 @@ func TestIsMessageSent(t *testing.T) {
 			got := message.IsSent(tc.message)
 			if got != tc.want {
 				t.Fail()
+			}
+		})
+	}
+}
+
+func TestCreatedAt(t *testing.T) {
+	tests := []struct {
+		name    string
+		message *gmail.Message
+		want    time.Time
+	}{
+		{
+			name: "Sent",
+			message: &gmail.Message{
+				InternalDate: 123456789,
+			},
+			want: time.Unix(123456789/1000, 0),
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := message.CreatedAt(tc.message)
+			if got.String() != tc.want.String() {
+				t.Errorf("got %v, want %v", got, tc.want)
 			}
 		})
 	}

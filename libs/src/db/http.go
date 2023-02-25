@@ -36,6 +36,13 @@ func NewHTTP(url, apiKey string) *HTTPQueries {
 	}
 }
 
+// sanitize user input according to: ://github.com/shared-recruiting-co/shared-recruiting-co/security/code-scanning/8
+func sanitize(s string) string {
+	s = strings.ReplaceAll(s, "\n", "")
+	s = strings.ReplaceAll(s, "\r", "")
+	return s
+}
+
 // DoRequest performs a request to the PostgREST API.
 func (q *HTTPQueries) DoRequest(ctx context.Context, method, path string, body io.Reader) (*http.Response, error) {
 	reqPath, err := url.JoinPath(q.URL, path)
@@ -53,7 +60,7 @@ func (q *HTTPQueries) DoRequest(ctx context.Context, method, path string, body i
 		return nil, err
 	}
 	if q.Debug {
-		log.Printf("request: %s %s\n", req.Method, req.URL.String())
+		log.Printf("request: %s %s\n", req.Method, sanitize(req.URL.String()))
 	}
 
 	req.Header.Set("apikey", q.APIKey)
@@ -62,7 +69,9 @@ func (q *HTTPQueries) DoRequest(ctx context.Context, method, path string, body i
 	req.Header.Set("Range-Unit", "items")
 	// always upsert on POST (aka insert)
 	if method == http.MethodPost {
-		req.Header.Set("Prefer", "resolution=merge-duplicates")
+		req.Header.Add("Prefer", "resolution=merge-duplicates")
+		// always return the inserted object
+		req.Header.Add("Prefer", "return=representation")
 	}
 
 	return q.client.Do(req)
@@ -482,4 +491,107 @@ func (q *HTTPQueries) GetRecruiterByEmail(ctx context.Context, email string) (Ge
 	}
 
 	return result, err
+}
+
+// GetRecruiterOutboundMessage fetches a recruiter's outbound message by message ID
+func (q *HTTPQueries) GetRecruiterOutboundMessage(ctx context.Context, arg GetRecruiterOutboundMessageParams) (RecruiterOutboundMessage, error) {
+	basePath := "/recruiter_outbound_message"
+	query := fmt.Sprintf("select=*&recruiter_id=eq.%s&message_id=eq.%s", arg.RecruiterID.String(), arg.MessageID)
+	path := fmt.Sprintf("%s?%s", basePath, query)
+	var result RecruiterOutboundMessage
+
+	resp, err := q.DoRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return result, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return result, fmt.Errorf("fetch user email sync history: %s", resp.Status)
+	}
+
+	var results []RecruiterOutboundMessage
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+		return result, err
+	}
+
+	result, err = singleOrError(results)
+	return result, err
+}
+
+// InsertRecruiterOutboundMessage inserts a recruiter's outbound message
+func (q *HTTPQueries) InsertRecruiterOutboundMessage(ctx context.Context, arg InsertRecruiterOutboundMessageParams) error {
+	basePath := "/recruiter_outbound_message"
+	path := basePath
+	body, err := json.Marshal(arg)
+	if err != nil {
+		return err
+	}
+
+	resp, err := q.DoRequest(ctx, http.MethodPost, path, bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		return fmt.Errorf("insert recruiter outbound message: %s", resp.Status)
+	}
+
+	return nil
+}
+
+// InsertRecruiterOutboundTemplate inserts a recruiter's outbound template
+func (q *HTTPQueries) InsertRecruiterOutboundTemplate(ctx context.Context, arg InsertRecruiterOutboundTemplateParams) (RecruiterOutboundTemplate, error) {
+	basePath := "/recruiter_outbound_template"
+	path := basePath
+	body, err := json.Marshal(arg)
+	var result RecruiterOutboundTemplate
+	if err != nil {
+		return result, err
+	}
+
+	resp, err := q.DoRequest(ctx, http.MethodPost, path, bytes.NewReader(body))
+	if err != nil {
+		return result, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		return result, fmt.Errorf("insert recruiter outbound template: %s", resp.Status)
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
+
+func (q *HTTPQueries) ListSimilarRecruiterOutboundTemplates(ctx context.Context, arg ListSimilarRecruiterOutboundTemplatesParams) ([]ListSimilarRecruiterOutboundTemplatesRow, error) {
+	basePath := "/rpc/list_similar_recruiter_outbound_templates"
+	path := basePath
+	var results []ListSimilarRecruiterOutboundTemplatesRow
+
+	body, err := json.Marshal(arg)
+	if err != nil {
+		return results, err
+	}
+
+	resp, err := q.DoRequest(ctx, http.MethodPost, path, bytes.NewReader(body))
+	if err != nil {
+		return results, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return results, fmt.Errorf("fetch user profile by email: %s", resp.Status)
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+		return results, err
+	}
+
+	// no results is not an error here
+	return results, err
 }

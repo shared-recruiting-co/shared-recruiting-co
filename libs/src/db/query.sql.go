@@ -38,6 +38,7 @@ select
 from recruiter
 inner join public.user_oauth_token using (user_id)
 where recruiter.email = $1 OR user_oauth_token.email = $1
+limit 1
 `
 
 type GetRecruiterByEmailRow struct {
@@ -59,6 +60,43 @@ func (q *Queries) GetRecruiterByEmail(ctx context.Context, email string) (GetRec
 		&i.FirstName,
 		&i.LastName,
 		&i.CompanyID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getRecruiterOutboundMessage = `-- name: GetRecruiterOutboundMessage :one
+select
+    recruiter_id,
+    message_id,
+    internal_message_id,
+    from_email,
+    to_email,
+    sent_at,
+    template_id,
+    created_at,
+    updated_at
+from public.recruiter_outbound_message
+where recruiter_id = $1 and message_id = $2
+`
+
+type GetRecruiterOutboundMessageParams struct {
+	RecruiterID uuid.UUID `json:"recruiter_id"`
+	MessageID   string    `json:"message_id"`
+}
+
+func (q *Queries) GetRecruiterOutboundMessage(ctx context.Context, arg GetRecruiterOutboundMessageParams) (RecruiterOutboundMessage, error) {
+	row := q.queryRow(ctx, q.getRecruiterOutboundMessageStmt, getRecruiterOutboundMessage, arg.RecruiterID, arg.MessageID)
+	var i RecruiterOutboundMessage
+	err := row.Scan(
+		&i.RecruiterID,
+		&i.MessageID,
+		&i.InternalMessageID,
+		&i.FromEmail,
+		&i.ToEmail,
+		&i.SentAt,
+		&i.TemplateID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -181,6 +219,7 @@ select
 from public.user_profile
 inner join public.user_oauth_token using (user_id)
 where user_profile.email = $1 OR user_oauth_token.email = $1
+limit 1
 `
 
 func (q *Queries) GetUserProfileByEmail(ctx context.Context, email string) (UserProfile, error) {
@@ -223,6 +262,73 @@ func (q *Queries) IncrementUserEmailStat(ctx context.Context, arg IncrementUserE
 		arg.StatValue,
 	)
 	return err
+}
+
+const insertRecruiterOutboundMessage = `-- name: InsertRecruiterOutboundMessage :exec
+insert into public.recruiter_outbound_message(recruiter_id, message_id, internal_message_id, from_email, to_email, sent_at, template_id)
+values ($1, $2, $3, $4, $5, $6, $7)
+`
+
+type InsertRecruiterOutboundMessageParams struct {
+	RecruiterID       uuid.UUID     `json:"recruiter_id"`
+	MessageID         string        `json:"message_id"`
+	InternalMessageID string        `json:"internal_message_id"`
+	FromEmail         string        `json:"from_email"`
+	ToEmail           string        `json:"to_email"`
+	SentAt            time.Time     `json:"sent_at"`
+	TemplateID        uuid.NullUUID `json:"template_id"`
+}
+
+func (q *Queries) InsertRecruiterOutboundMessage(ctx context.Context, arg InsertRecruiterOutboundMessageParams) error {
+	_, err := q.exec(ctx, q.insertRecruiterOutboundMessageStmt, insertRecruiterOutboundMessage,
+		arg.RecruiterID,
+		arg.MessageID,
+		arg.InternalMessageID,
+		arg.FromEmail,
+		arg.ToEmail,
+		arg.SentAt,
+		arg.TemplateID,
+	)
+	return err
+}
+
+const insertRecruiterOutboundTemplate = `-- name: InsertRecruiterOutboundTemplate :one
+insert into public.recruiter_outbound_template(recruiter_id, job_id, subject, body, normalized_content, metadata)
+values ($1, $2, $3, $4, $5, $6)
+returning template_id, recruiter_id, job_id, subject, body, normalized_content, metadata, created_at, updated_at
+`
+
+type InsertRecruiterOutboundTemplateParams struct {
+	RecruiterID       uuid.UUID       `json:"recruiter_id"`
+	JobID             uuid.NullUUID   `json:"job_id"`
+	Subject           string          `json:"subject"`
+	Body              string          `json:"body"`
+	NormalizedContent string          `json:"normalized_content"`
+	Metadata          json.RawMessage `json:"metadata"`
+}
+
+func (q *Queries) InsertRecruiterOutboundTemplate(ctx context.Context, arg InsertRecruiterOutboundTemplateParams) (RecruiterOutboundTemplate, error) {
+	row := q.queryRow(ctx, q.insertRecruiterOutboundTemplateStmt, insertRecruiterOutboundTemplate,
+		arg.RecruiterID,
+		arg.JobID,
+		arg.Subject,
+		arg.Body,
+		arg.NormalizedContent,
+		arg.Metadata,
+	)
+	var i RecruiterOutboundTemplate
+	err := row.Scan(
+		&i.TemplateID,
+		&i.RecruiterID,
+		&i.JobID,
+		&i.Subject,
+		&i.Body,
+		&i.NormalizedContent,
+		&i.Metadata,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const insertUserEmailJob = `-- name: InsertUserEmailJob :exec
@@ -343,6 +449,73 @@ func (q *Queries) ListRecruiterOAuthTokens(ctx context.Context, arg ListRecruite
 			&i.IsValid,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSimilarRecruiterOutboundTemplates = `-- name: ListSimilarRecruiterOutboundTemplates :many
+select
+    template_id,
+    recruiter_id,
+    job_id,
+    subject,
+    body,
+    metadata,
+    created_at,
+    updated_at,
+    similarity(normalized_content, $1::text) as "similarity"
+from public.recruiter_outbound_template
+where recruiter_id = $2::uuid
+and normalized_content % $1::text
+order by 9 desc
+`
+
+type ListSimilarRecruiterOutboundTemplatesParams struct {
+	Input  string    `json:"input"`
+	UserID uuid.UUID `json:"user_id"`
+}
+
+type ListSimilarRecruiterOutboundTemplatesRow struct {
+	TemplateID  uuid.UUID       `json:"template_id"`
+	RecruiterID uuid.UUID       `json:"recruiter_id"`
+	JobID       uuid.NullUUID   `json:"job_id"`
+	Subject     string          `json:"subject"`
+	Body        string          `json:"body"`
+	Metadata    json.RawMessage `json:"metadata"`
+	CreatedAt   time.Time       `json:"created_at"`
+	UpdatedAt   time.Time       `json:"updated_at"`
+	Similarity  float32         `json:"similarity"`
+}
+
+func (q *Queries) ListSimilarRecruiterOutboundTemplates(ctx context.Context, arg ListSimilarRecruiterOutboundTemplatesParams) ([]ListSimilarRecruiterOutboundTemplatesRow, error) {
+	rows, err := q.query(ctx, q.listSimilarRecruiterOutboundTemplatesStmt, listSimilarRecruiterOutboundTemplates, arg.Input, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListSimilarRecruiterOutboundTemplatesRow
+	for rows.Next() {
+		var i ListSimilarRecruiterOutboundTemplatesRow
+		if err := rows.Scan(
+			&i.TemplateID,
+			&i.RecruiterID,
+			&i.JobID,
+			&i.Subject,
+			&i.Body,
+			&i.Metadata,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Similarity,
 		); err != nil {
 			return nil, err
 		}

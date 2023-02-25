@@ -595,7 +595,10 @@ func (i *Infra) recruiterGmailMessages() (*CloudFunction, error) {
 		ServiceConfig: &cloudfunctionsv2.FunctionServiceConfigArgs{
 			AvailableMemory:  pulumi.String("256M"),
 			MinInstanceCount: pulumi.Int(0),
-			MaxInstanceCount: pulumi.Int(5),
+			// Right now, template detection is sensitive to ordering of messages
+			// so we need to keep this at 1
+			// Long term, we should be able to scale this up
+			MaxInstanceCount: pulumi.Int(1),
 			TimeoutSeconds:   pulumi.Int(MaxEventArcTriggerTimeout),
 			EnvironmentVariables: pulumi.StringMap{
 				"SUPABASE_API_URL":          pulumi.String(i.config.Require("SUPABASE_API_URL")),

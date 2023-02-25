@@ -13,14 +13,18 @@ import (
 type Querier interface {
 	CountUserEmailJobs(ctx context.Context, userID uuid.UUID) (int64, error)
 	GetRecruiterByEmail(ctx context.Context, email string) (GetRecruiterByEmailRow, error)
+	GetRecruiterOutboundMessage(ctx context.Context, arg GetRecruiterOutboundMessageParams) (RecruiterOutboundMessage, error)
 	GetUserEmailJob(ctx context.Context, jobID uuid.UUID) (UserEmailJob, error)
 	GetUserEmailSyncHistory(ctx context.Context, arg GetUserEmailSyncHistoryParams) (UserEmailSyncHistory, error)
 	GetUserOAuthToken(ctx context.Context, arg GetUserOAuthTokenParams) (UserOauthToken, error)
 	GetUserProfileByEmail(ctx context.Context, email string) (UserProfile, error)
 	IncrementUserEmailStat(ctx context.Context, arg IncrementUserEmailStatParams) error
+	InsertRecruiterOutboundMessage(ctx context.Context, arg InsertRecruiterOutboundMessageParams) error
+	InsertRecruiterOutboundTemplate(ctx context.Context, arg InsertRecruiterOutboundTemplateParams) (RecruiterOutboundTemplate, error)
 	InsertUserEmailJob(ctx context.Context, arg InsertUserEmailJobParams) error
 	ListCandidateOAuthTokens(ctx context.Context, arg ListCandidateOAuthTokensParams) ([]CandidateOauthToken, error)
 	ListRecruiterOAuthTokens(ctx context.Context, arg ListRecruiterOAuthTokensParams) ([]RecruiterOauthToken, error)
+	ListSimilarRecruiterOutboundTemplates(ctx context.Context, arg ListSimilarRecruiterOutboundTemplatesParams) ([]ListSimilarRecruiterOutboundTemplatesRow, error)
 	ListUserEmailJobs(ctx context.Context, arg ListUserEmailJobsParams) ([]UserEmailJob, error)
 	ListUserOAuthTokens(ctx context.Context, arg ListUserOAuthTokensParams) ([]UserOauthToken, error)
 	UpsertUserEmailSyncHistory(ctx context.Context, arg UpsertUserEmailSyncHistoryParams) error
