@@ -417,7 +417,6 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 
 	// Label new recruiting emails
 	err = cf.processRecruitingEmails(recruitingEmailIDs)
-
 	if err != nil {
 		return fmt.Errorf("error processing recruiting emails: %v", err)
 	}
