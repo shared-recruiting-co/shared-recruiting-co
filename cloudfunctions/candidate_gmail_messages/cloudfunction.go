@@ -356,11 +356,15 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 
 		// convert epoch ms to time.Time
 		emailedAt := time.Unix(message.InternalDate/1000, 0)
+		profile, err := cf.srv.Profile()
+
+		if err != nil {
+			return fmt.Errorf("error getting profile: %w", err)
+		}
 
 		err = cf.queries.InsertUserEmailJob(cf.ctx, db.InsertUserEmailJobParams{
-			UserID: cf.user.UserID,
-			// is this correct? `profile.EmailAddress` in populate_jobs
-			UserEmail:     cf.user.Email,
+			UserID:        cf.user.UserID,
+			UserEmail:     profile.EmailAddress,
 			EmailThreadID: message.ThreadId,
 			EmailedAt:     emailedAt,
 			Company:       job.Company,
