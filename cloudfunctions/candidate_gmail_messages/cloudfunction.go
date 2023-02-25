@@ -252,7 +252,7 @@ func handler(ctx context.Context, e event.Event) error {
 }
 
 func (cf *CloudFunction) processMessages(messageIDs []string) error {
-	examples := map[string]*ml.ClassifyRequest{}
+	messages := map[string]*gmail.Message{}
 
 	for _, id := range messageIDs {
 		// payload isn't included in the list endpoint responses
@@ -308,7 +308,55 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 			log.Printf("blocked message: %s", message.Id)
 			continue
 		}
+		// get the message thread
+		thread, err := cf.srv.GetThread(message.ThreadId, "minimal")
+		if err != nil {
+			// for now abort on error
+			return fmt.Errorf("error getting thread: %w", err)
+		}
 
+		// skip thread if we already processed it or the sender has already responded
+		if isThreadAlreadyLabeled(thread.Messages, cf.labels.JobsOpportunity.Id) || !isMessageBeforeReply(thread.Messages, message.Id) {
+			log.Printf("skipping thread: %s", message.ThreadId)
+			continue
+		}
+
+		messages[message.Id] = message
+
+	}
+	// Create examples for classification
+	examples := map[string]*ml.ClassifyRequest{}
+	for _, message := range messages {
+		examples[message.Id] = &ml.ClassifyRequest{
+			From:    srcmessage.Sender(message),
+			Subject: srcmessage.Subject(message),
+			Body:    srcmessage.Body(message),
+		}
+	}
+
+	log.Printf("number of emails to classify: %d", len(examples))
+	if len(examples) == 0 {
+		return nil
+	}
+
+	// TODO: Support partial failures and retry only for those that failed
+	// Batch predict on new emails
+	results, err := cf.model.BatchClassify(&ml.BatchClassifyRequest{
+		Inputs: examples,
+	})
+	if err != nil {
+		return fmt.Errorf("error predicting on examples: %v", err)
+	}
+
+	// Get IDs of new recruiting emails
+	recruitingEmailIDs := []string{}
+	for id, isRecruitingEmail := range results.Results {
+		// ignore non-recruting emails based on classification
+		if !isRecruitingEmail {
+			continue
+		}
+		recruitingEmailIDs = append(recruitingEmailIDs, id)
+		message := messages[id]
 		parseRequest := ml.ParseJobRequest{
 			From:    srcmessage.Sender(message),
 			Subject: srcmessage.Subject(message),
@@ -363,48 +411,6 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 			log.Printf("error inserting job (%v): %v", job, err)
 			continue
 		}
-
-		// get the message thread
-		thread, err := cf.srv.GetThread(message.ThreadId, "minimal")
-		if err != nil {
-			// for now abort on error
-			return fmt.Errorf("error getting thread: %w", err)
-		}
-
-		// skip thread if we already processed it or the sender has already responded
-		if isThreadAlreadyLabeled(thread.Messages, cf.labels.JobsOpportunity.Id) || !isMessageBeforeReply(thread.Messages, message.Id) {
-			log.Printf("skipping thread: %s", message.ThreadId)
-			continue
-		}
-
-		examples[message.Id] = &ml.ClassifyRequest{
-			From:    srcmessage.Sender(message),
-			Subject: srcmessage.Subject(message),
-			Body:    srcmessage.Body(message),
-		}
-	}
-
-	log.Printf("number of emails to classify: %d", len(examples))
-	if len(examples) == 0 {
-		return nil
-	}
-
-	// TODO: Support partial failures and retry only for those that failed
-	// Batch predict on new emails
-	results, err := cf.model.BatchClassify(&ml.BatchClassifyRequest{
-		Inputs: examples,
-	})
-	if err != nil {
-		return fmt.Errorf("error predicting on examples: %v", err)
-	}
-
-	// Get IDs of new recruiting emails
-	recruitingEmailIDs := []string{}
-	for id, result := range results.Results {
-		if !result {
-			continue
-		}
-		recruitingEmailIDs = append(recruitingEmailIDs, id)
 	}
 
 	log.Printf("number of recruiting emails: %d", len(recruitingEmailIDs))
