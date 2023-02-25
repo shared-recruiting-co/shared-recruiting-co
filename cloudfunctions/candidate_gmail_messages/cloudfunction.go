@@ -91,7 +91,7 @@ type CloudFunction struct {
 	queries              db.Querier
 	srv                  *srcmail.Service
 	labels               *srclabel.CandidateLabels
-	classifier           ml.Service
+	model                ml.Service
 	user                 db.UserProfile
 	examplesCollectorSrv *srcmail.Service
 	settings             schema.EmailMessagesSettings
@@ -172,8 +172,8 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailMessages) (*Cloud
 		return nil, fmt.Errorf("error getting or creating src labels: %w", err)
 	}
 	// Create recruiting detector client
-	classifierBaseURL := os.Getenv("ML_SERVICE_URL")
-	idTokenSource, err := idtoken.NewTokenSource(ctx, classifierBaseURL)
+	mlServiceBaseURL := os.Getenv("ML_SERVICE_URL")
+	idTokenSource, err := idtoken.NewTokenSource(ctx, mlServiceBaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("error creating id token source: %w", err)
 	}
@@ -183,8 +183,8 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailMessages) (*Cloud
 		return nil, fmt.Errorf("error getting id token: %w", err)
 	}
 
-	classifier := ml.NewService(ctx, ml.NewServiceArg{
-		BaseURL:   classifierBaseURL,
+	model := ml.NewService(ctx, ml.NewServiceArg{
+		BaseURL:   mlServiceBaseURL,
 		AuthToken: idToken.AccessToken,
 	})
 
@@ -193,7 +193,7 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailMessages) (*Cloud
 		queries:              queries,
 		srv:                  srv,
 		labels:               labels,
-		classifier:           classifier,
+		model:                model,
 		user:                 user,
 		examplesCollectorSrv: examplesCollectorSrv,
 		settings:             payload.Settings,
@@ -252,20 +252,6 @@ func handler(ctx context.Context, e event.Event) error {
 }
 
 func (cf *CloudFunction) processMessages(messageIDs []string) error {
-	mlServiceBaseURL := os.Getenv("ML_SERVICE_URL")
-	idTokenSource, err := idtoken.NewTokenSource(cf.ctx, mlServiceBaseURL)
-	if err != nil {
-		return err
-	}
-	idToken, err := idTokenSource.Token()
-	if err != nil {
-		return err
-	}
-	parser := ml.NewService(cf.ctx, ml.NewServiceArg{
-		BaseURL:   mlServiceBaseURL,
-		AuthToken: idToken.AccessToken,
-	})
-
 	examples := map[string]*ml.ClassifyRequest{}
 
 	for _, id := range messageIDs {
@@ -330,7 +316,7 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 		}
 
 		log.Printf("parsing email: %s", message.Id)
-		job, err := parser.ParseJob(&parseRequest)
+		job, err := cf.model.ParseJob(&parseRequest)
 		// for now, abort on error
 		if err != nil {
 			return err
@@ -405,7 +391,7 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 
 	// TODO: Support partial failures and retry only for those that failed
 	// Batch predict on new emails
-	results, err := cf.classifier.BatchClassify(&ml.BatchClassifyRequest{
+	results, err := cf.model.BatchClassify(&ml.BatchClassifyRequest{
 		Inputs: examples,
 	})
 	if err != nil {
