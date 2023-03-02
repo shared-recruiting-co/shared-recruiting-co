@@ -251,6 +251,16 @@ func handler(ctx context.Context, e event.Event) error {
 	return nil
 }
 
+func (cf *CloudFunction) ParseEmail(message *gmail.Message) (*ml.ParseJobResponse, error) {
+	parseRequest := ml.ParseJobRequest{
+		From:    srcmessage.Sender(message),
+		Subject: srcmessage.Subject(message),
+		Body:    srcmessage.Body(message),
+	}
+	log.Printf("parsing email: %s", message.Id)
+	return cf.model.ParseJob(&parseRequest)
+}
+
 func (cf *CloudFunction) processMessages(messageIDs []string) error {
 	messages := map[string]*gmail.Message{}
 
@@ -357,14 +367,7 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 		}
 		recruitingEmailIDs = append(recruitingEmailIDs, id)
 		message := messages[id]
-		parseRequest := ml.ParseJobRequest{
-			From:    srcmessage.Sender(message),
-			Subject: srcmessage.Subject(message),
-			Body:    srcmessage.Body(message),
-		}
-
-		log.Printf("parsing email: %s", message.Id)
-		job, err := cf.model.ParseJob(&parseRequest)
+		job, err := cf.ParseEmail(message)
 		// for now, abort on error
 		if err != nil {
 			return err
