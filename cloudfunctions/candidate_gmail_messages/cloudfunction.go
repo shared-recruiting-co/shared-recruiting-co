@@ -261,7 +261,7 @@ func (cf *CloudFunction) ParseEmail(message *gmail.Message) (*ml.ParseJobRespons
 	return cf.model.ParseJob(&parseRequest)
 }
 
-func (cf *CloudFunction) InsertRecruterEmailIntoDb(message *gmail.Message, company, title, recruiter string) error {
+func (cf *CloudFunction) InsertRecruiterEmailIntoDb(message *gmail.Message, company, title, recruiter string) error {
 	recruiterEmail := srcmessage.SenderEmail(message)
 	data := map[string]interface{}{
 		"recruiter":       recruiter,
@@ -412,7 +412,7 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 			log.Printf("skipping job: %v", job)
 			continue
 		}
-		err = cf.InsertRecruterEmailIntoDb(message, job.Company, job.Title, job.Recruiter)
+		err = cf.InsertRecruiterEmailIntoDb(message, job.Company, job.Title, job.Recruiter)
 
 		// for now, continue on error
 		if err != nil {
