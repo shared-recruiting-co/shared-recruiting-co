@@ -389,7 +389,7 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 		}
 
 		// convert epoch ms to time.Time
-		emailedAt := time.Unix(message.InternalDate/1000, 0)
+		emailedAt := srcmessage.CreatedAt(message)
 		profile, err := cf.srv.Profile()
 
 		if err != nil {
