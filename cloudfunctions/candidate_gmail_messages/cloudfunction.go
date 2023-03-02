@@ -373,6 +373,7 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 			return err
 		}
 
+		// TODO(nshpak): maybe encapsulate missing ALL fields as an error
 		// if fields are missing, skip
 		if job.Company == "" || job.Title == "" || job.Recruiter == "" {
 			// print sender and subject
