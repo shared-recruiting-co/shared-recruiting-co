@@ -261,6 +261,38 @@ func (cf *CloudFunction) ParseEmail(message *gmail.Message) (*ml.ParseJobRespons
 	return cf.model.ParseJob(&parseRequest)
 }
 
+func (cf *CloudFunction) InsertRecruterEmailIntoDb(message *gmail.Message, company, title, recruiter string) error {
+	recruiterEmail := srcmessage.SenderEmail(message)
+	data := map[string]interface{}{
+		"recruiter":       recruiter,
+		"recruiter_email": recruiterEmail,
+	}
+
+	// turn data into json.RawMessage
+	b, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	// convert epoch ms to time.Time
+	emailedAt := srcmessage.CreatedAt(message)
+	profile, err := cf.srv.Profile()
+
+	if err != nil {
+		return fmt.Errorf("error getting profile: %w", err)
+	}
+
+	return cf.queries.InsertUserEmailJob(cf.ctx, db.InsertUserEmailJobParams{
+		UserID:        cf.user.UserID,
+		UserEmail:     profile.EmailAddress,
+		EmailThreadID: message.ThreadId,
+		EmailedAt:     emailedAt,
+		Company:       company,
+		JobTitle:      title,
+		Data:          b,
+	})
+}
+
 func (cf *CloudFunction) processMessages(messageIDs []string) error {
 	messages := map[string]*gmail.Message{}
 
@@ -380,35 +412,7 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 			log.Printf("skipping job: %v", job)
 			continue
 		}
-		recruiterEmail := srcmessage.SenderEmail(message)
-		data := map[string]interface{}{
-			"recruiter":       job.Recruiter,
-			"recruiter_email": recruiterEmail,
-		}
-
-		// turn data into json.RawMessage
-		b, err := json.Marshal(data)
-		if err != nil {
-			return err
-		}
-
-		// convert epoch ms to time.Time
-		emailedAt := srcmessage.CreatedAt(message)
-		profile, err := cf.srv.Profile()
-
-		if err != nil {
-			return fmt.Errorf("error getting profile: %w", err)
-		}
-
-		err = cf.queries.InsertUserEmailJob(cf.ctx, db.InsertUserEmailJobParams{
-			UserID:        cf.user.UserID,
-			UserEmail:     profile.EmailAddress,
-			EmailThreadID: message.ThreadId,
-			EmailedAt:     emailedAt,
-			Company:       job.Company,
-			JobTitle:      job.Title,
-			Data:          b,
-		})
+		err = cf.InsertRecruterEmailIntoDb(message, job.Company, job.Title, job.Recruiter)
 
 		// for now, continue on error
 		if err != nil {
