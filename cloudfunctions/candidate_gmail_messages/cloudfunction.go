@@ -91,7 +91,7 @@ type CloudFunction struct {
 	queries              db.Querier
 	srv                  *srcmail.Service
 	labels               *srclabel.CandidateLabels
-	classifier           ml.Service
+	model                ml.Service
 	user                 db.UserProfile
 	examplesCollectorSrv *srcmail.Service
 	settings             schema.EmailMessagesSettings
@@ -172,8 +172,8 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailMessages) (*Cloud
 		return nil, fmt.Errorf("error getting or creating src labels: %w", err)
 	}
 	// Create recruiting detector client
-	classifierBaseURL := os.Getenv("ML_SERVICE_URL")
-	idTokenSource, err := idtoken.NewTokenSource(ctx, classifierBaseURL)
+	mlServiceBaseURL := os.Getenv("ML_SERVICE_URL")
+	idTokenSource, err := idtoken.NewTokenSource(ctx, mlServiceBaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("error creating id token source: %w", err)
 	}
@@ -183,8 +183,8 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailMessages) (*Cloud
 		return nil, fmt.Errorf("error getting id token: %w", err)
 	}
 
-	classifier := ml.NewService(ctx, ml.NewServiceArg{
-		BaseURL:   classifierBaseURL,
+	model := ml.NewService(ctx, ml.NewServiceArg{
+		BaseURL:   mlServiceBaseURL,
 		AuthToken: idToken.AccessToken,
 	})
 
@@ -193,7 +193,7 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailMessages) (*Cloud
 		queries:              queries,
 		srv:                  srv,
 		labels:               labels,
-		classifier:           classifier,
+		model:                model,
 		user:                 user,
 		examplesCollectorSrv: examplesCollectorSrv,
 		settings:             payload.Settings,
@@ -243,7 +243,7 @@ func handler(ctx context.Context, e event.Event) error {
 		return handleError("error creating cloud function", err)
 	}
 
-	err = cf.proccessMessages(payload.Messages)
+	err = cf.processMessages(payload.Messages)
 	if err != nil {
 		return handleError("error processing messages", err)
 	}
@@ -251,8 +251,51 @@ func handler(ctx context.Context, e event.Event) error {
 	return nil
 }
 
-func (cf *CloudFunction) proccessMessages(messageIDs []string) error {
-	examples := map[string]*ml.ClassifyRequest{}
+func (cf *CloudFunction) ParseEmail(message *gmail.Message) (*ml.ParseJobResponse, error) {
+	parseRequest := ml.ParseJobRequest{
+		From:    srcmessage.Sender(message),
+		Subject: srcmessage.Subject(message),
+		Body:    srcmessage.Body(message),
+	}
+	log.Printf("parsing email: %s", message.Id)
+	return cf.model.ParseJob(&parseRequest)
+}
+
+func (cf *CloudFunction) InsertRecruiterEmailIntoDb(message *gmail.Message, company, title, recruiter string) error {
+	recruiterEmail := srcmessage.SenderEmail(message)
+	data := map[string]interface{}{
+		"recruiter":       recruiter,
+		"recruiter_email": recruiterEmail,
+	}
+
+	// turn data into json.RawMessage
+	b, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	// convert epoch ms to time.Time
+	emailedAt := srcmessage.CreatedAt(message)
+	profile, err := cf.srv.Profile()
+
+	if err != nil {
+		return fmt.Errorf("error getting profile: %w", err)
+	}
+
+	return cf.queries.InsertUserEmailJob(cf.ctx, db.InsertUserEmailJobParams{
+		UserID:        cf.user.UserID,
+		UserEmail:     profile.EmailAddress,
+		EmailThreadID: message.ThreadId,
+		EmailedAt:     emailedAt,
+		Company:       company,
+		JobTitle:      title,
+		Data:          b,
+	})
+}
+
+func (cf *CloudFunction) processMessages(messageIDs []string) error {
+	messages := map[string]*gmail.Message{}
+
 	for _, id := range messageIDs {
 		// payload isn't included in the list endpoint responses
 		message, err := cf.srv.GetMessage(id)
@@ -307,7 +350,6 @@ func (cf *CloudFunction) proccessMessages(messageIDs []string) error {
 			log.Printf("blocked message: %s", message.Id)
 			continue
 		}
-
 		// get the message thread
 		thread, err := cf.srv.GetThread(message.ThreadId, "minimal")
 		if err != nil {
@@ -321,6 +363,12 @@ func (cf *CloudFunction) proccessMessages(messageIDs []string) error {
 			continue
 		}
 
+		messages[message.Id] = message
+
+	}
+	// Create examples for classification
+	examples := map[string]*ml.ClassifyRequest{}
+	for _, message := range messages {
 		examples[message.Id] = &ml.ClassifyRequest{
 			From:    srcmessage.Sender(message),
 			Subject: srcmessage.Subject(message),
@@ -335,7 +383,7 @@ func (cf *CloudFunction) proccessMessages(messageIDs []string) error {
 
 	// TODO: Support partial failures and retry only for those that failed
 	// Batch predict on new emails
-	results, err := cf.classifier.BatchClassify(&ml.BatchClassifyRequest{
+	results, err := cf.model.BatchClassify(&ml.BatchClassifyRequest{
 		Inputs: examples,
 	})
 	if err != nil {
@@ -344,11 +392,33 @@ func (cf *CloudFunction) proccessMessages(messageIDs []string) error {
 
 	// Get IDs of new recruiting emails
 	recruitingEmailIDs := []string{}
-	for id, result := range results.Results {
-		if !result {
+	for id, isRecruitingEmail := range results.Results {
+		// ignore non-recruting emails based on classification
+		if !isRecruitingEmail {
 			continue
 		}
 		recruitingEmailIDs = append(recruitingEmailIDs, id)
+		message := messages[id]
+		job, err := cf.ParseEmail(message)
+		// for now, abort on error
+		if err != nil {
+			return err
+		}
+
+		// TODO(nshpak): maybe encapsulate missing ALL fields as an error
+		// if fields are missing, skip
+		if job.Company == "" || job.Title == "" || job.Recruiter == "" {
+			// print sender and subject
+			log.Printf("skipping job: %v", job)
+			continue
+		}
+		err = cf.InsertRecruiterEmailIntoDb(message, job.Company, job.Title, job.Recruiter)
+
+		// for now, continue on error
+		if err != nil {
+			log.Printf("error inserting job (%v): %v", job, err)
+			continue
+		}
 	}
 
 	log.Printf("number of recruiting emails: %d", len(recruitingEmailIDs))

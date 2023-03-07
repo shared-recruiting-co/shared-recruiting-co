@@ -33,9 +33,9 @@ type BatchClassifyResponse struct {
 type ParseJobRequest = EmailInput
 
 type ParseJobResponse struct {
-	Company   string `json:"company"`
-	Title     string `json:"title"`
-	Recruiter string `json:"recruiter"`
+	Company   string `json:"company_name"`
+	Title     string `json:"job_title"`
+	Recruiter string `json:"recruiter_name"`
 }
 
 type BatchParseJobRequest struct {
