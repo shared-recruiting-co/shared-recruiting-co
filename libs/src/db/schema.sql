@@ -534,8 +534,8 @@ returns table (
 ) as 
 $$
 select
-    recruiter_id,
     template_id,
+    recruiter_id,
     job_id,
     subject,
     body,
