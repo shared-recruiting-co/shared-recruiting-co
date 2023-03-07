@@ -1,9 +1,8 @@
 go 1.19
 
 use (
-	./cloudfunctions/gmail_subscription
 	./cloudfunctions/adhoc
-	./cloudfunctions/populate_jobs
+	./cloudfunctions/gmail_subscription
 	./cloudfunctions/candidate_email_sync
 	./cloudfunctions/candidate_gmail_push_notifications
 	./cloudfunctions/candidate_gmail_messages

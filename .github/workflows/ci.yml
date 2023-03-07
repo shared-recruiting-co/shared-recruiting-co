@@ -48,7 +48,6 @@ jobs:
         directory: 
           - "./cloudfunctions/gmail_subscription" 
           - "./cloudfunctions/adhoc" 
-          - "./cloudfunctions/populate_jobs" 
           - "./cloudfunctions/candidate_email_sync" 
           - "./cloudfunctions/recruiter_email_sync" 
           - "./cloudfunctions/candidate_gmail_push_notifications"
