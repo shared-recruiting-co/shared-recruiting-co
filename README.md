@@ -51,10 +51,16 @@ Changes to `web/supabase/config.toml` are ignored by Git, so you don't have to w
 
 #### Testing
 
-Tests are written via [Playwright](https://playwright.dev/) and [Vitest](https://vitest.dev/). You can run them via,
+Browser and Typescript and test are written via [Playwright](https://playwright.dev/) and [Vitest](https://vitest.dev/). You can run them with,
 
 ```bash
 npm run test
+```
+
+Database tests are powered by [pgtap](https://pgtap.org) and allow us to test complex database logic, like RLS policies and triggers. The tests live in `web/supabase/tests/database`. You can run them with
+
+```bash
+supabase test db
 ```
 
 Note: The `web/` is under active development. Test coverage is intentionally low until the app stabilizes. 

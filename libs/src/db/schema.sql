@@ -21,6 +21,9 @@ create extension if not exists moddatetime schema extensions;
 -- Add pg_trgm extension
 create extension if not exists pg_trgm schema extensions;
 
+-- Enable the pgtap extension for testing
+create extension pgtap with schema extensions;
+
 --------------------------------
 -- End: Postgres Extensions
 --------------------------------
@@ -446,7 +449,7 @@ $$
 select
   user_profile.*
 from public.user_profile
-inner join public.user_oauth_token using (user_id)
+left join public.user_oauth_token using (user_id)
 where user_profile.email = input OR user_oauth_token.email = input
 limit 1;
 $$
@@ -458,7 +461,7 @@ $$
 select
   recruiter.*
 from public.recruiter
-inner join public.user_oauth_token using (user_id)
+left join public.user_oauth_token using (user_id)
 where recruiter.email = input OR user_oauth_token.email = input
 limit 1;
 $$
@@ -648,6 +651,7 @@ begin
 update public.candidate_company_inbound
 set job_id = new.job_id
 where template_id = new.template_id;
+return null;
 end;
 $$
 language plpgsql volatile;
@@ -658,31 +662,57 @@ returns trigger as
 $$
 begin
 update public.candidate_company_inbound
-set candidate_id = new.candidate_id
-where candidate_email = new.candidate_email;
+set candidate_id = new.user_id
+where candidate_email = new.email;
+return null;
 end;
 $$
 language plpgsql volatile;
 
--- create function to insert a row
+-- create function to insert a row on every new recruiter_outbound_message
 create or replace function insert_candidate_company_inbound_trigger()
 returns trigger as 
 $$
 begin
+with input as (
+  select 
+    *
+  from (values (new.to_email, new.recruiter_id, new.template_id)) as t (candidate_email, recruiter_id, template_id)
+), 
+c as (
+  select
+    user_id as candidate_id,
+    coalesce(email, new.to_email) as candidate_email
+  from get_user_profile_by_email(new.to_email)
+),
+t as (
+  select 
+    template_id,
+    job_id
+  from public.recruiter_outbound_template
+  where template_id = new.template_id
+)
 insert into public.candidate_company_inbound (
   candidate_email,
-  company_id,
+  candidate_id,
   template_id,
-  recruiter_id
+  job_id,
+  recruiter_id,
+  company_id
 ) 
 select 
-  new.candidate_email,
-  new.template_id,
-  new.recruiter_id,
+  input.candidate_email,
+  c.candidate_id,
+  input.template_id,
+  t.job_id,
+  input.recruiter_id,
   r.company_id
-from new
-inner join public.recruiter r on r.user_id = new.recruiter_id
+from input
+inner join public.recruiter r on r.user_id = input.recruiter_id
+inner join t using (template_id)
+left join c using (candidate_email)
 on conflict do nothing;
+return null;
 end;
 $$
 language plpgsql volatile;
@@ -692,17 +722,17 @@ create trigger insert_candidate_company_inbound_trigger_after_insert after inser
   for each row execute function insert_candidate_company_inbound_trigger();
 
 -- create a trigger for inserts into to recruiter_outbound_template
-create trigger update_job_for_template_candidate_company_inbound_trigger_insert_update after insert or update on public.recruiter_outbound_template
+create trigger candidate_company_inbound_trigger_recruiter_outbound_template after insert or update on public.recruiter_outbound_template
   for each row 
   when (new.job_id is not null)
   execute function update_job_for_template_candidate_company_inbound_trigger();
 
 -- create a trigger for inserts into to user_oauth_token
-create trigger update_candidate_for_email_candidate_company_inbound_trigger_user_oauth_token after insert or update on public.user_oauth_token
+create trigger candidate_company_inbound_trigger_user_oauth_token after insert or update on public.user_oauth_token
   for each row execute function update_candidate_for_email_candidate_company_inbound_trigger(); 
 
 -- create a trigger for inserts into to user_profile
-create trigger update_candidate_for_email_candidate_company_inbound_trigger_user_profile after insert on public.user_profile
+create trigger candidate_company_inbound_trigger_user_profile after insert on public.user_profile
   for each row execute function update_candidate_for_email_candidate_company_inbound_trigger();
 
 --------------------------------

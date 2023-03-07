@@ -28,6 +28,38 @@ export interface Database {
 	};
 	public: {
 		Tables: {
+			candidate_company_inbound: {
+				Row: {
+					candidate_email: string;
+					candidate_id: string | null;
+					company_id: string;
+					created_at: string;
+					job_id: string | null;
+					recruiter_id: string | null;
+					template_id: string;
+					updated_at: string;
+				};
+				Insert: {
+					candidate_email: string;
+					candidate_id?: string | null;
+					company_id: string;
+					created_at?: string;
+					job_id?: string | null;
+					recruiter_id?: string | null;
+					template_id: string;
+					updated_at?: string;
+				};
+				Update: {
+					candidate_email?: string;
+					candidate_id?: string | null;
+					company_id?: string;
+					created_at?: string;
+					job_id?: string | null;
+					recruiter_id?: string | null;
+					template_id?: string;
+					updated_at?: string;
+				};
+			};
 			company: {
 				Row: {
 					company_id: string;
