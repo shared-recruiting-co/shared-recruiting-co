@@ -48,11 +48,6 @@ func (i *Infra) createCloudFunctions() error {
 		return err
 	}
 
-	_, err = i.populateJobs()
-	if err != nil {
-		return err
-	}
-
 	_, err = i.candidateGmailSubscription()
 	if err != nil {
 		return err
@@ -767,108 +762,6 @@ func (i *Infra) recruiterGmailPushNotifications(emailSync *CloudFunction) (*Clou
 		cf,
 		sa,
 		i.Topics.RecruiterGmailMessages,
-	}))
-	if err != nil {
-		return nil, err
-	}
-
-	return &CloudFunction{
-		Name:           name,
-		ServiceAccount: sa,
-		Function:       cf,
-		Service:        srv,
-	}, nil
-}
-
-func (i *Infra) populateJobs() (*CloudFunction, error) {
-	name := "populate-jobs"
-	sa, err := i.createCloudFunctionServiceAccount(name)
-	if err != nil {
-		return nil, err
-	}
-	obj, err := i.uploadCloudFunction(name, "")
-	if err != nil {
-		return nil, err
-	}
-
-	cf, err := cloudfunctionsv2.NewFunction(i.ctx, name, &cloudfunctionsv2.FunctionArgs{
-		Name: pulumi.String(name),
-		// use the same location as the bucket
-		Location:    pulumi.String(DefaultRegion),
-		Project:     pulumi.String(*i.Project.ProjectId),
-		Description: pulumi.String("Parse inbound job emails and add them to the user's job board"),
-		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
-			Runtime:    pulumi.String("go119"),
-			EntryPoint: pulumi.String("PopulateJobs"),
-			EnvironmentVariables: pulumi.StringMap{
-				// Use hash to force redeploy when code changes
-				"FUNCTION_NAME":         pulumi.String(name),
-				"FUNCTION_CONTENT_HASH": obj.Md5hash,
-			},
-			Source: &cloudfunctionsv2.FunctionBuildConfigSourceArgs{
-				StorageSource: &cloudfunctionsv2.FunctionBuildConfigSourceStorageSourceArgs{
-					Bucket: i.GCFBucket.Name,
-					Object: obj.Name,
-				},
-			},
-		},
-		ServiceConfig: &cloudfunctionsv2.FunctionServiceConfigArgs{
-			AvailableMemory:  pulumi.String("256M"),
-			MinInstanceCount: pulumi.Int(0),
-			MaxInstanceCount: pulumi.Int(1),
-			TimeoutSeconds:   pulumi.Int(MaxHTTPTriggerTimeout),
-			EnvironmentVariables: pulumi.StringMap{
-				"SUPABASE_API_URL":          pulumi.String(i.config.Require("SUPABASE_API_URL")),
-				"SUPABASE_API_KEY":          i.config.RequireSecret("SUPABASE_API_KEY"),
-				"GOOGLE_OAUTH2_CREDENTIALS": i.config.RequireSecret("GOOGLE_OAUTH2_CREDENTIALS"),
-				"ML_SERVICE_URL":            i.config.RequireSecret("ML_SERVICE_URL"),
-				"SENTRY_DSN":                i.config.RequireSecret("SENTRY_DSN"),
-			},
-			IngressSettings:            pulumi.String("ALLOW_ALL"),
-			AllTrafficOnLatestRevision: pulumi.Bool(true),
-			ServiceAccountEmail:        sa.Email,
-		},
-	}, pulumi.DependsOn([]pulumi.Resource{
-		obj,
-		sa,
-	}))
-
-	if err != nil {
-		return nil, err
-	}
-
-	srv, err := cloudrun.LookupService(i.ctx, &cloudrun.LookupServiceArgs{
-		Name:     name,
-		Location: DefaultRegion,
-		Project:  i.Project.ProjectId,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = cloudscheduler.NewJob(i.ctx, fmt.Sprintf("%s-daily", name), &cloudscheduler.JobArgs{
-		Name:        pulumi.Sprintf("%s-daily", name),
-		Project:     pulumi.String(*i.Project.ProjectId),
-		Region:      pulumi.String(DefaultRegion),
-		Description: pulumi.String("Parse inbound job emails and add them to the user's job board each day"),
-		HttpTarget: &cloudscheduler.JobHttpTargetArgs{
-			Uri:        cf.ServiceConfig.Uri().Elem(),
-			HttpMethod: pulumi.String(http.MethodPost),
-			Headers: pulumi.StringMap{
-				"Content-Type": pulumi.String("application/json"),
-			},
-			OidcToken: &cloudscheduler.JobHttpTargetOidcTokenArgs{
-				ServiceAccountEmail: sa.Email,
-				Audience:            cf.ServiceConfig.Uri().Elem(),
-			},
-		},
-		Schedule: pulumi.String(DailyJobSchedule),
-		// Set time zone to Greenwich Mean Time (GMT) aka UTC
-		TimeZone:        pulumi.String("Etc/GMT"),
-		AttemptDeadline: pulumi.String("1800s"),
-	}, pulumi.DependsOn([]pulumi.Resource{
-		cf,
 	}))
 	if err != nil {
 		return nil, err
