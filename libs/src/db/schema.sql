@@ -591,3 +591,120 @@ create policy "Recruiters can view their outbound messages"
 --------------------------------
 -- End: Recruiter Outbound Tables
 --------------------------------
+
+--------------------------------
+-- Start: Candidate Company Inbound Tables & Triggers
+--------------------------------
+
+-- Candidate Company Inbound Tables
+-- These tables help us generate a job board for candidates from recruiter outbound
+create table public.candidate_company_inbound (
+  candidate_email text not null,
+  -- nullable
+  candidate_id uuid references public.user_profile(user_id) on delete set null,
+  company_id uuid references public.company(company_id) on delete cascade not null,
+  recruiter_id uuid references public.recruiter(user_id) on delete set null,
+  template_id uuid references public.recruiter_outbound_template(template_id) on delete cascade not null,
+  -- nullable
+  job_id uuid references public.job(job_id) on delete set null, 
+
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now(),
+
+  primary key (candidate_email, company_id, template_id)
+);
+
+create trigger handle_updated_at_candidate_company_inbound before update on public.candidate_company_inbound
+  for each row execute procedure moddatetime (updated_at);
+
+-- enable real-time
+alter publication supabase_realtime add table public.candidate_company_inbound;
+
+-- enable RLS
+alter table public.candidate_company_inbound enable row level security;
+
+-- TODO: Figure out company RLS policy
+create policy "Recruiters can view their inbound candidates"
+  on public.candidate_company_inbound for select
+  using ( auth.uid() = recruiter_id );
+
+create policy "Candidates can view their inbound"
+  on public.candidate_company_inbound for select
+  using ( auth.uid() = candidate_id );
+
+create policy "Candidates can view inbound to their emails"
+  on public.candidate_company_inbound for select
+  using ( candidate_email in (
+      select email
+      from public.user_oauth_token
+      where user_id = auth.uid()
+  ));
+
+-- create function to update job_id for a given template_id
+create or replace function update_job_for_template_candidate_company_inbound_trigger()
+returns trigger as
+$$
+begin
+update public.candidate_company_inbound
+set job_id = new.job_id
+where template_id = new.template_id;
+end;
+$$
+language plpgsql volatile;
+
+-- create function to update candidate_id for a given candidate_email
+create or replace function update_candidate_for_email_candidate_company_inbound_trigger()
+returns trigger as
+$$
+begin
+update public.candidate_company_inbound
+set candidate_id = new.candidate_id
+where candidate_email = new.candidate_email;
+end;
+$$
+language plpgsql volatile;
+
+-- create function to insert a row
+create or replace function insert_candidate_company_inbound_trigger()
+returns trigger as 
+$$
+begin
+insert into public.candidate_company_inbound (
+  candidate_email,
+  company_id,
+  template_id,
+  recruiter_id
+) 
+select 
+  new.candidate_email,
+  new.template_id,
+  new.recruiter_id,
+  r.company_id
+from new
+inner join public.recruiter r on r.user_id = new.recruiter_id
+on conflict do nothing;
+end;
+$$
+language plpgsql volatile;
+
+-- create a trigger for inserts into to recruiter_outbound_message
+create trigger insert_candidate_company_inbound_trigger_after_insert after insert on public.recruiter_outbound_message
+  for each row execute function insert_candidate_company_inbound_trigger();
+
+-- create a trigger for inserts into to recruiter_outbound_template
+create trigger update_job_for_template_candidate_company_inbound_trigger_insert_update after insert or update on public.recruiter_outbound_template
+  for each row 
+  when (new.job_id is not null)
+  execute function update_job_for_template_candidate_company_inbound_trigger();
+
+-- create a trigger for inserts into to user_oauth_token
+create trigger update_candidate_for_email_candidate_company_inbound_trigger_user_oauth_token after insert or update on public.user_oauth_token
+  for each row execute function update_candidate_for_email_candidate_company_inbound_trigger(); 
+
+-- create a trigger for inserts into to user_profile
+create trigger update_candidate_for_email_candidate_company_inbound_trigger_user_profile after insert on public.user_profile
+  for each row execute function update_candidate_for_email_candidate_company_inbound_trigger();
+
+--------------------------------
+-- End: Candidate Company Inbound Tables & Triggers
+--------------------------------
