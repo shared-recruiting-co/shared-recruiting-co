@@ -261,7 +261,7 @@ func (cf *CloudFunction) ParseEmail(message *gmail.Message) (*ml.ParseJobRespons
 	return cf.model.ParseJob(&parseRequest)
 }
 
-func (cf *CloudFunction) InsertRecruiterEmailIntoDb(message *gmail.Message, company, title, recruiter string) error {
+func (cf *CloudFunction) InsertRecruiterEmailIntoDB(message *gmail.Message, company, title, recruiter string) error {
 	recruiterEmail := srcmessage.SenderEmail(message)
 	data := map[string]interface{}{
 		"recruiter":       recruiter,
@@ -405,14 +405,13 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 			return err
 		}
 
-		// TODO(nshpak): maybe encapsulate missing ALL fields as an error
 		// if fields are missing, skip
 		if job.Company == "" || job.Title == "" || job.Recruiter == "" {
 			// print sender and subject
 			log.Printf("skipping job: %v", job)
 			continue
 		}
-		err = cf.InsertRecruiterEmailIntoDb(message, job.Company, job.Title, job.Recruiter)
+		err = cf.InsertRecruiterEmailIntoDB(message, job.Company, job.Title, job.Recruiter)
 
 		// for now, continue on error
 		if err != nil {
