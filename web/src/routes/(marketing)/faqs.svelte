@@ -11,8 +11,8 @@
 			answer: "Sign up and we'll reach out once you are off the waiting list."
 		},
 		{
-			question: 'How much does it cost to join the SRC?',
-			answer: 'Nothing. It will always be free to join the SRC as a candidate.'
+			question: 'How much does it cost to join SRC?',
+			answer: 'Nothing. It will always be free to join SRC as a candidate.'
 		},
 		{
 			question: 'How does SRC use my data?',
@@ -20,14 +20,14 @@
 					<br/><br/>Read more in our <a class="underline" href="/legal/privacy-policy.md">privacy policy</a>`
 		},
 		{
-			question: 'How do I contribute to the SRC?',
+			question: 'How do I contribute to SRC?',
 			answer:
-				"The SRC is open source. You can contribute to the SRC on <a class='underline' href='https://github.com/shared-recruiting-co/shared-recruiting-co' target='_blank' rel='noopener noreferrer'>GitHub</a>. All you have to do is make a PR or an issue! <br/><br/> You can also contribute your recruiting emails to improve the SRC's ML model, by forwarding them to <a class='underline' href='mailto:examples@sharedrecruiting.co'>examples@sharederecruiting.co</a>"
+				"The SRC is open source. You can contribute to SRC on <a class='underline' href='https://github.com/shared-recruiting-co/shared-recruiting-co' target='_blank' rel='noopener noreferrer'>GitHub</a>. All you have to do is make a PR or an issue! <br/><br/> You can also contribute your recruiting emails to improve the SRC's ML model, by forwarding them to <a class='underline' href='mailto:examples@sharedrecruiting.co'>examples@sharederecruiting.co</a>"
 		},
 		{
 			question: 'How does SRC detect job opportunities?',
 			answer:
-				'Every email you receive is processed by the SRCs ML model. If the email is a job opportunity, the SRC will automatically label it as such.'
+				'Every email you receive is processed by SRCs ML model. If the email is a job opportunity, the SRC will automatically label it as such.'
 		},
 		{
 			question: 'How does the SRC define a job opportunity?',
