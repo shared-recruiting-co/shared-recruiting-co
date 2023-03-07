@@ -2,7 +2,6 @@ libs=("./libs/src")
 pkgs=(
 "./cloudfunctions/gmail_subscription"
 "./cloudfunctions/adhoc"
-"./cloudfunctions/populate_jobs"
 "./cloudfunctions/candidate_email_sync"
 "./cloudfunctions/candidate_gmail_push_notifications"
 "./cloudfunctions/candidate_gmail_messages"
