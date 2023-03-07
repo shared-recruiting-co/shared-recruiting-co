@@ -65,8 +65,8 @@ CREATE OR REPLACE FUNCTION public.list_similar_recruiter_outbound_templates(user
  STABLE
 AS $function$
 select
-    recruiter_id,
     template_id,
+    recruiter_id,
     job_id,
     subject,
     body,
