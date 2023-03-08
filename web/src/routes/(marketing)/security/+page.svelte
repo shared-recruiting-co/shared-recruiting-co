@@ -9,9 +9,10 @@
 	class="mx-auto min-h-screen max-w-7xl px-4 pt-20 pb-16 text-center sm:px-6 lg:px-8 lg:pt-32"
 >
 	<h1
-		class="font-display mx-auto max-w-4xl text-4xl font-medium tracking-tight text-slate-900 lg:text-7xl sm:text-6xl"
+		class="font-display mx-auto max-w-4xl text-4xl font-medium tracking-tight text-slate-900 sm:text-6xl lg:text-7xl"
 	>
-		The Only <br/><span class="font-medium text-blue-600">Open Source</span>, <span class="font-medium text-blue-600">Privacy First</span>
+		The Only <br /><span class="font-medium text-blue-600">Open Source</span>,
+		<span class="font-medium text-blue-600">Privacy First</span>
 		<br />Recruiting Platform
 	</h1>
 	<p class="mx-auto mt-6 max-w-2xl text-lg tracking-tight text-slate-700">
@@ -23,8 +24,7 @@
 			class="group inline-flex items-center justify-center rounded-md bg-slate-900 py-2 px-4 text-sm font-semibold text-white shadow-lg hover:bg-slate-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300"
 			href="https://github.com/shared-recruiting-co/shared-recruiting-co"
 			target="_blank"
-			rel="noopener noreferrer"
-		>Read the Code</a
+			rel="noopener noreferrer">Read the Code</a
 		>
 		<a
 			class="group inline-flex items-center justify-center rounded-md border border-slate-900 bg-white py-2 px-4 text-sm text-slate-900 shadow-lg hover:border-slate-700 hover:bg-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:border-slate-800 active:bg-slate-100 active:text-slate-300"
@@ -33,7 +33,7 @@
 	</div>
 </div>
 
-<section class="prose mx-auto min-h-screen max-w-3xl px-4 text-left sm:px-0 py-20" id="privacy">
+<section class="prose mx-auto min-h-screen max-w-3xl px-4 py-20 text-left sm:px-0" id="privacy">
 	<h2 class="mb-4 text-4xl">Privacy-First</h2>
 	<p class="text-base sm:text-lg">
 		At SRC, members trust us with some of their most sensitive information, their emails and their
@@ -46,12 +46,12 @@
 	<p class="text-base sm:text-lg">
 		And with SRC's two-way opt-in communication, your job status is confidential. Companies cannot
 		see if you are looking for a new role until you choose to start the interview process.
-		<br/>
-		By open sourcing SRC, we are making more then a promise of privacy. All the ways we use and protect your
-		data is transparent and publicly visible.
+		<br />
+		By open sourcing SRC, we are making more then a promise of privacy. All the ways we use and protect
+		your data is transparent and publicly visible.
 	</p>
 </section>
-<section class="prose mx-auto min-h-screen max-w-3xl px-4 text-left sm:px-0 py-20" id="compliance">
+<section class="prose mx-auto min-h-screen max-w-3xl px-4 py-20 text-left sm:px-0" id="compliance">
 	<h2 class="mb-4 text-4xl">Compliance</h2>
 	<p class="text-base sm:text-lg">
 		The Cloud Application Security Assessment (CASA) is built upon the industry-recognized standards
@@ -61,12 +61,11 @@
 		applications with potential access to sensitive data.
 	</p>
 	<p class="text-base sm:text-lg">
-	SRC is Tier-2 CASA compliant. SRC's CASA
-		compliance has been verified by an independent lab partner as part of the Google OAuth approval
-		process.
+		SRC is Tier-2 CASA compliant. SRC's CASA compliance has been verified by an independent lab
+		partner as part of the Google OAuth approval process.
 	</p>
 </section>
-<section class="prose mx-auto min-h-screen max-w-3xl px-4 text-left sm:px-0 py-20" id="open-source">
+<section class="prose mx-auto min-h-screen max-w-3xl px-4 py-20 text-left sm:px-0" id="open-source">
 	<h2 class="mb-4 text-4xl">Open Source</h2>
 	<p class="text-base sm:text-lg">
 		We believe Linus's law of "given enough eyeballs, all bugs are shallow" applies to security
@@ -80,8 +79,12 @@
 		period, open source systems will tend towards a more secure state over secretive, proprietary
 		systems.
 	</p>
-	<p class="text-xs italic mt-4">Credit: <a href="https://supabase.com/blog/should-i-open-source-my-company" class="hover:underline hover:text-sky-600"
+	<p class="mt-4 text-xs italic">
+		Credit: <a
+			href="https://supabase.com/blog/should-i-open-source-my-company"
+			class="hover:text-sky-600 hover:underline"
 			target="_blank"
-			rel="noopener noreferrer"
-		>Should I Open Source My Company</a></p>
+			rel="noopener noreferrer">Should I Open Source My Company</a
+		>
+	</p>
 </section>

@@ -164,17 +164,17 @@
 						<div class="space-y-2 py-6">
 							<a
 								href="/product/candidates"
-								class="-mx-3 block rounded-lg py-2 px-3 text-base font-semibold leading-7 text-slate-900 hover:bg-slate-50"
+								class="-mx-3 block rounded-lg py-2 px-3 text-base leading-7 text-slate-900 hover:bg-slate-50"
 								data-sveltekit-preload-data="hover">Candidates</a
 							>
 							<a
 								href="/product/companies"
-								class="-mx-3 block rounded-lg py-2 px-3 text-base font-semibold leading-7 text-slate-900 hover:bg-slate-50"
+								class="-mx-3 block rounded-lg py-2 px-3 text-base leading-7 text-slate-900 hover:bg-slate-50"
 								data-sveltekit-preload-data="hover">Companies</a
 							>
 							<a
 								href="/security"
-								class="-mx-3 block rounded-lg py-2 px-3 text-base font-semibold leading-7 text-slate-900 hover:bg-slate-50"
+								class="-mx-3 block rounded-lg py-2 px-3 text-base leading-7 text-slate-900 hover:bg-slate-50"
 								data-sveltekit-preload-data="hover">Security</a
 							>
 						</div>
