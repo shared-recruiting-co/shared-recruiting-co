@@ -11,7 +11,7 @@
 			answer: "Sign up and we'll reach out once you are off the waiting list."
 		},
 		{
-			question: 'How much does it cost to join SRC?',
+			question: 'How much does it cost to join SRC as a candidate?',
 			answer: 'Nothing. It will always be free to join SRC as a candidate.'
 		},
 		{

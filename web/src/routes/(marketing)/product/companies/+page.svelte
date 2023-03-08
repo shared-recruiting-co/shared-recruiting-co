@@ -1,24 +1,62 @@
 <script lang="ts">
 	import HowItWorks from '$lib/components/marketing/HowItWorks.svelte';
 	import ProductFeatures from './Features.svelte';
-	import Testimonials from '../../testimonials.svelte';
-	import FAQs from '../../faqs.svelte';
+	import Stats from './Stats.svelte';
+	import FAQs from '$lib/components/marketing/FAQs.svelte';
 
 	const steps = [
 		{
-			title: 'Sync',
+			title: 'Sync & Integrate',
 			description:
-				'SRC detects any inbound job opportunities. Each job opportunity is labeled, replied to, and archived for future reference.'
+				"SRC syncs with your outbound recruiting tools to import your job opportunities and candidates you've already reached out."
 		},
 		{
-			title: 'Import',
+			title: 'Source & Message',
 			description:
-				'SRC does the heavy lifting of summarizing all your job opportunities into a single, standardized format. '
+				'Source candidates as usual. SRC detects any candidate you reach out and automatically adds your opportunity to the candidates job board.'
 		},
 		{
 			title: 'Review & Engage',
 			description:
-				'SRC does the heavy lifting of summarizing all your job opportunities into a single, standardized format. '
+				"SRC automatically connects your with interested candidates you've previously reached out to and notifies you when they're ready to engage."
+		}
+	];
+
+	// FAQS
+	// cost
+	const faqs = [
+		{
+			question: 'How do I pronounce SRC?',
+			answer: 'SRC is pronounced "source".'
+		},
+		{
+			question: 'How can I join?',
+			answer: "Sign up and we'll reach out once you are off the waiting list."
+		},
+		{
+			question: 'How much does it cost to join SRC as a company?',
+			answer:
+				'For companies, SRC is free for the first three months! After that, it costs $100 per month per role.'
+		},
+		{
+			question: 'How does SRC use my data?',
+			answer: `We process your emails in order to classify them as recruiting email or not. We do not and will never use your emails for any other purpose. We are take trust and privacy so seriously that all of our code is open source.
+					<br/><br/>Read more in our <a class="underline" href="/legal/privacy-policy.md">privacy policy</a>`
+		},
+		{
+			question: 'How do I contribute to SRC?',
+			answer:
+				"The SRC is open source. You can contribute to SRC on <a class='underline' href='https://github.com/shared-recruiting-co/shared-recruiting-co' target='_blank' rel='noopener noreferrer'>GitHub</a>. All you have to do is make a PR or an issue! <br/><br/> You can also contribute your recruiting emails to improve the SRC's ML model, by forwarding them to <a class='underline' href='mailto:examples@sharedrecruiting.co'>examples@sharederecruiting.co</a>"
+		},
+		{
+			question: 'How does SRC detect outbound recruiting emails?',
+			answer:
+				"Every email you send is processed by SRC's ML model. If the email is about a job opportunity, the SRC will automatically label it as such and import it."
+		},
+		{
+			question: 'More Questions?',
+			answer:
+				"Reach out to us at <a class='underline' href='mailto:team@sharedrecruiting.co'>team@sharederecruiting.co</a>! We'd love to chat."
 		}
 	];
 </script>
@@ -62,7 +100,7 @@
 
 <ProductFeatures />
 <HowItWorks {steps} />
-<Testimonials />
+<Stats />
 
 <section id="join" class="flex flex-col items-center justify-center py-28">
 	<div class="flex flex-col items-center justify-center space-y-6">
@@ -81,4 +119,4 @@
 	</div>
 </section>
 
-<FAQs />
+<FAQs {faqs} />
