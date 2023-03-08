@@ -33,7 +33,7 @@
 	</div>
 </div>
 
-<section class="prose mx-auto min-h-screen max-w-3xl px-4 py-20 text-left sm:px-0" id="privacy">
+<section class="prose mx-auto max-w-3xl px-4 py-24 text-left sm:py-32 sm:px-0" id="privacy">
 	<h2 class="mb-4 text-4xl">Privacy-First</h2>
 	<p class="text-base sm:text-lg">
 		At SRC, members trust us with some of their most sensitive information, their emails and their
@@ -51,7 +51,7 @@
 		your data is transparent and publicly visible.
 	</p>
 </section>
-<section class="prose mx-auto min-h-screen max-w-3xl px-4 py-20 text-left sm:px-0" id="compliance">
+<section class="prose mx-auto max-w-3xl px-4 py-24 text-left sm:py-32 sm:px-0" id="compliance">
 	<h2 class="mb-4 text-4xl">Compliance</h2>
 	<p class="text-base sm:text-lg">
 		The Cloud Application Security Assessment (CASA) is built upon the industry-recognized standards
@@ -65,7 +65,7 @@
 		partner as part of the Google OAuth approval process.
 	</p>
 </section>
-<section class="prose mx-auto min-h-screen max-w-3xl px-4 py-20 text-left sm:px-0" id="open-source">
+<section class="prose mx-auto max-w-3xl px-4 py-24 text-left sm:py-32 sm:px-0" id="open-source">
 	<h2 class="mb-4 text-4xl">Open Source</h2>
 	<p class="text-base sm:text-lg">
 		We believe Linus's law of "given enough eyeballs, all bugs are shallow" applies to security
