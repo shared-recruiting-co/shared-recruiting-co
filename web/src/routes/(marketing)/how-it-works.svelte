@@ -1,6 +1,6 @@
 <script lang="ts">
 	import HowItWorks from '$lib/components/marketing/HowItWorks.svelte';
-	let steps = [
+	const steps = [
 		{
 			title: 'Detect & Archive',
 			description:
