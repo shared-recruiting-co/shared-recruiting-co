@@ -13,7 +13,7 @@
 	id="product"
 	class="flex min-h-screen flex-col items-center bg-slate-900 py-20 text-blue-300"
 >
-	<h2 class="max-w-4xl text-center text-4xl font-bold sm:text-5xl">
+	<h2 class="max-w-4xl text-center text-4xl font-bold sm:text-5xl sm:leading-tight">
 		{@html title}
 	</h2>
 	<h3 class="mt-8 mb-16 max-w-2xl px-4 text-center text-slate-100">
