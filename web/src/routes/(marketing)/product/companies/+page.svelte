@@ -73,9 +73,9 @@
 		</div>
 		<div class="pt-4">
 			<a
-				class="group inline-flex items-center justify-center rounded-md bg-slate-900 py-2 px-4 text-lg font-semibold text-white shadow-lg hover:bg-blue-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900 active:bg-blue-800 active:text-slate-300"
+				class="group inline-flex items-center justify-center rounded-md bg-slate-900 py-2 px-4 text-lg font-semibold text-white shadow-lg hover:bg-slate-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300"
 				data-sveltekit-preload-data="hover"
-				href="/login">Become a Member</a
+				href="/recruiter/login">Become a Member</a
 			>
 		</div>
 	</div>
