@@ -57,6 +57,7 @@
 				href="https://github.com/shared-recruiting-co/shared-recruiting-co"
 				target="_blank"
 				rel="noopener noreferrer"
+				class="hidden md:block"
 			>
 				<svg
 					fill="currentColor"
