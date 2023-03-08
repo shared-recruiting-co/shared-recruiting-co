@@ -19,9 +19,15 @@
 	</div>
 	{#if !$page.route.id?.startsWith('/account')}
 		<div class="hidden md:flex md:space-x-4">
-			<a href="/#product" class="font-medium text-slate-500 hover:text-slate-900">Product</a>
-			<a href="/#process" class="font-medium text-slate-500 hover:text-slate-900">Process</a>
-			<a href="/#faqs" class="font-medium text-slate-500 hover:text-slate-900">FAQs</a>
+			<a 
+				data-sveltekit-preload-data="hover"
+				href="/product/candidates" class="font-medium text-slate-500 hover:text-slate-900">Candidates</a>
+			<a 
+				data-sveltekit-preload-data="hover"
+				href="/product/companies" class="font-medium text-slate-500 hover:text-slate-900">Companies</a>
+			<a 
+				data-sveltekit-preload-data="hover"
+				href="/security" class="font-medium text-slate-500 hover:text-slate-900">Security</a>
 		</div>
 	{/if}
 	<div class="flex w-96 items-center justify-end space-x-4">
