@@ -19,7 +19,7 @@ export const load: PageLoad = async (event) => {
 	// if user is already on the waitlist,
 	if (waitlist && waitlist.can_create_account) {
 		// if they can create an account, send them to create one
-		throw redirect(303, '/account/create');
+		throw redirect(303, '/account/setup');
 	}
 
 	// send to waitlist page
