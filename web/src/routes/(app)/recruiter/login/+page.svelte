@@ -24,8 +24,11 @@
 	class="sticky top-0 z-10 flex flex-row flex-nowrap items-center justify-between space-x-4 bg-blue-50  px-4 py-4 text-lg sm:text-xl"
 >
 	<div class="flex w-96 flex-row items-center space-x-4">
-		<img src="/logo.svg" alt="Shared Recruiting Co" class="h-6 md:h-10" />
-		<span>Recruiter</span>
+		<a href="/" class="-m-1.5 p-1.5">
+			<span class="sr-only">Shared Recruiting Co.</span>
+			<img src="/logo.svg" alt="Shared Recruiting Co" class="h-6 md:h-10" />
+		</a>
+		<a href="/" class="text-xl text-slate-900 sm:text-2xl md:min-w-[150px]">Recruiter</a>
 	</div>
 </header>
 <div class="mx-4 my-12 max-w-2xl rounded-md bg-blue-100 px-12 pt-12 pb-4 sm:mx-auto">
