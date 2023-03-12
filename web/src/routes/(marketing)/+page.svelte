@@ -1,7 +1,3 @@
-<script lang="ts">
-	import FAQs from './FAQs.svelte';
-</script>
-
 <div
 	id="hero"
 	class="mx-auto min-h-screen max-w-7xl px-4 pt-20 pb-16 text-center sm:px-6 lg:px-8 lg:pt-32"
@@ -17,15 +13,18 @@
 		makes recruiting more effecient and less painful by promoting transparent, opt-in communication
 		between candidates and companies.
 	</p>
-	<div class="mt-10 flex justify-center gap-x-6">
+	<div class="mt-10 flex flex-col justify-center gap-x-0 gap-y-6 sm:flex-row sm:gap-y-0 sm:gap-x-6">
 		<a
-			class="group inline-flex items-center justify-center rounded-md bg-slate-900 py-2 px-4 text-sm font-semibold text-white shadow-lg hover:bg-slate-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300"
+			class="group inline-flex items-center justify-center rounded-md bg-slate-900 py-2 px-4 text-sm text-white shadow-lg hover:bg-slate-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300"
+			href="/product/candidates#product"
 			data-sveltekit-preload-data="hover"
-			href="/login">Request an Invite</a
+			>Stop&NonBreakingSpace;<strong>receiving</strong>&NonBreakingSpace;recruiting emails</a
 		>
 		<a
 			class="group inline-flex items-center justify-center rounded-md border border-slate-900 bg-white py-2 px-4 text-sm text-slate-900 shadow-lg hover:border-slate-700 hover:bg-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:border-slate-800 active:bg-slate-100 active:text-slate-300"
-			href="/#product">Learn More</a
+			href="/product/companies#product"
+			data-sveltekit-preload-data="hover"
+			>Stop&NonBreakingSpace;<strong>sending</strong>&NonBreakingSpace;recruiting emails</a
 		>
 	</div>
 	<p
@@ -37,5 +36,3 @@
 		>
 	</p>
 </div>
-
-<FAQs />
