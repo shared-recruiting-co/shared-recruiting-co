@@ -52,6 +52,6 @@
 
 <Features
 	{features}
-	title="Make the Most of <br/> Your Outbound Recruiting"
-	description="SRC is built on-top of the tools you already use to help you get the most out of your outbound recruiting."
+	title="Better Response Rates <br/> Without Automated Follow Ups"
+	description="SRC lets you start the conversation off on the right foot. No more needing to pester candidates with automated follow ups just to get a reply."
 />

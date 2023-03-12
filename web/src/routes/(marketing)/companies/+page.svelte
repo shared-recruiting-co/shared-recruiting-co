@@ -68,13 +68,11 @@
 	<h1
 		class="font-display mx-auto max-w-4xl text-5xl font-medium tracking-tight text-slate-900 sm:text-7xl"
 	>
-		<!-- <span class="font-medium text-blue-600">Make the Most</span> Out of Your<br /> -->
-		<!-- Outbound Recruiting -->
-		Stop Wasting Time<br />on the
-		<span class="font-medium text-blue-600">Wrong Candidates</span>
+		Reach Candidates<br />at the
+		<span class="font-medium text-blue-600">Right Time</span>
 	</h1>
 	<p class="mx-auto mt-6 max-w-2xl text-base tracking-tight text-slate-700 sm:text-lg">
-		The Shared Recruiting Co. (SRC) integrates into your exisitng recruiting stack to help you find
+		The Shared Recruiting Co. (SRC) integrates into your exisiting recruiting stack to help you find
 		the right candidates at the right time.
 	</p>
 	<div class="mt-10 flex justify-center gap-x-6">
