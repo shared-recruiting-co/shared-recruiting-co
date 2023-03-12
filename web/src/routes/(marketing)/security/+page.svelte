@@ -15,7 +15,7 @@
 		<span class="font-medium text-blue-600">Privacy First</span>
 		<br />Recruiting Platform
 	</h1>
-	<p class="mx-auto mt-6 max-w-2xl text-lg tracking-tight text-slate-700">
+	<p class="mx-auto mt-6 max-w-2xl text-base tracking-tight text-slate-700 sm:text-lg">
 		The Shared Recruiting Co. (SRC) is built on trust. We believe that the best way to build trust
 		is to be transparent. SRC is open source, CASA compliant, and privacy-first.
 	</p>
@@ -52,7 +52,7 @@
 	</p>
 </section>
 <section class="prose mx-auto max-w-3xl px-4 py-24 text-left sm:py-32 sm:px-0" id="compliance">
-	<h2 class="mb-4 text-4xl">Compliance</h2>
+	<h2 class="mb-4 text-4xl">Compliant</h2>
 	<p class="text-base sm:text-lg">
 		The Cloud Application Security Assessment (CASA) is built upon the industry-recognized standards
 		of the OWASP's Application Security Verification Standard (ASVS) to provide a consistent set of

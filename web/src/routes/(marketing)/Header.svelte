@@ -32,12 +32,12 @@
 	<div class="hidden md:space-x-4 lg:flex">
 		<a
 			data-sveltekit-preload-data="hover"
-			href="/product/candidates"
+			href="/candidates"
 			class="font-medium text-slate-500 hover:text-slate-900">Candidates</a
 		>
 		<a
 			data-sveltekit-preload-data="hover"
-			href="/product/companies"
+			href="/companies"
 			class="font-medium text-slate-500 hover:text-slate-900">Companies</a
 		>
 		<a
@@ -163,12 +163,12 @@
 					<div class="-my-6 divide-y divide-slate-500/10">
 						<div class="space-y-2 py-6">
 							<a
-								href="/product/candidates"
+								href="/candidates"
 								class="-mx-3 block rounded-lg py-2 px-3 text-base leading-7 text-slate-900 hover:bg-slate-50"
 								data-sveltekit-preload-data="hover">Candidates</a
 							>
 							<a
-								href="/product/companies"
+								href="/companies"
 								class="-mx-3 block rounded-lg py-2 px-3 text-base leading-7 text-slate-900 hover:bg-slate-50"
 								data-sveltekit-preload-data="hover">Companies</a
 							>
