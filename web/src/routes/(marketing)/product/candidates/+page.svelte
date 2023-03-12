@@ -73,7 +73,7 @@
 		Your Personal Recruiting<br />
 		<span class="font-medium text-blue-600">Assistant</span>
 	</h1>
-	<p class="mx-auto mt-6 max-w-2xl text-lg tracking-tight text-slate-700">
+	<p class="mx-auto mt-6 max-w-2xl text-base tracking-tight text-slate-700 sm:text-lg">
 		The Shared Recruiting Co. (SRC) is an AI recruiting assistant that lives in your inbox. SRC
 		keeps your inbox clean when you aren’t looking for jobs and supercharges your job search once
 		you are.
