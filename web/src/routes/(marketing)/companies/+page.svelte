@@ -81,11 +81,11 @@
 		<a
 			class="group inline-flex items-center justify-center rounded-md bg-slate-900 py-2 px-4 text-sm font-semibold text-white shadow-lg hover:bg-slate-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300"
 			data-sveltekit-preload-data="hover"
-			href="/login">Request an Invite</a
+			href="/recruiter/login">Request an Invite</a
 		>
 		<a
 			class="group inline-flex items-center justify-center rounded-md border border-slate-900 bg-white py-2 px-4 text-sm text-slate-900 shadow-lg hover:border-slate-700 hover:bg-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:border-slate-800 active:bg-slate-100 active:text-slate-300"
-			href="/#product">Learn More</a
+			href="#product">Learn More</a
 		>
 	</div>
 	<p
@@ -93,7 +93,8 @@
 	>
 		<span
 			><sup>*</sup>SRC is currently in an invite only beta. If you already have an account,
-			<a data-sveltekit-preload-data="hover" href="/login" class="underline">log in</a></span
+			<a data-sveltekit-preload-data="hover" href="/recruiter/login" class="underline">log in</a
+			></span
 		>
 	</p>
 </div>
