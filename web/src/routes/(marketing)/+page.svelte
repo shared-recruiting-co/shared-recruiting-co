@@ -1,8 +1,5 @@
 <script lang="ts">
-	import HowItWorks from './how-it-works.svelte';
-	import ProductFeatures from './product-features.svelte';
-	import Testimonials from './testimonials.svelte';
-	import FAQs from './faqs.svelte';
+	import FAQs from './FAQs.svelte';
 </script>
 
 <div
@@ -40,9 +37,5 @@
 		>
 	</p>
 </div>
-
-<ProductFeatures />
-<HowItWorks />
-<Testimonials />
 
 <FAQs />

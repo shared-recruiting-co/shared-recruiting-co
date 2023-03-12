@@ -1,8 +1,66 @@
 <script lang="ts">
-	import HowItWorks from '../../how-it-works.svelte';
+	import HowItWorks from '$lib/components/marketing/HowItWorks.svelte';
+	import FAQs from '$lib/components/marketing/FAQs.svelte';
 	import ProductFeatures from './Features.svelte';
-	import Testimonials from '../../testimonials.svelte';
-	import FAQs from '../../faqs.svelte';
+	import Testimonials from './Testimonials.svelte';
+
+	const steps = [
+		{
+			title: 'Detect & Archive',
+			description:
+				'SRC detects any inbound job opportunities. Each job opportunity is labeled, replied to, and archived for future reference.'
+		},
+		{
+			title: 'Summarize & Standardize',
+			description:
+				'SRC does the heavy lifting of summarizing all your job opportunities into a single, standardized format. '
+		},
+		{
+			title: 'Review & Engage',
+			description:
+				'SRC does the heavy lifting of summarizing all your job opportunities into a single, standardized format. '
+		}
+	];
+
+	const faqs = [
+		{
+			question: 'How do I pronounce SRC?',
+			answer: 'SRC is pronounced "source".'
+		},
+		{
+			question: 'How can I join?',
+			answer: "Sign up and we'll reach out once you are off the waiting list."
+		},
+		{
+			question: 'How much does it cost to join SRC as a candidate?',
+			answer: 'Nothing. It will always be free to join SRC as a candidate.'
+		},
+		{
+			question: 'How does SRC use my data?',
+			answer: `We process your emails in order to classify them as recruiting email or not. We do not and will never use your emails for any other purpose. We are take trust and privacy so seriously that all of our code is open source.
+					<br/><br/>Read more in our <a class="underline" href="/legal/privacy-policy.md">privacy policy</a>`
+		},
+		{
+			question: 'How do I contribute to SRC?',
+			answer:
+				"The SRC is open source. You can contribute to SRC on <a class='underline' href='https://github.com/shared-recruiting-co/shared-recruiting-co' target='_blank' rel='noopener noreferrer'>GitHub</a>. All you have to do is make a PR or an issue! <br/><br/> You can also contribute your recruiting emails to improve the SRC's ML model, by forwarding them to <a class='underline' href='mailto:examples@sharedrecruiting.co'>examples@sharederecruiting.co</a>"
+		},
+		{
+			question: 'How does SRC detect job opportunities?',
+			answer:
+				'Every email you receive is processed by SRCs ML model. If the email is a job opportunity, the SRC will automatically label it as such.'
+		},
+		{
+			question: 'How does the SRC define a job opportunity?',
+			answer:
+				'We define a job opportunity as an inbound email from a recruiter or hiring manager. This excludes job newsletters or automated notifications.'
+		},
+		{
+			question: 'More Questions?',
+			answer:
+				"Reach out to us at <a class='underline' href='mailto:team@sharedrecruiting.co'>team@sharederecruiting.co</a>! We'd love to chat."
+		}
+	];
 </script>
 
 <div
@@ -42,7 +100,7 @@
 </div>
 
 <ProductFeatures />
-<HowItWorks />
+<HowItWorks {steps} />
 <Testimonials />
 
 <section id="join" class="flex flex-col items-center justify-center py-28">
@@ -62,4 +120,4 @@
 	</div>
 </section>
 
-<FAQs />
+<FAQs {faqs} />
