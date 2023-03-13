@@ -31,7 +31,7 @@
 		<a href="/" class="text-xl text-slate-900 sm:text-2xl md:min-w-[150px]">Recruiter</a>
 	</div>
 </header>
-<div class="mx-4 my-12 max-w-2xl rounded-md bg-blue-100 px-12 pt-12 pb-4 sm:mx-auto">
+<div class="mx-4 my-12 rounded-md bg-blue-100 px-12 pt-12 pb-4 sm:mx-auto sm:w-1/3">
 	<h1 class="text-4xl">Sign In</h1>
 	<p class="my-4">Sign into SRC with your work email.</p>
 	<div class="mt-12">

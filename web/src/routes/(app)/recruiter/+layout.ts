@@ -20,8 +20,8 @@ export const load: PageLoad = async (event) => {
 		.maybeSingle();
 
 	if (!profile) {
-		if (path !== '/(app)/recruiter/create') {
-			throw redirect(303, '/recruiter/create');
+		if (path !== '/(app)/recruiter/setup') {
+			throw redirect(303, '/recruiter/setup');
 		}
 		return {};
 	}
@@ -36,13 +36,13 @@ export const load: PageLoad = async (event) => {
 			email: profile.email,
 			firstName: profile.first_name,
 			lastName: profile.last_name,
-			createdAt: profile.create_at,
+			createdAt: profile.created_at,
 			updatedAt: profile.updated_at
 		},
 		company: {
-			id: profile.company.company_id,
-			name: profile.company.company_name,
-			website: profile.company.website
+			id: profile.company?.company_id,
+			name: profile.company?.company_name,
+			website: profile.company?.website
 		}
 	};
 };
