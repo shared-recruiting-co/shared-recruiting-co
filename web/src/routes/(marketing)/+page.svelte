@@ -31,8 +31,10 @@
 		class="mx-auto mt-14 flex max-w-2xl flex-col items-center justify-center text-sm tracking-tight text-slate-700 md:flex-row"
 	>
 		<span
-			><sup>*</sup>SRC is currently in an invite only beta. If you already have an account,
-			<a data-sveltekit-preload-data="hover" href="/login" class="underline">log in</a></span
+			><sup>*</sup>SRC is currently in an invite only beta. <br /> If you already have an account,
+			<a data-sveltekit-preload-data="hover" href="/login" class="underline">log in</a>. If not,
+			<a data-sveltekit-preload-data="hover" href="/login" class="underline">join the waitlist</a
+			>.</span
 		>
 	</p>
 </div>
