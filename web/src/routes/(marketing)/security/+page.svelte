@@ -1,9 +1,3 @@
-<script lang="ts">
-	// screenshot of Github?
-	// screenshot of Email?
-	// screenshot of CASA?
-</script>
-
 <div
 	id="hero"
 	class="mx-auto min-h-screen max-w-7xl px-4 pt-20 pb-16 text-center sm:px-6 lg:px-8 lg:pt-32"
@@ -12,12 +6,12 @@
 		class="font-display mx-auto max-w-4xl text-4xl font-medium tracking-tight text-slate-900 sm:text-6xl lg:text-7xl"
 	>
 		The Only <br /><span class="font-medium text-blue-600">Open Source</span>,
-		<span class="font-medium text-blue-600">Privacy First</span>
+		<span class="font-medium text-blue-600">Privacy-First</span>
 		<br />Recruiting Platform
 	</h1>
 	<p class="mx-auto mt-6 max-w-2xl text-base tracking-tight text-slate-700 sm:text-lg">
-		The Shared Recruiting Co. (SRC) is built on trust. We believe that the best way to build trust
-		is to be transparent. SRC is open source, CASA compliant, and privacy-first.
+		The Shared Recruiting Co. (SRC) is built on trust. We believe the best way to build trust is to
+		be transparent. SRC is open source, so you can see exactly how we use and process your data.
 	</p>
 	<div class="mt-10 flex justify-center gap-x-6">
 		<a
@@ -46,45 +40,50 @@
 	<p class="text-base sm:text-lg">
 		And with SRC's two-way opt-in communication, your job status is confidential. Companies cannot
 		see if you are looking for a new role until you choose to start the interview process.
-		<br />
-		By open sourcing SRC, we are making more then a promise of privacy. All the ways we use and protect
-		your data is transparent and publicly visible.
+	</p>
+	<p class="text-base sm:text-lg">
+		By open sourcing SRC, we are making more then a promise of privacy. All the ways we use and
+		protect your data is transparent and auditable.
 	</p>
 </section>
 <section class="prose mx-auto max-w-3xl px-4 py-24 text-left sm:py-32 sm:px-0" id="compliance">
-	<h2 class="mb-4 text-4xl">Compliant</h2>
+	<h2 class="mb-4 text-4xl">CASA Compliant</h2>
 	<p class="text-base sm:text-lg">
-		The Cloud Application Security Assessment (CASA) is built upon the industry-recognized standards
-		of the OWASP's Application Security Verification Standard (ASVS) to provide a consistent set of
-		requirements to harden security for any application. CASA provides a uniform way to perform
-		trusted assurance assessments of these requirements when such assessments are required for
-		applications with potential access to sensitive data.
+		The <a href="https://appdefensealliance.dev/casa" target="_blank" rel="noopener noreferrer"
+			>Cloud Application Security Assessment (CASA)
+		</a>is built upon the industry-recognized standards of the OWASP's Application Security
+		Verification Standard (ASVS) to provide a consistent set of requirements to harden security for
+		any application. CASA is required for any application accessing user email data via OAuth. SRC
+		is Tier-2 CASA compliant. SRC's CASA compliance has been verified by an independent lab partner
+		as part of the Google OAuth approval process.
 	</p>
 	<p class="text-base sm:text-lg">
-		SRC is Tier-2 CASA compliant. SRC's CASA compliance has been verified by an independent lab
-		partner as part of the Google OAuth approval process.
+		SRC is commited to adhering to the best security practices. We are actively working towards
+		other best-in-clas industry standards like SOC 2 and ISO 27001, as well as, regularly auditing
+		and pen-testing our code.
 	</p>
 </section>
 <section class="prose mx-auto max-w-3xl px-4 py-24 text-left sm:py-32 sm:px-0" id="open-source">
 	<h2 class="mb-4 text-4xl">Open Source</h2>
 	<p class="text-base sm:text-lg">
-		We believe Linus's law of "given enough eyeballs, all bugs are shallow" applies to security
-		issues. The premier example of how open source projects can be more secure than proprietary code
-		bases is Bitcoin. In his 2015 talk Andreas M. Antonopoulos describes how closed source banking
-		systems have the software equivalent of weak immune systems, because huge security holes can be
-		obfuscated for long periods of time, and when eventually exploited can have enormous detrimental
-		effects. On the flip side of this is an open source protocol like Bitcoin, where any security
-		holes are there for all to see. Exploits are found early and often, and then patched. Remember
-		that successful software companies can take more than a decade to build. Over a long time
-		period, open source systems will tend towards a more secure state over secretive, proprietary
-		systems.
+		We chose to open source SRC because we believe open source software builds trust, community, and
+		more secure products. The current recruiting ecosystem is shrouded in secrecy. Candidates don't
+		know how recruiters get access to their personal email addresses or how their personal
+		information is stored and used. This lackadaisical approach to candidate privacy has been
+		normalized over the past few years, but SRC takes a radically different approach. We want both
+		candidates and companies to know exactly how and why we use, store, and process their data. Open
+		sourcing SRC not only allows us to be transparent, but it also keeps SRC accountable. Any change
+		to how SRC deals with your data is open to public scrutiny.
 	</p>
-	<p class="mt-4 text-xs italic">
-		Credit: <a
+	<p class="text-base sm:text-lg">
+		Public scrutiny is also essential to security. To quote <a
 			href="https://supabase.com/blog/should-i-open-source-my-company"
 			class="hover:text-sky-600 hover:underline"
 			target="_blank"
-			rel="noopener noreferrer">Should I Open Source My Company</a
-		>
+			rel="noopener noreferrer">Supabase's CTO Ant Wilson</a
+		>, "We believe Linus's law of 'given enough eyeballs, all bugs are shallow' applies to security
+		issues.'". Open source software allows exploits to be identified as early as possible and
+		patched just as fast. In the long run, we believe open sourcing SRC will allow us to build the
+		most secure and trusted recruiting platform.
 	</p>
 </section>
