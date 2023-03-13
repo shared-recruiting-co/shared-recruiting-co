@@ -19,3 +19,4 @@ jobs:
             devstein
           numberOfReviewers: 1
           skipKeywords: wip, draft
+          excludeLabels: dependencies

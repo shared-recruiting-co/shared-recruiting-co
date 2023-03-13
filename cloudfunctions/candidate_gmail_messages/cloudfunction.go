@@ -398,6 +398,12 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 			continue
 		}
 		recruitingEmailIDs = append(recruitingEmailIDs, id)
+
+		// do not parse emails if dry run
+		if cf.settings.DryRun {
+			continue
+		}
+
 		message := messages[id]
 		job, err := cf.ParseEmail(message)
 		// for now, abort on error
