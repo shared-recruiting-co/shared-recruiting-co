@@ -74,7 +74,7 @@
 			</a>
 		</div>
 		<p class="mt-8 text-center text-base text-slate-400">
-			&copy; 2022 Shared Recruiting Company, LLC. All rights reserved.
+			&copy; 2023 Shared Recruiting Company, LLC. All rights reserved.
 		</p>
 		<div class="mt-6 flex justify-center space-x-6 text-sm text-slate-400">
 			<a

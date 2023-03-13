@@ -1,21 +1,9 @@
 <script lang="ts">
-	let data = [
-		{
-			title: 'Detect & Archive',
-			description:
-				'SRC detects any inbound job opportunities. Each job opportunity is labeled, replied to, and archived for future reference.'
-		},
-		{
-			title: 'Summarize & Standardize',
-			description:
-				'SRC does the heavy lifting of summarizing all your job opportunities into a single, standardized format. '
-		},
-		{
-			title: 'Review & Engage',
-			description:
-				'SRC does the heavy lifting of summarizing all your job opportunities into a single, standardized format. '
-		}
-	];
+	type Step = {
+		title: string;
+		description: string;
+	};
+	export let steps: Step[];
 </script>
 
 <section id="process" class="mx-auto flex min-h-screen flex-col items-center py-20 text-slate-900">
@@ -37,7 +25,7 @@
 		The SRC Process
 	</h2>
 	<div class="flex max-w-xl flex-col space-y-8 px-2 md:space-y-16">
-		{#each data as item, index}
+		{#each steps as step, index}
 			<div class="flex flex-row items-center space-x-4 md:space-x-6 md:space-y-0">
 				<div
 					class="flex h-12 w-12 flex-col items-center justify-center rounded-full bg-blue-400 p-5 text-center text-xl font-bold text-white"
@@ -45,9 +33,9 @@
 					{index + 1}
 				</div>
 				<div class="flex flex-col">
-					<div class="text-xl font-semibold">{item.title}</div>
+					<div class="text-xl font-semibold">{step.title}</div>
 					<div class="text-base md:text-lg">
-						{item.description}
+						{step.description}
 					</div>
 				</div>
 			</div>
