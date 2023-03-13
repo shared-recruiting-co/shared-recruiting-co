@@ -52,6 +52,6 @@
 
 <Features
 	{features}
-	title="Better Response Rates <br/> Without Automated Follow Ups"
+	title="Better Response Rates <br/> Without Spamming Candidates"
 	description="SRC lets you start the conversation off on the right foot. No more needing to pester candidates with automated follow ups just to get a reply."
 />
