@@ -10,7 +10,7 @@
 	</h1>
 	<p class="mx-auto mt-6 max-w-2xl text-base tracking-tight text-slate-700 sm:text-lg">
 		The Shared Recruiting Co. (SRC) is an open-source, candidate-centric recruiting platform. SRC
-		makes recruiting more effecient and less painful by promoting transparent, opt-in communication
+		makes recruiting more efficient and less painful by promoting transparent, opt-in communication
 		between candidates and companies.
 	</p>
 	<div class="mt-10 flex flex-col justify-center gap-x-0 gap-y-6 sm:flex-row sm:gap-y-0 sm:gap-x-6">
