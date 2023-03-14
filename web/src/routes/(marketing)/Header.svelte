@@ -22,12 +22,12 @@
 	<div class="flex w-96 flex-row items-center space-x-4">
 		<a href="/" class="-m-1.5 p-1.5">
 			<span class="sr-only">Shared Recruiting Co.</span>
-			<img src="/logo.svg" alt="Shared Recruiting Co" class="h-6 md:h-10" />
+			<img src="/logo.svg" alt="Shared Recruiting Co" class="h-8 w-auto md:h-10" />
 		</a>
-		<a href="/" class="hidden text-xl text-slate-900 sm:text-2xl md:block md:min-w-[150px]"
+		<a href="/" class="hidden text-2xl text-slate-900 md:block md:min-w-[150px]"
 			>Shared Recruiting Co.</a
 		>
-		<a href="/" class="text-xl text-slate-900 sm:text-2xl md:hidden md:min-w-[150px]">SRC</a>
+		<a href="/" class="text-2xl text-slate-900 md:hidden md:min-w-[150px]">SRC</a>
 	</div>
 	<div class="hidden md:space-x-4 lg:flex">
 		<a
@@ -96,7 +96,7 @@
 			>
 				<span class="sr-only">Open main menu</span>
 				<svg
-					class="h-6 w-6"
+					class="h-8 w-8"
 					fill="none"
 					viewBox="0 0 24 24"
 					stroke-width="1.5"
@@ -124,7 +124,7 @@
 				<div class="flex items-center gap-x-6">
 					<a href="/" class="-m-1.5 p-1.5">
 						<span class="sr-only">Shared Recruiting Co.</span>
-						<img class="h-8 w-auto" src="/logo.svg" alt="SRC" />
+						<img class="h-10 w-auto" src="/logo.svg" alt="SRC" />
 					</a>
 					{#if $page.data.session}
 						<a
@@ -137,7 +137,7 @@
 					{:else}
 						<a
 							href="/login"
-							class="focus-visible:outline-blublue-600 ml-auto rounded-md bg-blue-600 py-2 px-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+							class="focus-visible:outline-blue blue-600 ml-auto rounded-md bg-blue-600 py-2 px-4 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
 							data-sveltekit-preload-data="hover">Join</a
 						>
 					{/if}
@@ -148,7 +148,7 @@
 					>
 						<span class="sr-only">Close menu</span>
 						<svg
-							class="h-6 w-6"
+							class="h-8 w-8"
 							fill="none"
 							viewBox="0 0 24 24"
 							stroke-width="1.5"

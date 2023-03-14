@@ -26,7 +26,7 @@
 	<div class="flex w-96 flex-row items-center space-x-4">
 		<a href="/" class="-m-1.5 p-1.5">
 			<span class="sr-only">Shared Recruiting Co.</span>
-			<img src="/logo.svg" alt="Shared Recruiting Co" class="h-6 md:h-10" />
+			<img src="/logo.svg" alt="Shared Recruiting Co" class="h-8 md:h-10" />
 		</a>
 		<a href="/" class="text-xl text-slate-900 sm:text-2xl md:min-w-[150px]">Recruiter</a>
 	</div>
