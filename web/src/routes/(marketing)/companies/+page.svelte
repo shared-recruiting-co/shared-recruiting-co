@@ -72,8 +72,8 @@
 		<span class="font-medium text-blue-600">Right Time</span>
 	</h1>
 	<p class="mx-auto mt-6 max-w-2xl text-base tracking-tight text-slate-700 sm:text-lg">
-		The Shared Recruiting Co. (SRC) integrates into your exisiting recruiting stack to help you find
-		the right candidates at the right time.
+		The Shared Recruiting Co. (SRC) is a sourcing sidekick that integrates into your existing
+		recruiting stack to help you find the right candidates at the right time.
 	</p>
 	<div class="mt-10 flex justify-center gap-x-6">
 		<a
