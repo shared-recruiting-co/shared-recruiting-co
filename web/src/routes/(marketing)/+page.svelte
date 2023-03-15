@@ -37,10 +37,30 @@
 		class="mx-auto mt-14 flex max-w-2xl flex-col items-center justify-center text-sm tracking-tight text-slate-700 md:flex-row"
 	>
 		<span
-			><sup>*</sup>SRC is currently in an invite only beta. <br /> If you already have an account,
-			<a data-sveltekit-preload-data="hover" href="/login" class="underline">log in</a>. If not,
-			<a data-sveltekit-preload-data="hover" href="/login" class="underline">join the waitlist</a
-			>.</span
-		>
+			><sup>*</sup>SRC is currently in an invite only beta. If you already have an account,
+			<a data-sveltekit-preload-data="hover" href="/login" class="underline">log in</a>. <br /><br
+			/><span>
+				Don't have an account? Help build a spam-free recruiting future by
+				<a data-sveltekit-preload-data="hover" href="/login" class="underline"
+					>joining the waitlist</a
+				>.</span
+			>
+		</span>
 	</p>
 </div>
+<section id="join" class="flex flex-col items-center justify-center">
+	<div class="flex flex-col items-center justify-center space-y-6">
+		<div class="text-3xl">Better for <span class="text-blue-500 underline">Candidates</span>.</div>
+		<div class="text-3xl">Better for <span class="text-blue-500 underline">Companies</span>.</div>
+		<div class="text-3xl">
+			Better for <span class="text-blue-500 underline">Recruiting</span>.
+		</div>
+		<div class="pt-4">
+			<a
+				class="group inline-flex items-center justify-center rounded-md bg-slate-900 py-2 px-4 text-lg font-semibold text-white shadow-lg hover:bg-slate-700 hover:text-slate-100 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 active:bg-slate-800 active:text-slate-300"
+				data-sveltekit-preload-data="hover"
+				href="/login">Become a Member</a
+			>
+		</div>
+	</div>
+</section>
