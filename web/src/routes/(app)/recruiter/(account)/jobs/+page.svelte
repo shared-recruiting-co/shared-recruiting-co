@@ -62,7 +62,7 @@
 							<td class="table-cell py-4 pl-4 pr-3 font-medium text-slate-900 sm:pl-6">
 								{job.title}
 							</td>
-							<td class="px-3 py-4">64</td>
+							<td class="px-3 py-4">0</td>
 							<td class="px-3 py-4">{new Date(job.updated_at).toLocaleDateString()}</td>
 						</tr>
 					{/each}
