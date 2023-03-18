@@ -114,7 +114,7 @@
 						id="linkedin"
 						bind:value={linkedin}
 						class="block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-						placeholder="https://www.linkedin.com/in/devin-stein-087148107/"
+						placeholder="https://www.linkedin.com/in/devstein"
 					/>
 				</div>
 				{#if formError('linkedin')}

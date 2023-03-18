@@ -51,6 +51,9 @@ const urlSafeBase64 = (str: string) =>
 // sendMessage  is a simple wrapper around the gmail API to send an email message.
 // It does not handle replies, attachments, or other advanced features.
 export const sendMessage = async (accessToken: string, message: SendMessageArgs) => {
+	// do nothing in development
+	if (dev) return;
+
 	const raw = formatRawEmailMessage(message);
 	return await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
 		method: 'POST',
