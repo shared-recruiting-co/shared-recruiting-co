@@ -28,6 +28,17 @@ The SRC web app ([sharedrecruiting.co](https://sharedrecruiting.co)) built via S
 
 #### Development
 
+First setup your local environment variables. From the `/web` directory, run 
+
+```bash
+cp .env.example .env.local
+# Now edit .env.local and replace the values to match your local setup
+# Use whichever editor you prefer (I use vim)
+vi .env.local
+```
+
+
+
 To start the web app, run
 ```bash
 npm run dev -- --open 
