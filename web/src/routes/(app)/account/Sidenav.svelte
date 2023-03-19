@@ -142,6 +142,7 @@
 								{@const current = $page.url.pathname === item.href}
 								<a
 									href={item.href}
+									data-sveltekit-preload-data="hover"
 									class="group flex items-center rounded-md px-2 py-2 text-base font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
 									class:bg-slate-100={current}
 									class:text-slate-900={current}
