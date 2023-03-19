@@ -1,5 +1,4 @@
 import type { PageLoad } from './$types';
-import { getSupabase } from '@supabase/auth-helpers-sveltekit';
 import { redirect } from '@sveltejs/kit';
 import { UserEmailStats } from '$lib/supabase/client';
 
@@ -10,9 +9,8 @@ type Data = {
 	numJobsDetected: number | null;
 };
 
-export const load: PageLoad<Data> = async (event) => {
-	const { session, supabaseClient } = await getSupabase(event);
-
+export const load: PageLoad<Data> = async ({ parent }) => {
+	const { session, supabase } = await parent();
 	// require user to be logged in
 	if (!session) {
 		throw redirect(303, '/login');
@@ -20,9 +18,9 @@ export const load: PageLoad<Data> = async (event) => {
 
 	const [{ data: emailSyncHistory }, { data: oauthToken }, { data: emailStats }] =
 		await Promise.all([
-			supabaseClient.from('user_email_sync_history').select('synced_at').maybeSingle(),
-			supabaseClient.from('user_oauth_token').select('is_valid').maybeSingle(),
-			supabaseClient.from('user_email_stat').select('*')
+			supabase.from('user_email_sync_history').select('synced_at').maybeSingle(),
+			supabase.from('user_oauth_token').select('is_valid').maybeSingle(),
+			supabase.from('user_email_stat').select('*')
 		]);
 
 	//TODO: Move this aggregation to the database

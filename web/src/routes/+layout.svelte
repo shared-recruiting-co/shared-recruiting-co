@@ -4,9 +4,13 @@
 	import { onMount } from 'svelte';
 	import { inject } from '@vercel/analytics';
 
+	import type { LayoutData } from './$types';
+
 	import '../app.css';
 
-	import { supabaseClient } from '$lib/supabase/client';
+	export let data: LayoutData;
+
+	$: ({ supabase } = data);
 
 	// use Vercel analytics
 	inject({ mode: dev ? 'development' : 'production' });
@@ -20,7 +24,7 @@
 
 		const {
 			data: { subscription }
-		} = supabaseClient.auth.onAuthStateChange((_event, _session) => {
+		} = supabase.auth.onAuthStateChange(() => {
 			invalidate('supabase:auth');
 		});
 

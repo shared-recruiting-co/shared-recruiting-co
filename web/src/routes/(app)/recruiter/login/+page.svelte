@@ -1,11 +1,14 @@
 <script lang="ts">
-	import { supabaseClient } from '$lib/supabase/client';
+	import type { LayoutData } from './$types';
 
+	export let data: LayoutData;
 	let error: string | null = null;
+
+	$: ({ supabase } = data);
 
 	const handleLogin = async () => {
 		try {
-			const { error } = await supabaseClient.auth.signInWithOAuth({
+			const { error } = await supabase.auth.signInWithOAuth({
 				provider: 'google',
 				options: {
 					redirectTo: `${window.location.origin}/recruiter/profile`

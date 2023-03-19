@@ -1,5 +1,4 @@
 import type { PageLoad } from './$types';
-import { getSupabase } from '@supabase/auth-helpers-sveltekit';
 import { redirect, error } from '@sveltejs/kit';
 
 type Job = {
@@ -27,21 +26,20 @@ type Data = {
 
 const PAGE_SIZE = 10;
 
-export const load: PageLoad<Data> = async (event) => {
-	const { session, supabaseClient } = await getSupabase(event);
-
+export const load: PageLoad<Data> = async ({ url, parent }) => {
+	const { session, supabase } = await parent();
 	// require user to be logged in
 	if (!session) {
 		throw redirect(303, '/login');
 	}
 
 	// get the query parameters from the URL (default to 1)
-	const page = parseInt(event.url.searchParams.get('page') || '1') || 1;
+	const page = parseInt(url.searchParams.get('page') || '1') || 1;
 	const start = (page - 1) * PAGE_SIZE;
 	const stop = start + PAGE_SIZE;
 
 	// get jobs from database
-	const { data: jobs, error: jobsError } = await supabaseClient
+	const { data: jobs, error: jobsError } = await supabase
 		.from('user_email_job')
 		.select('*')
 		.order('emailed_at', { ascending: false })
@@ -53,7 +51,7 @@ export const load: PageLoad<Data> = async (event) => {
 		throw error(500, jobsError.message);
 	}
 
-	const { count, error: countError } = await supabaseClient.from('user_email_job').select('*', {
+	const { count, error: countError } = await supabase.from('user_email_job').select('*', {
 		head: true,
 		count: 'exact'
 	});

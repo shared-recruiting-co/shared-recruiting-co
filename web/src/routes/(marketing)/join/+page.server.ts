@@ -1,18 +1,19 @@
 import type { Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { getSupabase } from '@supabase/auth-helpers-sveltekit';
 
-import { supabaseClient } from '$lib/supabase/client.server';
 import { isValidUrl, getTrimmedFormValue } from '$lib/forms';
 
 export const actions: Actions = {
 	default: async (event) => {
-		const { session } = await getSupabase(event);
+		const {
+			request,
+			locals: { supabase, getSession }
+		} = event;
+		const session = await getSession();
 		// require user to be logged in
 		if (!session) {
 			throw redirect(303, '/login');
 		}
-		const { request } = event;
 		const data = await request.formData();
 
 		const userId = session?.user?.id;
@@ -94,7 +95,7 @@ export const actions: Actions = {
 			can_create_account: false
 		};
 
-		const { error } = await supabaseClient.from('waitlist').insert(row);
+		const { error } = await supabase.from('waitlist').insert(row);
 
 		if (error) {
 			console.error('error adding user to the waitlist', error);
@@ -104,7 +105,6 @@ export const actions: Actions = {
 				}
 			});
 		}
-
 		return { success: true };
 	}
 };

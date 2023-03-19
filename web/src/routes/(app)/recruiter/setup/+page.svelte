@@ -1,9 +1,11 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { enhance } from '$app/forms';
-	import { supabaseClient } from '$lib/supabase/client';
 
 	export let data: PageData;
+
+	$: ({ supabase } = data);
+
 	const user = data?.session?.user;
 	const email = user?.email;
 	// guess company website from email domain
@@ -31,7 +33,7 @@
 	}
 
 	const handleLogout = async () => {
-		await supabaseClient.auth.signOut();
+		await supabase.auth.signOut();
 	};
 </script>
 

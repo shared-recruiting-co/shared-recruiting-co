@@ -3,9 +3,9 @@
 	import { fade } from 'svelte/transition';
 	import { afterNavigate } from '$app/navigation';
 
-	import { supabaseClient } from '$lib/supabase/client';
+	$: ({ supabase, profile } = $page.data);
+	$: initial = profile?.firstName.charAt(0).toUpperCase();
 
-	const initial = $page.data.profile.firstName.charAt(0).toUpperCase();
 	const mobileWidth = 768;
 	let windowWidth: number;
 	let isOpen = false;
@@ -23,7 +23,7 @@
 	});
 
 	const handleLogout = async () => {
-		await supabaseClient.auth.signOut();
+		await supabase.auth.signOut();
 	};
 
 	const nav = [
@@ -196,8 +196,8 @@
 						</div>
 						<div class="ml-3">
 							<p class="text-sm font-medium text-slate-700 group-hover:text-slate-900">
-								{$page.data.profile.firstName}
-								{$page.data.profile.lastName}
+								{profile?.firstName}
+								{profile?.lastName}
 							</p>
 						</div>
 						<div class="flex flex-1 justify-end">
@@ -301,8 +301,8 @@
 					</div>
 					<div class="ml-3">
 						<p class="text-sm font-medium text-slate-700 group-hover:text-slate-900">
-							{$page.data.profile.firstName}
-							{$page.data.profile.lastName}
+							{profile?.firstName}
+							{profile?.lastName}
 						</p>
 					</div>
 					<div class="flex flex-1 justify-end">

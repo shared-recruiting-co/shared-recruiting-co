@@ -1,25 +1,20 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-import { getSupabase } from '@supabase/auth-helpers-sveltekit';
-
-import { supabaseClient as adminSupabaseClient } from '$lib/supabase/client.server';
-
 import { sendWelcomeEmail } from '$lib/server/google/welcomeEmail';
 
-export const POST: RequestHandler = async (event) => {
-	const { session, supabaseClient } = await getSupabase(event);
+export const POST: RequestHandler = async ({
+	request,
+	locals: { supabase, getSession, supabaseAdmin }
+}) => {
+	const session = await getSession();
 	if (!session) throw error(401, 'unauthorized');
 
-	const { request } = event;
 	const body = await request.json();
 	const { tos } = body;
 
 	// verify gmail is connected
-	const { data: oauthToken, error: oauthError } = await supabaseClient
-		.from('user_oauth_token')
-		.select('*')
-		.maybeSingle();
+	const { error: oauthError } = await supabase.from('user_oauth_token').select('*').maybeSingle();
 
 	if (oauthError) {
 		console.error('failed to get oauth token:', error);
@@ -33,7 +28,7 @@ export const POST: RequestHandler = async (event) => {
 	}
 	console.log('creating user profile...');
 	// make sure the user is allowed to create one
-	const { data: waitlist } = await supabaseClient.from('waitlist').select('*').maybeSingle();
+	const { data: waitlist } = await supabase.from('waitlist').select('*').maybeSingle();
 	if (!waitlist) {
 		console.log('user is not on waitlist');
 		throw error(401, `${session.user.email} is not on the waitlist`);
@@ -44,7 +39,7 @@ export const POST: RequestHandler = async (event) => {
 	}
 
 	// create a profile for them
-	const { error: createError } = await adminSupabaseClient.from('user_profile').insert({
+	const { error: createError } = await supabaseAdmin.from('user_profile').insert({
 		user_id: session.user.id,
 		first_name: waitlist.first_name,
 		last_name: waitlist.last_name,
@@ -76,7 +71,11 @@ export const POST: RequestHandler = async (event) => {
 	console.log('sending welcome email...');
 
 	// TODO: Use a real transactional email service (sendgrid/mailgun) instead of this homebrew solution
-	await sendWelcomeEmail(session.user.email, true);
+	await sendWelcomeEmail({
+		supabaseAdmin,
+		email: session.user.email,
+		isNewUser: true
+	});
 
 	return new Response('success');
 };

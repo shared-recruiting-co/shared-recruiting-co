@@ -1,8 +1,6 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-import { getSupabase } from '@supabase/auth-helpers-sveltekit';
-
 import { exchangeCodeForTokens } from '$lib/server/google/oauth';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 
@@ -95,11 +93,10 @@ const connectEmail = async ({
 	}
 };
 
-export const POST: RequestHandler = async (event) => {
-	const { session, supabaseClient } = await getSupabase(event);
+export const POST: RequestHandler = async ({ request, locals: { getSession, supabase } }) => {
+	const session = await getSession();
 	if (!session) throw error(401, 'unauthorized');
 
-	const { request } = event;
 	const { headers } = request;
 
 	const xRequestedWith = headers.get('x-requested-with') || '';
@@ -111,23 +108,21 @@ export const POST: RequestHandler = async (event) => {
 		throw error(400, 'missing code parameter');
 	}
 
-	await connectEmail({ method: 'POST', code: code.toString(), session, supabaseClient });
+	await connectEmail({ method: 'POST', code: code.toString(), session, supabase });
 
 	return new Response('success');
 };
 
-export const GET: RequestHandler = async (event) => {
-	const { session, supabaseClient } = await getSupabase(event);
+export const GET: RequestHandler = async ({ url, locals: { getSession, supabase } }) => {
+	const session = await getSession();
 	if (!session) throw error(401, 'unauthorized');
-
-	const { url } = event;
 
 	const code = url.searchParams.get('code');
 	if (!code) {
 		throw error(400, 'missing code parameter');
 	}
 
-	await connectEmail({ method: 'GET', code, session, supabaseClient });
+	await connectEmail({ method: 'GET', code, session, supabase });
 
 	return new Response('success');
 };

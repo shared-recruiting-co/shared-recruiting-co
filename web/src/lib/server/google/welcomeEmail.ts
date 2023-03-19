@@ -1,4 +1,5 @@
-import { supabaseClient } from '$lib/supabase/client.server';
+import { SupabaseClient } from '@supabase/supabase-js';
+
 import { refreshAccessToken } from '$lib/server/google/oauth';
 import { sendMessage } from '$lib/server/google/gmail';
 
@@ -23,9 +24,17 @@ If you have any question or run into issues, just reply to this email. I'm here 
 
 // Hack: Send email from founder account for now...
 // TODO: Use a real transactional email service (sendgrid/mailgun) instead of this homebrew solution
-export const sendWelcomeEmail = async (email: string, isNewUser: boolean) => {
+export const sendWelcomeEmail = async ({
+	supabaseAdmin,
+	email,
+	isNewUser
+}: {
+	supabaseAdmin: SupabaseClient;
+	email: string;
+	isNewUser: boolean;
+}) => {
 	// get user id from pofile
-	const { data: profileData, error: profileError } = await supabaseClient
+	const { data: profileData, error: profileError } = await supabaseAdmin
 		.from('user_profile')
 		.select('user_id')
 		.eq('email', founder)
@@ -37,7 +46,7 @@ export const sendWelcomeEmail = async (email: string, isNewUser: boolean) => {
 		return;
 	}
 
-	const { data } = await supabaseClient
+	const { data } = await supabaseAdmin
 		.from('user_oauth_token')
 		.select('token')
 		.eq('provider', 'google')

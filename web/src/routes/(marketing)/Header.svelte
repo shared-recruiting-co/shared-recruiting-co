@@ -2,10 +2,11 @@
 	import { page } from '$app/stores';
 	import { afterNavigate } from '$app/navigation';
 	import { fly } from 'svelte/transition';
-	import { supabaseClient } from '$lib/supabase/client';
+
+	$: ({ supabase, session } = $page.data);
 
 	const handleLogout = async () => {
-		await supabaseClient.auth.signOut();
+		await supabase.auth.signOut();
 	};
 
 	let isMobileMenuOpen = false;
@@ -47,7 +48,7 @@
 		>
 	</div>
 	<div class="flex w-96 items-center justify-end space-x-4">
-		{#if $page.data.session}
+		{#if session}
 			<a
 				href="/account/profile"
 				class="focus-visible:outline-blublue-600 ml-auto rounded-md bg-blue-600 py-2 px-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
@@ -126,7 +127,7 @@
 						<span class="sr-only">Shared Recruiting Co.</span>
 						<img class="h-10 w-auto" src="/logo.svg" alt="SRC" />
 					</a>
-					{#if $page.data.session}
+					{#if session}
 						<a
 							href="/account/profile"
 							class="focus-visible:outline-blublue-600 ml-auto rounded-md bg-blue-600 py-2 px-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
@@ -179,7 +180,7 @@
 							>
 						</div>
 						<div class="flex items-center justify-between space-x-2 py-4">
-							{#if $page.data.session}
+							{#if session}
 								<button
 									class="text-base hover:underline active:underline sm:text-lg"
 									on:click={handleLogout}>Log Out</button

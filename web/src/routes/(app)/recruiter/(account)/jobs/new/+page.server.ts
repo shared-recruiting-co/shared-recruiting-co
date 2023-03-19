@@ -1,17 +1,15 @@
 import type { Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { getSupabase } from '@supabase/auth-helpers-sveltekit';
 
 import { isValidUrl, getTrimmedFormValue } from '$lib/forms';
 
 export const actions: Actions = {
-	default: async (event) => {
-		const { session, supabaseClient } = await getSupabase(event);
+	default: async ({ request, locals: { supabase, getSession } }) => {
+		const session = await getSession();
 		// require user to be logged in
 		if (!session) {
 			throw redirect(303, '/recruiter/login');
 		}
-		const { request } = event;
 		const data = await request.formData();
 
 		const userId = session?.user?.id;
@@ -42,7 +40,7 @@ export const actions: Actions = {
 			});
 		}
 
-		const { data: profile, error: profileError } = await supabaseClient
+		const { data: profile, error: profileError } = await supabase
 			.from('recruiter')
 			.select('*')
 			.maybeSingle();
@@ -59,7 +57,7 @@ export const actions: Actions = {
 			description_url: jobDescriptionURL
 		};
 
-		const { error } = await supabaseClient.from('job').insert(row);
+		const { error } = await supabase.from('job').insert(row);
 
 		if (error) {
 			console.error('error creating job', error);

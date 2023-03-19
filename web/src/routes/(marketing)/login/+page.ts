@@ -1,15 +1,13 @@
 import type { PageLoad } from './$types';
-import { getSupabase } from '@supabase/auth-helpers-sveltekit';
 import { redirect } from '@sveltejs/kit';
 
-export const load: PageLoad = async (event) => {
-	const { session, supabaseClient } = await getSupabase(event);
-
+export const load: PageLoad = async ({ parent }) => {
+	const { session, supabase } = await parent();
 	if (!session) return {};
 
 	const [{ data: profile }, { data: waitlist }] = await Promise.all([
-		supabaseClient.from('user_profile').select('*').maybeSingle(),
-		supabaseClient.from('waitlist').select('*').maybeSingle()
+		supabase.from('user_profile').select('*').maybeSingle(),
+		supabase.from('waitlist').select('*').maybeSingle()
 	]);
 
 	if (profile) {
