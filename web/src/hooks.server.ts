@@ -4,6 +4,7 @@ import { SUPABASE_SERVICE_ROLE_KEY, SENTRY_DSN } from '$env/static/private';
 import type { HandleServerError } from '@sveltejs/kit';
 import * as Sentry from '@sentry/node';
 
+import { createClient } from '@supabase/supabase-js';
 import { createSupabaseServerClient } from '@supabase/auth-helpers-sveltekit';
 import type { Handle } from '@sveltejs/kit';
 
@@ -34,14 +35,17 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.supabase = createSupabaseServerClient({
 		supabaseUrl: PUBLIC_SUPABASE_URL,
 		supabaseKey: PUBLIC_SUPABASE_ANON_KEY,
-		event
+		event,
+		cookieOptions: {
+			secure: true
+		}
 	});
 
-	event.locals.supabaseAdmin = createSupabaseServerClient({
-		supabaseUrl: PUBLIC_SUPABASE_URL,
-		supabaseKey: SUPABASE_SERVICE_ROLE_KEY,
-		event
-	});
+	// Setup Supabase Admin Client
+	event.locals.supabaseAdmin = createClient<'public'>(
+		PUBLIC_SUPABASE_URL,
+		SUPABASE_SERVICE_ROLE_KEY
+	);
 
 	/**
 	 * a little helper that is written for convenience so that instead

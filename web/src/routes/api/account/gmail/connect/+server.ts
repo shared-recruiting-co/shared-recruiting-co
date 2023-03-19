@@ -23,12 +23,12 @@ const connectEmail = async ({
 	method,
 	code,
 	session,
-	supabaseClient
+	supabase
 }: {
 	method: 'GET' | 'POST';
 	code: string;
 	session: Session;
-	supabaseClient: SupabaseClient;
+	supabase: SupabaseClient;
 }) => {
 	// https://developers.google.com/identity/protocols/oauth2/web-server#httprest_3
 	// exchange code for access and refresh token
@@ -70,7 +70,7 @@ const connectEmail = async ({
 	// save oauth tokens
 	console.log('saving user oauth token...');
 	// format tokens for db
-	const { error: tokenSaveError } = await supabaseClient.from('user_oauth_token').upsert({
+	const { error: tokenSaveError } = await supabase.from('user_oauth_token').upsert({
 		user_id: session.user.id,
 		email,
 		provider: 'google',

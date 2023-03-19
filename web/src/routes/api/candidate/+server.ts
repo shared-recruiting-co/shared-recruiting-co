@@ -5,7 +5,8 @@ import { sendWelcomeEmail } from '$lib/server/google/welcomeEmail';
 
 export const POST: RequestHandler = async ({
 	request,
-	locals: { supabase, getSession, supabaseAdmin }
+	locals: { supabase, getSession, supabaseAdmin },
+	fetch
 }) => {
 	const session = await getSession();
 	if (!session) throw error(401, 'unauthorized');
@@ -56,7 +57,7 @@ export const POST: RequestHandler = async ({
 		);
 	}
 
-	const resp = await event.fetch('/api/account/gmail/subscribe', {
+	const resp = await fetch('/api/account/gmail/subscribe', {
 		method: 'POST'
 	});
 

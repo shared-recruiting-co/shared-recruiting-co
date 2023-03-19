@@ -1,6 +1,6 @@
 /// <reference types="@sveltejs/kit" />
-import { SupabaseClient, Session } from '@supabase/supabase-js';
-import { Database } from './lib/supabase/types';
+import type { SupabaseClient, Session } from '@supabase/supabase-js';
+import type { Database } from './lib/supabase/types';
 
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces

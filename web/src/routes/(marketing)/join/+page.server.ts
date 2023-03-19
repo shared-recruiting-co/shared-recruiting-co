@@ -7,7 +7,7 @@ export const actions: Actions = {
 	default: async (event) => {
 		const {
 			request,
-			locals: { supabase, getSession }
+			locals: { getSession, supabaseAdmin }
 		} = event;
 		const session = await getSession();
 		// require user to be logged in
@@ -95,7 +95,7 @@ export const actions: Actions = {
 			can_create_account: false
 		};
 
-		const { error } = await supabase.from('waitlist').insert(row);
+		const { error } = await supabaseAdmin.from('waitlist').insert(row);
 
 		if (error) {
 			console.error('error adding user to the waitlist', error);
