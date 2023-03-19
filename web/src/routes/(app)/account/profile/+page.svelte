@@ -2,13 +2,14 @@
 	import { slide, draw, fade } from 'svelte/transition';
 	import type { PageData } from './$types';
 
-	import { supabaseClient, UserEmailStats } from '$lib/supabase/client';
+	import { UserEmailStats } from '$lib/supabase/client';
 
 	import Toggle from '$lib/components/Toggle.svelte';
 	import AlertModal from '$lib/components/AlertModal.svelte';
 	import ConnectGoogleAccountButton from '$lib/components/ConnectGoogleAccountButton.svelte';
 
 	export let data: PageData;
+	$: ({ supabase } = data);
 
 	// ui state
 	let profileSaved = false;
@@ -25,8 +26,8 @@
 	let numEmailsProcessed = data.numEmailsProcessed;
 	let numJobsDetected = data.numJobsDetected;
 
-	supabaseClient
-		.channel('table-db-changes')
+	supabase
+		?.channel('table-db-changes')
 		.on(
 			'postgres_changes',
 			{
@@ -95,7 +96,7 @@
 		// clear errors
 		errors[name] = '';
 
-		const { data: profileData, error } = await supabaseClient
+		const { data: profileData, error } = await supabase
 			.from('user_profile')
 			.update({ [name]: value })
 			.eq('user_id', data.session?.user.id)
@@ -116,7 +117,7 @@
 
 	const saveSettings = async () => {
 		settingsSaved = false;
-		const { data: profileData, error } = await supabaseClient
+		const { data: profileData, error } = await supabase
 			.from('user_profile')
 			.update({ auto_contribute: autoContribute, auto_archive: autoArchive })
 			.eq('user_id', data.session?.user.id)

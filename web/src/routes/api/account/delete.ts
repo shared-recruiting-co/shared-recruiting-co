@@ -1,4 +1,5 @@
-import { supabaseClient } from '$lib/supabase/client.server';
+import { SupabaseClient } from '@supabase/supabase-js';
+
 import { refreshAccessToken } from '$lib/server/google/oauth';
 import { sendMessage } from '$lib/server/google/gmail';
 
@@ -16,9 +17,17 @@ const from = `Devin <${founder}>`;
 // Send delete email with reason to founder
 // Hack: Send email from founder account for now...
 // TODO: Use a real transactional email service (sendgrid/mailgun) instead of this homebrew solution
-export const sendDeleteEmail = async ({ userEmail, reason }) => {
+export const sendDeleteEmail = async ({
+	supabaseAdmin,
+	userEmail,
+	reason
+}: {
+	supabaseAdmin: SupabaseClient;
+	userEmail: string;
+	reason: string;
+}) => {
 	// get user id from pofile
-	const { data: profileData, error: profileError } = await supabaseClient
+	const { data: profileData, error: profileError } = await supabaseAdmin
 		.from('user_profile')
 		.select('user_id')
 		.eq('email', founder)
@@ -30,7 +39,7 @@ export const sendDeleteEmail = async ({ userEmail, reason }) => {
 		return;
 	}
 
-	const { data } = await supabaseClient
+	const { data } = await supabaseAdmin
 		.from('user_oauth_token')
 		.select('token')
 		.eq('provider', 'google')

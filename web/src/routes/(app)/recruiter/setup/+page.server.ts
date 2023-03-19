@@ -1,18 +1,15 @@
 import type { Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { getSupabase } from '@supabase/auth-helpers-sveltekit';
 
-import { supabaseClient } from '$lib/supabase/client.server';
 import { isValidUrl, getTrimmedFormValue, getFormCheckboxValue } from '$lib/forms';
 
 export const actions: Actions = {
-	default: async (event) => {
-		const { session } = await getSupabase(event);
+	default: async ({ request, locals: { getSession, supabase } }) => {
+		const session = await getSession();
 		// require user to be logged in
 		if (!session) {
 			throw redirect(303, '/recruiter/login');
 		}
-		const { request } = event;
 		const data = await request.formData();
 
 		const userId = session?.user?.id;
@@ -97,7 +94,7 @@ export const actions: Actions = {
 			website: companyWebsite
 		};
 
-		const { data: createdCompany, error: companyError } = await supabaseClient
+		const { data: createdCompany, error: companyError } = await supabase
 			.from('company')
 			.insert(newCompany)
 			.select('*')
@@ -137,7 +134,7 @@ export const actions: Actions = {
 			company_id: createdCompany.company_id
 		};
 
-		const { error } = await supabaseClient.from('recruiter').insert(row);
+		const { error } = await supabase.from('recruiter').insert(row);
 
 		if (error) {
 			console.error('error creating recruiter', error);

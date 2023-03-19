@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { goto } from '$app/navigation';
-	import { supabaseClient } from '$lib/supabase/client';
 	import ConnectGoogleAccountButton from '$lib/components/ConnectGoogleAccountButton.svelte';
 
 	export let data: PageData;
+	$: ({ supabase } = data);
 
 	let tos = false;
 	let error = '';
@@ -32,7 +32,7 @@
 	};
 
 	const handleLogout = async () => {
-		await supabaseClient.auth.signOut();
+		await supabase.auth.signOut();
 	};
 </script>
 

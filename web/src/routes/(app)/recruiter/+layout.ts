@@ -1,10 +1,9 @@
 import type { PageLoad } from './$types';
-import { getSupabase } from '@supabase/auth-helpers-sveltekit';
 import { redirect } from '@sveltejs/kit';
 
-export const load: PageLoad = async (event) => {
-	const { session, supabaseClient } = await getSupabase(event);
-	const path = event.route.id;
+export const load: PageLoad = async ({ route, parent }) => {
+	const { session, supabase } = await parent();
+	const path = route.id;
 
 	// redirect to login
 	if (!session) {
@@ -14,7 +13,7 @@ export const load: PageLoad = async (event) => {
 		return {};
 	}
 
-	const { data: profile } = await supabaseClient
+	const { data: profile } = await supabase
 		.from('recruiter')
 		.select('*,company(company_id,company_name,website)')
 		.maybeSingle();

@@ -1,8 +1,9 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import { fly, fade } from 'svelte/transition';
-
-	import { supabaseClient } from '$lib/supabase/client';
 	import { goto } from '$app/navigation';
+
+	$: ({ supabase } = $page.data);
 
 	export let show: boolean = false;
 	let reason: string;
@@ -34,7 +35,7 @@
 		loading = false;
 		if (resp.ok) {
 			try {
-				await supabaseClient.auth.signOut();
+				await supabase.auth.signOut();
 			} catch {}
 			goto('/join');
 		} else {
