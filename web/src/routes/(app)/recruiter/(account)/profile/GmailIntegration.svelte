@@ -105,7 +105,7 @@
 		</div>
 	</button>
 	{#if isOpen}
-		<div transition:slide class="mt-8">
+		<div transition:slide class="mt-4 border-t pt-4">
 			{#if isValid}
 				<!-- Content -->
 				<div class="max-w-2xl">
