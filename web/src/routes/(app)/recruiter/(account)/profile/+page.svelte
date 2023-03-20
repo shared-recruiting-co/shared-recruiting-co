@@ -226,34 +226,56 @@ Two States
 					<img src="/gmail.svg" alt="Gmail" class="h-6 w-6" />
 					<span class="text-slate-600">{account.email}</span>
 				</div>
-				<!-- Show a green dot if the account is valid, otherwise red-->
-				{#if account.is_valid}
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 24 24"
-						fill="currentColor"
-						class="h-6 w-6 text-emerald-600"
-					>
-						<path
-							fill-rule="evenodd"
-							d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
-							clip-rule="evenodd"
-						/>
-					</svg>
-				{:else}
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 24 24"
-						fill="currentColor"
-						class="h-6 w-6 text-rose-600"
-					>
-						<path
-							fill-rule="evenodd"
-							d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z"
-							clip-rule="evenodd"
-						/>
-					</svg>
-				{/if}
+				<div class="flex items-center space-x-4">
+					<!-- Show a green dot if the account is valid, otherwise red-->
+					{#if account.is_valid}
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="currentColor"
+							class="h-6 w-6 text-emerald-600"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
+								clip-rule="evenodd"
+							/>
+						</svg>
+					{:else}
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="currentColor"
+							class="h-6 w-6 text-rose-600"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z"
+								clip-rule="evenodd"
+							/>
+						</svg>
+					{/if}
+					<span class="ml-6 flex h-7 items-center">
+						<!--
+                  Expand/collapse icon, toggle classes based on question open state.
+                  Heroicon name: outline/chevron-down
+                  Open: "-rotate-180", Closed: "rotate-0"
+                -->
+						<svg
+							class="h-6 w-6 transform"
+							class:-rotate-180={!true}
+							class:rotate-0={true}
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 24 24 text-slate-600"
+							stroke-width="2"
+							stroke="currentColor"
+							aria-hidden="true"
+						>
+							<path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+						</svg>
+					</span>
+				</div>
 			</div>
 		{/each}
 	{:else}
