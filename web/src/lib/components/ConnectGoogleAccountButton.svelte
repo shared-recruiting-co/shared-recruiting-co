@@ -3,7 +3,7 @@
 	import { PUBLIC_GOOGLE_CLIENT_ID } from '$env/static/public';
 
 	// props
-	export let email: string | undefined;
+	export let email: string | undefined = undefined;
 	export let onConnect: () => void = () => {};
 	export let disabled = false;
 
