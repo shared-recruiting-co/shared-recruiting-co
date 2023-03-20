@@ -1,61 +1,63 @@
 <script lang="ts">
-	// import { slide, draw, fade } from 'svelte/transition';
-	// import type { PageData } from './$types';
-	// import { supabaseClient } from '$lib/supabase/client';
+	import { slide, draw, fade } from 'svelte/transition';
+	import type { PageData } from './$types';
+
+	import ConnectGoogleAccountButton from '$lib/components/ConnectGoogleAccountButton.svelte';
 
 	// server page data
-	// export let data: PageData;
+	export let data: PageData;
+	$: ({ supabase, profile, session } = data);
 
 	// ui state
-	//	let profileSaved = false;
-	//	let errors: Record<string, string> = {};
+	let profileSaved = false;
+	let errors: Record<string, string> = {};
 
-	//	let debounceTimeout: NodeJS.Timeout;
-	//	const debounceDelay = 1000;
-	//	const savedMessageTimeout = 3000;
+	let debounceTimeout: NodeJS.Timeout;
+	const debounceDelay = 1000;
+	const savedMessageTimeout = 3000;
 
-	//	const formError = (e: typeof errors, field: string) => {
-	//		return e[field] || '';
-	//	};
+	const formError = (e: typeof errors, field: string) => {
+		return e[field] || '';
+	};
 
-	//	const debounce = (func: (...args: any[]) => void, wait: number) => {
-	//		return function executedFunction(...args: any[]) {
-	//			clearTimeout(debounceTimeout);
-	//			debounceTimeout = setTimeout(() => func(...args), wait);
-	//		};
-	//	};
+	const debounce = (func: (...args: any[]) => void, wait: number) => {
+		return function executedFunction(...args: any[]) {
+			clearTimeout(debounceTimeout);
+			debounceTimeout = setTimeout(() => func(...args), wait);
+		};
+	};
 
-	// const handleInput = async (e: Event) => {
-	// 	const target = e.target as HTMLInputElement;
-	// 	const value = target.value;
-	// 	const name = target.name;
+	const handleInput = async (e: Event) => {
+		const target = e.target as HTMLInputElement;
+		const value = target.value;
+		const name = target.name;
 
-	// 	// right now all input values are required
-	// 	if (!value) {
-	// 		errors[name] = 'This field is required';
-	// 		return;
-	// 	}
-	// 	// clear errors
-	// 	errors[name] = '';
+		// right now all input values are required
+		if (!value) {
+			errors[name] = 'This field is required';
+			return;
+		}
+		// clear errors
+		errors[name] = '';
 
-	// 	const { data: profileData, error } = await supabaseClient
-	// 		.from('recruiter')
-	// 		.update({ [name]: value })
-	// 		.eq('user_id', data.session?.user.id)
-	// 		.select()
-	// 		.maybeSingle();
-	// 	if (!error && profileData && profileData[name as keyof typeof profileData] === value) {
-	// 		profileSaved = true;
-	// 		setTimeout(() => {
-	// 			profileSaved = false;
-	// 		}, savedMessageTimeout);
-	// 		return;
-	// 	}
-	// 	errors[name] = 'There was an error saving your changes';
-	// };
+		const { data: profileData, error } = await supabase
+			.from('recruiter')
+			.update({ [name]: value })
+			.eq('user_id', session?.user.id)
+			.select()
+			.maybeSingle();
+		if (!error && profileData && profileData[name as keyof typeof profileData] === value) {
+			profileSaved = true;
+			setTimeout(() => {
+				profileSaved = false;
+			}, savedMessageTimeout);
+			return;
+		}
+		errors[name] = 'There was an error saving your changes';
+	};
 
 	// debounce input to limit database writes
-	// const debouncedHandleInput = debounce(handleInput, debounceDelay);
+	const debouncedHandleInput = debounce(handleInput, debounceDelay);
 </script>
 
 <div>
@@ -79,7 +81,6 @@
 		</p>
 	</div>
 </div>
-<!--
 <div class="relative shadow sm:overflow-hidden sm:rounded-md">
 	<div class="space-y-6 bg-white py-6 px-4 sm:p-6">
 		<div>
@@ -160,7 +161,7 @@
 					id="email-address"
 					autocomplete="email"
 					disabled
-					value={data.profile?.email}
+					value={profile?.email}
 					class="mt-1 block w-full rounded-md border border-slate-300 py-2 px-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-indigo-500 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500 sm:text-sm"
 				/>
 			</div>
@@ -172,7 +173,7 @@
 					id="first_name"
 					autocomplete="given-name"
 					on:input={debouncedHandleInput}
-					value={data.profile?.firstName}
+					value={profile?.firstName}
 					class="mt-1 block w-full rounded-md border border-slate-300 py-2 px-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
 				/>
 				{#if formError(errors, 'first_name')}
@@ -187,7 +188,7 @@
 					name="last_name"
 					id="last_name"
 					autocomplete="family-name"
-					value={data.profile?.lastName}
+					value={profile?.lastName}
 					on:input={debouncedHandleInput}
 					class="mt-1 block w-full rounded-md border border-slate-300 py-2 px-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
 				/>
@@ -198,5 +199,88 @@
 		</div>
 	</div>
 </div>
-
+<div>
+	<h2 class="text-xl font-medium leading-6 text-slate-900 sm:text-2xl">Email Integration</h2>
+	<p class="mt-1 text-sm text-slate-500">
+		Connect your emails you use for candidate outreach for SRC to import and sync candidates
+		automatically.
+	</p>
+</div>
+<!-- 
+Two States 
+1. No Email Integration -> Explain what it is and show button to connect
+2. Email Integration -> Show connected email and button to disconnect + option to connect another email
 -->
+<div class="space-y-6">
+	<div class="bg-white py-6 px-4 shadow sm:overflow-hidden sm:rounded-md sm:p-6">
+		<h3 class="text-lg leading-6 text-slate-900">Setup Your Account</h3>
+		<p class="my-2">
+			We're excited to have you on board! To get started, we'll need to connect your Gmail account.
+			Make sure you connect the same account you use for candidate outreach.
+		</p>
+		<div>
+			<p>SRC requires access to your Gmail account to:</p>
+			<ul class="mt-4 list-inside space-y-2">
+				<li class="flex flex-row items-center">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="currentColor"
+						class="h-6 w-6 text-green-600"
+					>
+						<path
+							fill-rule="evenodd"
+							d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z"
+							clip-rule="evenodd"
+						/>
+					</svg>
+
+					<span class="ml-2">Continuously sync and import candidates you reach out</span>
+				</li>
+				<li class="flex flex-row items-center">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="currentColor"
+						class="h-6 w-6 text-green-600"
+					>
+						<path
+							fill-rule="evenodd"
+							d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z"
+							clip-rule="evenodd"
+						/>
+					</svg>
+
+					<span class="ml-2"
+						>Create and manage
+						<span
+							class="inline-flex items-center rounded-md bg-blue-500 px-1.5 py-0.5 text-sm font-medium text-white"
+							>@SRC</span
+						>
+						Gmail labels</span
+					>
+				</li>
+				<li class="flex flex-row items-center">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="currentColor"
+						class="h-6 w-6 text-green-600"
+					>
+						<path
+							fill-rule="evenodd"
+							d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z"
+							clip-rule="evenodd"
+						/>
+					</svg>
+					<span class="ml-2">Detect and match email sequences to open roles</span>
+				</li>
+			</ul>
+		</div>
+		<p class="my-4">
+			Once connected, SRC will trigger a one-time historic sync to import the last 3 months of
+			candidates you've reach out to!
+		</p>
+		<ConnectGoogleAccountButton />
+	</div>
+</div>
