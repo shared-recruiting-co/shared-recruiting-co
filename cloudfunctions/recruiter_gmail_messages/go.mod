@@ -8,7 +8,7 @@ require (
 	github.com/getsentry/sentry-go v0.18.0
 	github.com/google/uuid v1.3.0
 	github.com/jaytaylor/html2text v0.0.0-20211105163654-bc68cce691ba
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230307181757-47651234b3ef
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230320235405-410dcb5e6a25
 	google.golang.org/api v0.107.0
 )
 
