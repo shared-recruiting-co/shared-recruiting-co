@@ -20,7 +20,8 @@
 		return e[field] || '';
 	};
 
-	// TODO: Add state for
+	// TODO: Add state for is_active, is_valid
+	// TODO: Send welcome email on new email, send welcome back on reactivation
 	// TODO: Implement! Add support for recruiter_email_settings
 	// - user_id
 	// - email

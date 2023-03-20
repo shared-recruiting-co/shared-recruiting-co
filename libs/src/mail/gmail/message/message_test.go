@@ -42,12 +42,10 @@ func TestSortMessagesByDate(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			message.SortByDate(tc.messages)
 			for i, m := range tc.messages {
 				if m.Id != tc.want[i].Id {
-					t.Fail()
+					t.Errorf("got %s, want %s", m.Id, tc.want[i].Id)
 				}
 			}
 		})
@@ -98,8 +96,6 @@ func TestMessageHeader(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			got := message.Header(msg, tc.header)
 			if got != tc.want {
 				t.Fail()
@@ -149,11 +145,9 @@ func TestMessageBody(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			got := message.Body(tc.message)
 			if got != tc.want {
-				t.Fail()
+				t.Errorf("got %s, want %s", got, tc.want)
 			}
 		})
 	}
@@ -208,6 +202,20 @@ func TestMessageSenderEmail(t *testing.T) {
 			want: "test@example.com",
 		},
 		{
+			name: "Multiple ><",
+			message: &gmail.Message{
+				Payload: &gmail.MessagePart{
+					Headers: []*gmail.MessagePartHeader{
+						{
+							Name:  "FROM",
+							Value: `"ANNOUNCEMENT <<>>" <test@example.com>`,
+						},
+					},
+				},
+			},
+			want: "test@example.com",
+		},
+		{
 			name: "Empty",
 			message: &gmail.Message{
 				Payload: &gmail.MessagePart{
@@ -225,8 +233,6 @@ func TestMessageSenderEmail(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			got := message.SenderEmail(tc.message)
 			if got != tc.want {
 				t.Fail()
@@ -284,6 +290,20 @@ func TestMessageRecipientEmail(t *testing.T) {
 			want: "test@example.com",
 		},
 		{
+			name: "Multiple ><",
+			message: &gmail.Message{
+				Payload: &gmail.MessagePart{
+					Headers: []*gmail.MessagePartHeader{
+						{
+							Name:  "To",
+							Value: `"ANNOUNCEMENT <<>>" <test@example.com>`,
+						},
+					},
+				},
+			},
+			want: "test@example.com",
+		},
+		{
 			name: "Empty",
 			message: &gmail.Message{
 				Payload: &gmail.MessagePart{
@@ -301,11 +321,9 @@ func TestMessageRecipientEmail(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			got := message.RecipientEmail(tc.message)
 			if got != tc.want {
-				t.Fail()
+				t.Errorf("got %s, want %s", got, tc.want)
 			}
 		})
 	}
@@ -335,11 +353,9 @@ func TestMessageHasLabel(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			got := message.HasLabel(msg, tc.label)
 			if got != tc.want {
-				t.Fail()
+				t.Errorf("got %t, want %t", got, tc.want)
 			}
 		})
 	}
@@ -369,11 +385,9 @@ func TestIsMessageSent(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			got := message.IsSent(tc.message)
 			if got != tc.want {
-				t.Fail()
+				t.Errorf("got %t, want %t", got, tc.want)
 			}
 		})
 	}
@@ -396,8 +410,6 @@ func TestCreatedAt(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			got := message.CreatedAt(tc.message)
 			if got.String() != tc.want.String() {
 				t.Errorf("got %v, want %v", got, tc.want)
