@@ -6,9 +6,10 @@
 
 	// server page data
 	export let data: PageData;
-	$: ({ supabase, profile, session } = data);
+	$: ({ supabase, profile, session, gmailAccounts } = data);
 
 	// ui state
+	$: hasGmailAccount = gmailAccounts.length > 0;
 	let profileSaved = false;
 	let errors: Record<string, string> = {};
 
@@ -202,8 +203,8 @@
 <div>
 	<h2 class="text-xl font-medium leading-6 text-slate-900 sm:text-2xl">Email Integration</h2>
 	<p class="mt-1 text-sm text-slate-500">
-		Connect your emails you use for candidate outreach for SRC to import and sync candidates
-		automatically.
+		Connect the emails you use for candidate outreach. Once connceted, SRC will automatically import
+		and sync candidates you reach out to.
 	</p>
 </div>
 <!-- 
@@ -212,75 +213,113 @@ Two States
 2. Email Integration -> Show connected email and button to disconnect + option to connect another email
 -->
 <div class="space-y-6">
-	<div class="bg-white py-6 px-4 shadow sm:overflow-hidden sm:rounded-md sm:p-6">
-		<h3 class="text-lg leading-6 text-slate-900">Setup Your Account</h3>
-		<p class="my-2">
-			We're excited to have you on board! To get started, we'll need to connect your Gmail account.
-			Make sure you connect the same account you use for candidate outreach.
-		</p>
-		<div>
-			<p>SRC requires access to your Gmail account to:</p>
-			<ul class="mt-4 list-inside space-y-2">
-				<li class="flex flex-row items-center">
+	{#if hasGmailAccount}
+		{#each gmailAccounts as account}
+			<div
+				class="flex justify-between bg-white py-6 px-4 shadow sm:overflow-hidden sm:rounded-md sm:p-6"
+			>
+				<div>{account.email}</div>
+				<!-- Show a green dot if the account is valid, otherwise red-->
+				{#if account.is_valid}
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						viewBox="0 0 24 24"
 						fill="currentColor"
-						class="h-6 w-6 text-green-600"
+						class="h-6 w-6 text-emerald-600"
 					>
 						<path
 							fill-rule="evenodd"
-							d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z"
+							d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
 							clip-rule="evenodd"
 						/>
 					</svg>
-
-					<span class="ml-2">Continuously sync and import candidates you reach out</span>
-				</li>
-				<li class="flex flex-row items-center">
+				{:else}
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						viewBox="0 0 24 24"
 						fill="currentColor"
-						class="h-6 w-6 text-green-600"
+						class="h-6 w-6 text-rose-600"
 					>
 						<path
 							fill-rule="evenodd"
-							d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z"
+							d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z"
 							clip-rule="evenodd"
 						/>
 					</svg>
-
-					<span class="ml-2"
-						>Create and manage
-						<span
-							class="inline-flex items-center rounded-md bg-blue-500 px-1.5 py-0.5 text-sm font-medium text-white"
-							>@SRC</span
+				{/if}
+			</div>
+		{/each}
+	{:else}
+		<div class="bg-white py-6 px-4 shadow sm:overflow-hidden sm:rounded-md sm:p-6">
+			<h3 class="text-lg leading-6 text-slate-900">Setup Your Account</h3>
+			<p class="my-2">
+				We're excited to have you on board! To get started, we'll need to connect your Gmail
+				account. Make sure you connect the same account you use for candidate outreach.
+			</p>
+			<div>
+				<p>SRC requires access to your Gmail account to:</p>
+				<ul class="mt-4 list-inside space-y-2">
+					<li class="flex flex-row items-center">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="currentColor"
+							class="h-6 w-6 text-green-600"
 						>
-						Gmail labels</span
-					>
-				</li>
-				<li class="flex flex-row items-center">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 24 24"
-						fill="currentColor"
-						class="h-6 w-6 text-green-600"
-					>
-						<path
-							fill-rule="evenodd"
-							d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z"
-							clip-rule="evenodd"
-						/>
-					</svg>
-					<span class="ml-2">Detect and match email sequences to open roles</span>
-				</li>
-			</ul>
+							<path
+								fill-rule="evenodd"
+								d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z"
+								clip-rule="evenodd"
+							/>
+						</svg>
+
+						<span class="ml-2">Continuously sync and import candidates you reach out</span>
+					</li>
+					<li class="flex flex-row items-center">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="currentColor"
+							class="h-6 w-6 text-green-600"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z"
+								clip-rule="evenodd"
+							/>
+						</svg>
+
+						<span class="ml-2"
+							>Create and manage
+							<span
+								class="inline-flex items-center rounded-md bg-blue-500 px-1.5 py-0.5 text-sm font-medium text-white"
+								>@SRC</span
+							>
+							Gmail labels</span
+						>
+					</li>
+					<li class="flex flex-row items-center">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="currentColor"
+							class="h-6 w-6 text-green-600"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z"
+								clip-rule="evenodd"
+							/>
+						</svg>
+						<span class="ml-2">Detect and match email sequences to open roles</span>
+					</li>
+				</ul>
+			</div>
+			<p class="my-4">
+				Once connected, SRC will trigger a one-time historic sync to import the last 3 months of
+				candidates you've reach out to!
+			</p>
+			<ConnectGoogleAccountButton />
 		</div>
-		<p class="my-4">
-			Once connected, SRC will trigger a one-time historic sync to import the last 3 months of
-			candidates you've reach out to!
-		</p>
-		<ConnectGoogleAccountButton />
-	</div>
+	{/if}
 </div>
