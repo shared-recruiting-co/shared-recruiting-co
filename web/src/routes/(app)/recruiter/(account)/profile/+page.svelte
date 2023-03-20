@@ -211,6 +211,10 @@
 Two States 
 1. No Email Integration -> Explain what it is and show button to connect
 2. Email Integration -> Show connected email and button to disconnect + option to connect another email
+	- Show connected email 
+	- Show last synced date?
+	- Show button to disconnect
+	- option to add another
 -->
 <div class="space-y-6">
 	{#if hasGmailAccount}
@@ -218,7 +222,10 @@ Two States
 			<div
 				class="flex justify-between bg-white py-6 px-4 shadow sm:overflow-hidden sm:rounded-md sm:p-6"
 			>
-				<div>{account.email}</div>
+				<div class="flex items-center space-x-4">
+					<img src="/gmail.svg" alt="Gmail" class="h-6 w-6" />
+					<span class="text-slate-600">{account.email}</span>
+				</div>
 				<!-- Show a green dot if the account is valid, otherwise red-->
 				{#if account.is_valid}
 					<svg
