@@ -4,7 +4,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { isValidUrl, getTrimmedFormValue, getFormCheckboxValue } from '$lib/forms';
 
 export const actions: Actions = {
-	default: async ({ request, locals: { getSession, supabase } }) => {
+	default: async ({ request, locals: { getSession, supabaseAdmin } }) => {
 		const session = await getSession();
 		// require user to be logged in
 		if (!session) {
@@ -94,7 +94,7 @@ export const actions: Actions = {
 			website: companyWebsite
 		};
 
-		const { data: createdCompany, error: companyError } = await supabase
+		const { data: createdCompany, error: companyError } = await supabaseAdmin
 			.from('company')
 			.insert(newCompany)
 			.select('*')
@@ -134,7 +134,7 @@ export const actions: Actions = {
 			company_id: createdCompany.company_id
 		};
 
-		const { error } = await supabase.from('recruiter').insert(row);
+		const { error } = await supabaseAdmin.from('recruiter').insert(row);
 
 		if (error) {
 			console.error('error creating recruiter', error);
