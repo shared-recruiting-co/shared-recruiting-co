@@ -2,11 +2,16 @@ package message
 
 import (
 	"encoding/base64"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
 
 	"google.golang.org/api/gmail/v1"
+)
+
+var (
+	emailRegex = regexp.MustCompile(`[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}`)
 )
 
 // SortByDate sorts messages by date received by gmail (ascending)
@@ -51,16 +56,7 @@ func RecipientEmail(m *gmail.Message) string {
 	if recipient == "" {
 		return ""
 	}
-
-	start := strings.Index(recipient, "<")
-	end := strings.Index(recipient, ">")
-
-	// no display name, just email
-	if start == -1 || end == -1 {
-		return strings.TrimSpace(recipient)
-	}
-
-	return strings.TrimSpace(recipient[start+1 : end])
+	return emailRegex.FindString(recipient)
 }
 
 // SenderEmail returns the email address of the sender
@@ -72,16 +68,7 @@ func SenderEmail(m *gmail.Message) string {
 	if sender == "" {
 		return ""
 	}
-
-	start := strings.Index(sender, "<")
-	end := strings.Index(sender, ">")
-
-	// no display name, just email
-	if start == -1 || end == -1 {
-		return strings.TrimSpace(sender)
-	}
-
-	return strings.TrimSpace(sender[start+1 : end])
+	return emailRegex.FindString(sender)
 }
 
 // Subject returns the subject of the message
