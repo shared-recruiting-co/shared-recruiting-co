@@ -76,6 +76,7 @@ func NewCloudFunction(ctx context.Context) (*CloudFunction, error) {
 	}, nil
 }
 
+// TODO: Add EmailSetting type and parsing to shared libs
 type EmailSetting struct {
 	IsActive bool `json:"is_active"`
 }
