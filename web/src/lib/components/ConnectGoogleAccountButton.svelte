@@ -4,7 +4,7 @@
 
 	// props
 	export let email: string | undefined = undefined;
-	export let onConnect: () => void = () => {};
+	export let onConnect: (email?: string) => void = () => {};
 	export let disabled = false;
 
 	let loaded = Boolean(browser && window.google);
@@ -26,8 +26,11 @@
 		xhr.onload = function () {
 			// check for error status
 			if (xhr.status === 200) {
+				// get connected email from response
+				const { email } = JSON.parse(xhr.responseText);
+
 				// success
-				onConnect();
+				onConnect(email);
 			} else {
 				const body = JSON.parse(xhr.responseText);
 				error = body.message;

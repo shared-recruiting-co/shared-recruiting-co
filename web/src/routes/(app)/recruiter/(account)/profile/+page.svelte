@@ -60,6 +60,19 @@
 
 	// debounce input to limit database writes
 	const debouncedHandleInput = debounce(handleInput, debounceDelay);
+
+	const onConnect = async (email: string) => {
+		const resp = await fetch('/api/account/gmail/subscribe', {
+			method: 'POST',
+			body: JSON.stringify({ email })
+		});
+		// handle errors
+		if (resp.status !== 200) {
+			// TODO: Show error!
+			errors['activate'] = 'There was an error activating your email. Please try again.';
+			return;
+		}
+	};
 </script>
 
 <div>
@@ -220,7 +233,9 @@ Two States
 <div class="space-y-6">
 	{#if hasGmailAccount}
 		{#each gmailAccounts as account}
-			<GmailIntegration isValid={account.is_valid} email={account.email} />
+			{@const { email, is_valid } = account}
+			{@const settings = profile.emailSettings[email] || {}}
+			<GmailIntegration isValid={is_valid} {email} {settings} />
 		{/each}
 	{:else}
 		<div class="bg-white py-6 px-4 shadow sm:overflow-hidden sm:rounded-md sm:p-6">
@@ -292,7 +307,19 @@ Two States
 				Once connected, SRC will trigger a one-time historic sync to import the last 3 months of
 				candidates you've reach out to!
 			</p>
-			<ConnectGoogleAccountButton />
+			<ConnectGoogleAccountButton {onConnect} />
+			{#if formError(errors, 'activate')}
+				<p class="mt21 text-xs text-rose-500">
+					{formError(errors, 'activate')}
+					<br />
+					<span>
+						If the error persists, please reach out to <a
+							href="mailto:team@sharedrecruiting.co?subject=Error Connceting Gmail"
+							class="underline">team@sharedrecruiting.co</a
+						>
+					</span>
+				</p>
+			{/if}
 		</div>
 	{/if}
 </div>
