@@ -317,6 +317,10 @@ create table public.recruiter (
     email text not null,
     first_name text not null,
     last_name text not null,
+    -- email settings
+    -- for now, use jsonb instead of a separate table
+    -- json is keyed by email address
+    email_settings jsonb not null default '{}'::jsonb,
     -- collect additional information when recruiters create an account
     responses jsonb not null default '{}'::jsonb,
 
