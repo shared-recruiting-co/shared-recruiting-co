@@ -245,6 +245,7 @@ func (cf *CloudFunction) Sync() error {
 
 			// check if we already processed this thread
 			if skipThread(thread.Messages, cf.labels.RecruitingOutbound.Id) {
+				log.Printf("skipping thread: %s (%d msgs)", thread.Id, len(thread.Messages))
 				continue
 			}
 			// (for now) we only want to check the first message in a thread
