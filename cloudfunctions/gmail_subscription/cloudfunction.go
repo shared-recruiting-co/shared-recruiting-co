@@ -3,6 +3,7 @@ package cloudfunctions
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -73,6 +74,48 @@ func NewCloudFunction(ctx context.Context) (*CloudFunction, error) {
 		oauthCreds: creds,
 		queries:    queries,
 	}, nil
+}
+
+type EmailSetting struct {
+	IsActive bool `json:"is_active"`
+}
+
+type EmailSettings map[string]EmailSetting
+
+func (cf *CloudFunction) isEmailActive(email string, inboxType db.InboxType) (bool, error) {
+	if inboxType == db.InboxTypeCandidate {
+		// get the user's profile
+		profile, err := cf.queries.GetUserProfileByEmail(cf.ctx, email)
+		if err != nil {
+			return false, fmt.Errorf("error getting user profile: %w", err)
+		}
+
+		// check if the user's email is active
+		return profile.IsActive, nil
+	}
+
+	if inboxType == db.InboxTypeRecruiter {
+		// get the recruiter's profile
+		profile, err := cf.queries.GetRecruiterByEmail(cf.ctx, email)
+		if err != nil {
+			return false, fmt.Errorf("error getting recruiter profile: %w", err)
+		}
+
+		emailSettings := EmailSettings{}
+		err = json.Unmarshal([]byte(profile.EmailSettings), &emailSettings)
+		if err != nil {
+			return false, fmt.Errorf("error unmarshalling email settings: %w", err)
+		}
+
+		settings, ok := emailSettings[email]
+		if !ok {
+			return false, fmt.Errorf("email settings do not exists for: %s", email)
+		}
+
+		return settings.IsActive, nil
+	}
+
+	return false, fmt.Errorf("unsupported or invalid inbox type: %s", inboxType)
 }
 
 func (cf *CloudFunction) watch(users []db.UserOauthToken, arg *gmail.WatchRequest) []error {
