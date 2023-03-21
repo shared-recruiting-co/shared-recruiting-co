@@ -548,7 +548,7 @@ func (q *HTTPQueries) InsertRecruiterOutboundTemplate(ctx context.Context, arg I
 	body, err := json.Marshal(arg)
 	var result RecruiterOutboundTemplate
 	if err != nil {
-		return result, err
+		return result, fmt.Errorf("error marshalling recruiter outbound template: %w\n%v", err, arg)
 	}
 
 	resp, err := q.DoRequest(ctx, http.MethodPost, path, bytes.NewReader(body))
@@ -561,10 +561,15 @@ func (q *HTTPQueries) InsertRecruiterOutboundTemplate(ctx context.Context, arg I
 		return result, fmt.Errorf("insert recruiter outbound template: %s", resp.Status)
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return result, err
+	// POST returns an array of the inserted rows
+	var results []RecruiterOutboundTemplate
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+		return result, fmt.Errorf("error decoding recruiter outbound template: %w", err)
 	}
-
+	if len(results) != 1 {
+		return result, fmt.Errorf("unexpected number of recruiter outbound templates: %d\n%v", len(results), results)
+	}
+	result = results[0]
 	return result, nil
 }
 
