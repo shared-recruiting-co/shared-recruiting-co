@@ -408,6 +408,13 @@ func isThreadStartedByUser(messages []*gmail.Message) bool {
 	return srcmessage.IsSent(firstMsg)
 }
 
+var (
+	controlCharsRegex = regexp.MustCompile(`\p{C}`)
+	extraSpacesRegex  = regexp.MustCompile(`\p{Zs}{2,}`)
+	emptyParensRegex  = regexp.MustCompile(`\(\s*\)`)
+	linkRegex         = regexp.MustCompile(`https?://\S+`)
+)
+
 func normalizeBody(body string) string {
 	// convert to text if it's HTML
 	mime := http.DetectContentType([]byte(body))
@@ -430,13 +437,16 @@ func normalizeBody(body string) string {
 	body = html.UnescapeString(body)
 
 	// strip links because they are often customized per recipient
-	re := regexp.MustCompile(`https?://\S+`)
-	body = re.ReplaceAllString(body, "")
-
-	// remove extra spaces
-	body = strings.ReplaceAll(body, "\n", " ")
-	body = strings.ReplaceAll(body, "\t", " ")
-	body = strings.ReplaceAll(body, "  ", " ")
+	body = linkRegex.ReplaceAllString(body, "")
+	// delete empty parenthesis
+	body = emptyParensRegex.ReplaceAllString(body, "")
+	// html2text adds 'null' for the text for hidden links
+	body = strings.ReplaceAll(body, " null ", " ")
+	// delete control characters
+	body = regexp.MustCompile(`\p{C}`).ReplaceAllString(body, " ")
+	// delete all the extra spaces
+	body = regexp.MustCompile(`\p{Zs}{2,}`).ReplaceAllString(body, " ")
+	// trim leading and trailing spaces
 	body = strings.TrimSpace(body)
 
 	return body
