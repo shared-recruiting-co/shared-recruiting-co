@@ -33,7 +33,7 @@ export const sendWelcomeEmail = async ({
 	email: string;
 	isNewUser: boolean;
 }) => {
-	// get user id from pofile
+	// get user id from profile
 	const { data: profileData, error: profileError } = await supabaseAdmin
 		.from('user_profile')
 		.select('user_id')

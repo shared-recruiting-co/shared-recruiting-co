@@ -3,6 +3,7 @@ package cloudfunctions
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -75,7 +76,50 @@ func NewCloudFunction(ctx context.Context) (*CloudFunction, error) {
 	}, nil
 }
 
-func (cf *CloudFunction) watch(users []db.UserOauthToken, arg *gmail.WatchRequest) []error {
+// TODO: Add EmailSetting type and parsing to shared libs
+type EmailSetting struct {
+	IsActive bool `json:"is_active"`
+}
+
+type EmailSettings map[string]EmailSetting
+
+func (cf *CloudFunction) isEmailActive(email string, inboxType db.InboxType) (bool, error) {
+	if inboxType == db.InboxTypeCandidate {
+		// get the user's profile
+		profile, err := cf.queries.GetUserProfileByEmail(cf.ctx, email)
+		if err != nil {
+			return false, fmt.Errorf("error getting user profile: %w", err)
+		}
+
+		// check if the user's email is active
+		return profile.IsActive, nil
+	}
+
+	if inboxType == db.InboxTypeRecruiter {
+		// get the recruiter's profile
+		profile, err := cf.queries.GetRecruiterByEmail(cf.ctx, email)
+		if err != nil {
+			return false, fmt.Errorf("error getting recruiter profile: %w", err)
+		}
+
+		emailSettings := EmailSettings{}
+		err = json.Unmarshal([]byte(profile.EmailSettings), &emailSettings)
+		if err != nil {
+			return false, fmt.Errorf("error unmarshalling email settings: %w", err)
+		}
+
+		settings, ok := emailSettings[email]
+		if !ok {
+			return false, fmt.Errorf("email settings do not exists for: %s", email)
+		}
+
+		return settings.IsActive, nil
+	}
+
+	return false, fmt.Errorf("unsupported or invalid inbox type: %s", inboxType)
+}
+
+func (cf *CloudFunction) watch(inboxType db.InboxType, users []db.UserOauthToken, arg *gmail.WatchRequest) []error {
 	var err error
 	var srv *srcmail.Service
 	errs := []error{}
@@ -119,15 +163,15 @@ func (cf *CloudFunction) watch(users []db.UserOauthToken, arg *gmail.WatchReques
 		}
 
 		// validate the user's email is active
-		userProfile, err := cf.queries.GetUserProfileByEmail(cf.ctx, gmailProfile.EmailAddress)
+		isActive, err := cf.isEmailActive(gmailProfile.EmailAddress, inboxType)
 		if err != nil {
-			err = fmt.Errorf("error getting user profile: %w", err)
+			err = fmt.Errorf("error checking if email is active: %w", err)
 			errs = append(errs, err)
 			continue
 		}
 
-		if !userProfile.IsActive {
-			log.Printf("skipping deactivated email %s", userProfile.Email)
+		if !isActive {
+			log.Printf("skipping deactivated email %s", gmailProfile.EmailAddress)
 			continue
 		}
 
@@ -214,7 +258,7 @@ func recruiterGmailSubscription(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		errs := cf.watch(users, arg)
+		errs := cf.watch(db.InboxTypeRecruiter, users, arg)
 
 		for _, err := range errs {
 			log.Printf("error watching email: %v", err)
@@ -305,7 +349,7 @@ func candidateGmailSubscription(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		errs := cf.watch(users, arg)
+		errs := cf.watch(db.InboxTypeCandidate, users, arg)
 
 		for _, err := range errs {
 			log.Printf("error watching email: %v", err)

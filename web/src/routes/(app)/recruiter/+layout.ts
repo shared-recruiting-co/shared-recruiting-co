@@ -35,6 +35,7 @@ export const load: PageLoad = async ({ route, parent }) => {
 			email: profile.email,
 			firstName: profile.first_name,
 			lastName: profile.last_name,
+			emailSettings: profile.email_settings,
 			createdAt: profile.created_at,
 			updatedAt: profile.updated_at
 		},

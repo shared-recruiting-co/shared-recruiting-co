@@ -60,6 +60,17 @@ type AuthUser struct {
 	Email string    `json:"email"`
 }
 
+type CandidateCompanyInbound struct {
+	CandidateEmail string        `json:"candidate_email"`
+	CandidateID    uuid.NullUUID `json:"candidate_id"`
+	CompanyID      uuid.UUID     `json:"company_id"`
+	RecruiterID    uuid.NullUUID `json:"recruiter_id"`
+	TemplateID     uuid.UUID     `json:"template_id"`
+	JobID          uuid.NullUUID `json:"job_id"`
+	CreatedAt      time.Time     `json:"created_at"`
+	UpdatedAt      time.Time     `json:"updated_at"`
+}
+
 type CandidateOauthToken struct {
 	UserID    uuid.UUID       `json:"user_id"`
 	Email     string          `json:"email"`
@@ -89,14 +100,15 @@ type Job struct {
 }
 
 type Recruiter struct {
-	UserID    uuid.UUID       `json:"user_id"`
-	Email     string          `json:"email"`
-	FirstName string          `json:"first_name"`
-	LastName  string          `json:"last_name"`
-	Responses json.RawMessage `json:"responses"`
-	CompanyID uuid.UUID       `json:"company_id"`
-	CreatedAt time.Time       `json:"created_at"`
-	UpdatedAt time.Time       `json:"updated_at"`
+	UserID        uuid.UUID       `json:"user_id"`
+	Email         string          `json:"email"`
+	FirstName     string          `json:"first_name"`
+	LastName      string          `json:"last_name"`
+	EmailSettings json.RawMessage `json:"email_settings"`
+	Responses     json.RawMessage `json:"responses"`
+	CompanyID     uuid.UUID       `json:"company_id"`
+	CreatedAt     time.Time       `json:"created_at"`
+	UpdatedAt     time.Time       `json:"updated_at"`
 }
 
 type RecruiterOauthToken struct {

@@ -60,6 +60,19 @@
 
 	// debounce input to limit database writes
 	const debouncedHandleInput = debounce(handleInput, debounceDelay);
+
+	const onConnect = async (email?: string) => {
+		const resp = await fetch('/api/account/gmail/subscribe', {
+			method: 'POST',
+			body: JSON.stringify({ email })
+		});
+		// handle errors
+		if (resp.status !== 200) {
+			errors['activate'] = 'There was an error activating your email. Please try again.';
+			return;
+		}
+		// TODO: Trigger UI update
+	};
 </script>
 
 <div>
@@ -201,6 +214,7 @@
 		</div>
 	</div>
 </div>
+	{#if hasGmailAccount}
 <div>
 	<h2 class="text-xl font-medium leading-6 text-slate-900 sm:text-2xl">Email Integration</h2>
 	<p class="mt-1 text-sm text-slate-500">
@@ -208,6 +222,7 @@
 		and sync candidates you reach out to.
 	</p>
 </div>
+{/if}
 <!-- 
 Two States 
 1. No Email Integration -> Explain what it is and show button to connect
@@ -220,16 +235,18 @@ Two States
 <div class="space-y-6">
 	{#if hasGmailAccount}
 		{#each gmailAccounts as account}
-			<GmailIntegration isValid={account.is_valid} email={account.email} />
+			{@const { email, is_valid } = account}
+			{@const settings = profile.emailSettings[email] || {}}
+			<GmailIntegration isValid={is_valid} {email} {settings} />
 		{/each}
 	{:else}
 		<div class="bg-white py-6 px-4 shadow sm:overflow-hidden sm:rounded-md sm:p-6">
-			<h3 class="text-lg leading-6 text-slate-900">Setup Your Account</h3>
-			<p class="my-2">
+			<h3 class="text-lg leading-6 font-medium text-slate-900">Setup Your Account</h3>
+			<p class="my-2 text-sm">
 				We're excited to have you on board! To get started, we'll need to connect your Gmail
 				account. Make sure you connect the same account you use for candidate outreach.
 			</p>
-			<div>
+			<div class="text-sm">
 				<p>SRC requires access to your Gmail account to:</p>
 				<ul class="mt-4 list-inside space-y-2">
 					<li class="flex flex-row items-center">
@@ -288,11 +305,23 @@ Two States
 					</li>
 				</ul>
 			</div>
-			<p class="my-4">
+			<p class="my-4 text-sm">
 				Once connected, SRC will trigger a one-time historic sync to import the last 3 months of
 				candidates you've reach out to!
 			</p>
-			<ConnectGoogleAccountButton />
+			<ConnectGoogleAccountButton {onConnect} />
+			{#if formError(errors, 'activate')}
+				<p class="mt-2 text-xs text-rose-500">
+					{formError(errors, 'activate')}
+					<br />
+					<span>
+						If the error persists, please reach out to <a
+							href="mailto:team@sharedrecruiting.co?subject=Error Connceting Gmail"
+							class="underline">team@sharedrecruiting.co</a
+						>
+					</span>
+				</p>
+			{/if}
 		</div>
 	{/if}
 </div>

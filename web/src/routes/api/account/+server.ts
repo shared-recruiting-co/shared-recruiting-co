@@ -24,7 +24,7 @@ export const DELETE: RequestHandler = async (event) => {
 	// get google refresh token
 	let accessToken = '';
 	try {
-		accessToken = await getRefreshedGoogleAccessToken(supabase);
+		accessToken = await getRefreshedGoogleAccessToken(supabase, session.user.email);
 		// stop watching for new emails
 		const stopResponse = await stop(accessToken);
 		if (stopResponse.status !== 200)
