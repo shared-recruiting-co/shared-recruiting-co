@@ -214,6 +214,7 @@
 		</div>
 	</div>
 </div>
+	{#if hasGmailAccount}
 <div>
 	<h2 class="text-xl font-medium leading-6 text-slate-900 sm:text-2xl">Email Integration</h2>
 	<p class="mt-1 text-sm text-slate-500">
@@ -221,6 +222,7 @@
 		and sync candidates you reach out to.
 	</p>
 </div>
+{/if}
 <!-- 
 Two States 
 1. No Email Integration -> Explain what it is and show button to connect
@@ -239,12 +241,12 @@ Two States
 		{/each}
 	{:else}
 		<div class="bg-white py-6 px-4 shadow sm:overflow-hidden sm:rounded-md sm:p-6">
-			<h3 class="text-lg leading-6 text-slate-900">Setup Your Account</h3>
-			<p class="my-2">
+			<h3 class="text-lg leading-6 font-medium text-slate-900">Setup Your Account</h3>
+			<p class="my-2 text-sm">
 				We're excited to have you on board! To get started, we'll need to connect your Gmail
 				account. Make sure you connect the same account you use for candidate outreach.
 			</p>
-			<div>
+			<div class="text-sm">
 				<p>SRC requires access to your Gmail account to:</p>
 				<ul class="mt-4 list-inside space-y-2">
 					<li class="flex flex-row items-center">
@@ -303,7 +305,7 @@ Two States
 					</li>
 				</ul>
 			</div>
-			<p class="my-4">
+			<p class="my-4 text-sm">
 				Once connected, SRC will trigger a one-time historic sync to import the last 3 months of
 				candidates you've reach out to!
 			</p>
