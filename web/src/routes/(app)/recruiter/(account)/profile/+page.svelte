@@ -309,7 +309,7 @@ Two States
 			</p>
 			<ConnectGoogleAccountButton {onConnect} />
 			{#if formError(errors, 'activate')}
-				<p class="mt21 text-xs text-rose-500">
+				<p class="mt-2 text-xs text-rose-500">
 					{formError(errors, 'activate')}
 					<br />
 					<span>
