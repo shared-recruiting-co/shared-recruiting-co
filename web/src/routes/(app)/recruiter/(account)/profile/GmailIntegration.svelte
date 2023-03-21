@@ -6,9 +6,11 @@
 
 	export let isValid: boolean;
 	export let email: string;
+	export let settings: Record<string, boolean>;
 	// ui state
 	// default to closed when valid, open when invalid
 	export let isOpen = !isValid;
+	let isActive = settings['is_active'] || false;
 	let showDeactivateEmailModal = false;
 	let errors: Record<string, string> = {};
 
@@ -20,25 +22,41 @@
 		return e[field] || '';
 	};
 
-	// TODO: Add state for is_active, is_valid
+	// TODO: Add last synced time
 	// TODO: Send welcome email on new email, send welcome back on reactivation
-	// TODO: Implement! Add support for recruiter_email_settings
-	// - user_id
-	// - email
-	// - is_active
 	const onDeactivateConfirm = async () => {
 		showDeactivateEmailModal = false;
-		const resp = await fetch('/api/account/gmail/unsubscribe', { method: 'POST' });
+		const resp = await fetch('/api/account/gmail/unsubscribe', {
+			method: 'POST',
+			body: JSON.stringify({ email })
+		});
 		// handle errors
 		if (resp.status !== 200) {
 			errors['deactivate'] = `There was an error deactivating ${email}. Please try again.`;
 			return;
 		}
-		// isActive = false;
+		isActive = false;
+		isOpen = false;
 	};
 
-	const onConnect = () => {
+	const activateEmail = async () => {
+		const resp = await fetch('/api/account/gmail/subscribe', {
+			method: 'POST',
+			body: JSON.stringify({ email })
+		});
+		// handle errors
+		if (resp.status !== 200) {
+			errors['activate'] = 'There was an error activating your inbox assistant. Please try again.';
+			return;
+		}
+		isActive = true;
+		isOpen = false;
+	};
+
+	const onConnect = async () => {
+		await activateEmail();
 		isValid = true;
+		isOpen = false;
 	};
 </script>
 
@@ -56,16 +74,29 @@
 		</div>
 		<div class="flex items-center space-x-4">
 			<!-- Show a green dot if the account is valid, otherwise red-->
-			{#if isValid}
+			{#if isValid && isActive}
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					viewBox="0 0 24 24"
 					fill="currentColor"
-					class="h-6 w-6 text-emerald-600"
+					class="h-6 w-6 text-blue-600"
 				>
 					<path
 						fill-rule="evenodd"
 						d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
+						clip-rule="evenodd"
+					/>
+				</svg>
+			{:else if isValid && !isActive}
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 24 24"
+					fill="currentColor"
+					class="h-6 w-6 text-yellow-500"
+				>
+					<path
+						fill-rule="evenodd"
+						d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zM9 8.25a.75.75 0 00-.75.75v6c0 .414.336.75.75.75h.75a.75.75 0 00.75-.75V9a.75.75 0 00-.75-.75H9zm5.25 0a.75.75 0 00-.75.75v6c0 .414.336.75.75.75H15a.75.75 0 00.75-.75V9a.75.75 0 00-.75-.75h-.75z"
 						clip-rule="evenodd"
 					/>
 				</svg>
@@ -107,7 +138,7 @@
 	</button>
 	{#if isOpen}
 		<div transition:slide class="mt-4 border-t pt-4">
-			{#if isValid}
+			{#if isValid && isActive}
 				<!-- Content -->
 				<div class="max-w-2xl">
 					<h3 class="text-lg font-medium leading-6 text-slate-900">Deactivate</h3>
@@ -125,7 +156,7 @@
 					}}>Deactivate</button
 				>
 				{#if formError(errors, 'deactivate')}
-					<p class="mt-1 text-xs text-rose-500">
+					<p class="mt-2 text-xs text-rose-500">
 						{formError(errors, 'deactivate')}
 						<br />
 						<span>
@@ -143,6 +174,32 @@
 					cta="Deactivate"
 					onConfirm={onDeactivateConfirm}
 				/>
+			{:else if isValid && !isActive}
+				<div class="max-w-2xl">
+					<h3 class="text-lg font-medium leading-6 text-slate-900">Activate</h3>
+					<p class="mt-2 mb-4 text-sm text-slate-500">
+						Your SRC integration is current disabled. Re-enable it to start automatically syncing
+						your outbound emails with SRC. Once re-enabled, SRC will re-sync your inbox between now
+						and the last time SRC was active.
+					</p>
+				</div>
+				<button
+					type="button"
+					class="inline-flex w-full justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto sm:text-sm"
+					on:click={activateEmail}>Activate</button
+				>
+				{#if formError(errors, 'activate')}
+					<p class="mt-2 text-xs text-rose-500">
+						{formError(errors, 'activate')}
+						<br />
+						<span>
+							If the error persists, please reach out to <a
+								href="mailto:team@sharedrecruiting.co?subject=Error Activating Inbox Assistant"
+								class="underline">team@sharedrecruiting.co</a
+							>
+						</span>
+					</p>
+				{/if}
 			{:else}
 				<div class="mb-4 max-w-2xl">
 					<h3 class="text-lg font-medium leading-6 text-slate-900">Connection Lost</h3>
@@ -153,6 +210,18 @@
 					</p>
 				</div>
 				<ConnectGoogleAccountButton {onConnect} {email} />
+				{#if formError(errors, 'activate')}
+					<p class="mt-2 text-xs text-rose-500">
+						{formError(errors, 'activate')}
+						<br />
+						<span>
+							If the error persists, please reach out to <a
+								href="mailto:team@sharedrecruiting.co?subject=Error Connceting Gmail"
+								class="underline">team@sharedrecruiting.co</a
+							>
+						</span>
+					</p>
+				{/if}
 			{/if}
 		</div>
 	{/if}
