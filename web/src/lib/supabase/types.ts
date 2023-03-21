@@ -117,6 +117,7 @@ export interface Database {
 					company_id: string;
 					created_at: string;
 					email: string;
+					email_settings: Json;
 					first_name: string;
 					last_name: string;
 					responses: Json;
@@ -127,6 +128,7 @@ export interface Database {
 					company_id: string;
 					created_at?: string;
 					email: string;
+					email_settings?: Json;
 					first_name: string;
 					last_name: string;
 					responses?: Json;
@@ -137,6 +139,7 @@ export interface Database {
 					company_id?: string;
 					created_at?: string;
 					email?: string;
+					email_settings?: Json;
 					first_name?: string;
 					last_name?: string;
 					responses?: Json;
@@ -440,6 +443,7 @@ export interface Database {
 					company_id: string;
 					created_at: string;
 					email: string;
+					email_settings: Json;
 					first_name: string;
 					last_name: string;
 					responses: Json;
