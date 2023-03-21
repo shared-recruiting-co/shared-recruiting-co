@@ -76,19 +76,19 @@
 			<!-- Status Badge -->
 			{#if isValid && isActive}
 				<span
-					class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 md:px-3 md:py-1 md:text-sm"
+					class="inline-flex items-center rounded-md bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 md:px-3 md:py-1 md:text-sm"
 				>
 					Active
 				</span>
 			{:else if isValid && !isActive}
 				<span
-					class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 md:px-3 md:py-1 md:text-sm"
+					class="inline-flex items-center rounded-md bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 md:px-3 md:py-1 md:text-sm"
 				>
 					Paused
 				</span>
 			{:else}
 				<span
-					class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 md:px-3 md:py-1 md:text-sm"
+					class="inline-flex items-center rounded-md bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 md:px-3 md:py-1 md:text-sm"
 				>
 					Connection Lost
 				</span>
