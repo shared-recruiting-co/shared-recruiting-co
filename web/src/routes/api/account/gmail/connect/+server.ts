@@ -1,4 +1,4 @@
-import { error } from '@sveltejs/kit';
+import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 import { exchangeCodeForTokens } from '$lib/server/google/oauth';
@@ -29,7 +29,7 @@ const connectEmail = async ({
 	code: string;
 	session: Session;
 	supabase: SupabaseClient;
-}) => {
+}): Promise<string> => {
 	// https://developers.google.com/identity/protocols/oauth2/web-server#httprest_3
 	// exchange code for access and refresh token
 	const tokenResponse = await exchangeCodeForTokens(code, method);
@@ -91,6 +91,8 @@ const connectEmail = async ({
 			'Failed to sync your account. Please try again. If this problem persists, reach out to team@sharedrecruiting.co.'
 		);
 	}
+
+	return email;
 };
 
 export const POST: RequestHandler = async ({ request, locals: { getSession, supabase } }) => {
@@ -108,9 +110,9 @@ export const POST: RequestHandler = async ({ request, locals: { getSession, supa
 		throw error(400, 'missing code parameter');
 	}
 
-	await connectEmail({ method: 'POST', code: code.toString(), session, supabase });
+	const email = await connectEmail({ method: 'POST', code: code.toString(), session, supabase });
 
-	return new Response('success');
+	return json({ email });
 };
 
 export const GET: RequestHandler = async ({ url, locals: { getSession, supabase } }) => {
@@ -122,7 +124,7 @@ export const GET: RequestHandler = async ({ url, locals: { getSession, supabase 
 		throw error(400, 'missing code parameter');
 	}
 
-	await connectEmail({ method: 'GET', code, session, supabase });
+	const email = await connectEmail({ method: 'GET', code, session, supabase });
 
-	return new Response('success');
+	return json({ email });
 };
