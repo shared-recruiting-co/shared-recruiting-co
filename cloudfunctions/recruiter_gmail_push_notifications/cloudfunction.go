@@ -61,7 +61,7 @@ type CloudFunction struct {
 func NewCloudFunction(ctx context.Context, payload schema.EmailPushNotification) (*CloudFunction, error) {
 	creds, err := jsonFromEnv("GOOGLE_OAUTH2_CREDENTIALS")
 	if err != nil {
-		return nil, fmt.Errorf("error parsing GOOGLE_OAUTH2_CREDENTIALScredentials: %w", err)
+		return nil, fmt.Errorf("error parsing GOOGLE_OAUTH2_CREDENTIALS: %w", err)
 	}
 
 	// 0, Create SRC client
@@ -130,8 +130,11 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailPushNotification)
 		// TODO: Handle error.
 		log.Printf("failed to create pubsub client: %v", err)
 	}
-	candidateGmailMessagesTopic := os.Getenv("CANDIDATE_GMAIL_MESSAGES_TOPIC")
-	topic := client.Topic(candidateGmailMessagesTopic)
+	topicName := os.Getenv("GMAIL_MESSAGES_TOPIC")
+	if topicName == "" {
+		return nil, fmt.Errorf("GMAIL_MESSAGES_TOPIC env var is not set")
+	}
+	topic := client.Topic(topicName)
 
 	topics := &PubSubTopics{
 		RecruiterGmailMessages: topic,
