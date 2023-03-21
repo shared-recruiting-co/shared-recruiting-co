@@ -8,9 +8,14 @@ export const POST: RequestHandler = async ({ request, locals: { getSession, supa
 	const session = await getSession();
 	if (!session) throw error(401, 'unauthorized');
 
-	// get email from request body
-	let { email } = await request.json();
-	email = email || session.user.email;
+	// get email from request body (if it exists)
+	let email = session.user.email;
+	try {
+		const { email: reqEmail } = await request.json();
+		email = reqEmail || email;
+	} catch (err) {
+		// do nothing
+	}
 
 	// get google refresh token
 	let accessToken = '';
