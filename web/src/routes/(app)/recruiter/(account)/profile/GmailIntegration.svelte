@@ -13,6 +13,7 @@
 	let isActive = settings['is_active'] || false;
 	let showDeactivateEmailModal = false;
 	let errors: Record<string, string> = {};
+	let isActivating = false;
 
 	const toggle = () => {
 		isOpen = !isOpen;
@@ -40,10 +41,12 @@
 	};
 
 	const activateEmail = async () => {
+		isActivating = true;
 		const resp = await fetch('/api/account/gmail/subscribe', {
 			method: 'POST',
 			body: JSON.stringify({ email })
 		});
+		isActivating = false;
 		// handle errors
 		if (resp.status !== 200) {
 			errors['activate'] = 'There was an error activating your inbox assistant. Please try again.';
@@ -165,7 +168,10 @@
 				<button
 					type="button"
 					class="inline-flex w-full justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto sm:text-sm"
-					on:click={activateEmail}>Activate</button
+					class:animate-pulse={isActivating}
+					on:click={activateEmail}>
+					{isActivating ? "Activating..." : "Activate"}
+				</button
 				>
 				{#if formError(errors, 'activate')}
 					<p class="mt-2 text-xs text-rose-500">
