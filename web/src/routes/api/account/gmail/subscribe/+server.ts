@@ -4,14 +4,18 @@ import type { RequestHandler } from './$types';
 import { watch } from '$lib/server/google/gmail';
 import { getRefreshedGoogleAccessToken } from '$lib/supabase/client.server';
 
-export const POST: RequestHandler = async ({ locals: { getSession, supabase } }) => {
+export const POST: RequestHandler = async ({ request, locals: { getSession, supabase } }) => {
 	const session = await getSession();
 	if (!session) throw error(401, 'unauthorized');
+
+	// get email from request body
+	let { email } = await request.json();
+	email = email || session.user.email;
 
 	// get google refresh token
 	let accessToken = '';
 	try {
-		accessToken = await getRefreshedGoogleAccessToken(supabase);
+		accessToken = await getRefreshedGoogleAccessToken(supabase, email);
 	} catch (err) {
 		// do something
 		if (err instanceof Error) {
@@ -35,3 +39,10 @@ export const POST: RequestHandler = async ({ locals: { getSession, supabase } })
 
 	return new Response('success');
 };
+
+// options
+// check if request if from a candidate or recruiter (or both) -> subscribe to topic accordingly
+//
+// separate endpoint for updating email settings (/candidate/email_settings, /recruiter/email_settings)
+// -> in this case, check if is_active is toggled to true from false, if so, send email
+// create separate endpoint

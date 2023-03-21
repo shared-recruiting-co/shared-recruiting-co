@@ -4,14 +4,18 @@ import type { RequestHandler } from './$types';
 import { stop } from '$lib/server/google/gmail';
 import { getRefreshedGoogleAccessToken } from '$lib/supabase/client.server';
 
-export const POST: RequestHandler = async ({ locals: { getSession, supabase } }) => {
+export const POST: RequestHandler = async ({ request, locals: { getSession, supabase } }) => {
 	const session = await getSession();
 	if (!session) throw error(401, 'unauthorized');
+
+	// get email from request body
+	let { email } = await request.json();
+	email = email || session.user.email;
 
 	// get google refresh token
 	let accessToken = '';
 	try {
-		accessToken = await getRefreshedGoogleAccessToken(supabase);
+		accessToken = await getRefreshedGoogleAccessToken(supabase, email);
 	} catch (err) {
 		// do something
 		if (err instanceof Error) {

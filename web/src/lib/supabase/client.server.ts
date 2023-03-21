@@ -4,13 +4,17 @@ import { refreshAccessToken } from '$lib/server/google/oauth';
 
 // get a refreshed google access token
 // tbd where the best location for this function is
-export const getRefreshedGoogleAccessToken = async (client: SupabaseClient): Promise<string> => {
+export const getRefreshedGoogleAccessToken = async (
+	client: SupabaseClient,
+	email: string
+): Promise<string> => {
 	// get google refresh token
-	// relies on RLS to only return the refresh token for the current user
+	// relies on RLS to only return tokens for the current user
 	const { data } = await client
 		.from('user_oauth_token')
 		.select('token')
 		.eq('provider', 'google')
+		.eq('email', email)
 		.maybeSingle();
 
 	if (!data || !data.token) throw new Error('No google oauth tokens found');
