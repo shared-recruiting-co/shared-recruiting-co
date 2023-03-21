@@ -53,8 +53,8 @@ export const POST: RequestHandler = async ({ request, locals: { getSession, supa
 		const emailSettings = {
 			...(recruiter.email_settings || {}),
 			[email]: {
-				is_active: true,
-				...(recruiter?.email_settings[email] || {})
+				...(recruiter?.email_settings[email] || {}),
+				is_active: false
 			}
 		};
 
