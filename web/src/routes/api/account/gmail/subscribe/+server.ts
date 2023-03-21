@@ -66,22 +66,20 @@ export const POST: RequestHandler = async ({ request, locals: { getSession, supa
 		if (watchResponse.status !== 200)
 			throw error(500, 'Failed to subscribe to gmail notifications');
 
-		// TODO
 		// "activate" the email in db
-		// const { error: updateError } = await supabase
-		// .from('user_profile')
-		// .update({ is_active: true })
-		// .eq('user_id', session?.user.id);
-		//
-		// if (updateError) throw error(500, 'failed to saved changes to database');
+		const emailSettings = {
+			...recruiter.email_settings,
+			[email]: {
+				is_active: true
+			}
+		};
+		const { error: updateError } = await supabase
+			.from('recruiter')
+			.update({ email_settings: emailSettings })
+			.eq('user_id', session.user.id);
+
+		if (updateError) throw error(500, 'failed to save email setting changes to database');
 	}
 
 	return new Response('success');
 };
-
-// options
-// check if request if from a candidate or recruiter (or both) -> subscribe to topic accordingly
-//
-// separate endpoint for updating email settings (/candidate/email_settings, /recruiter/email_settings)
-// -> in this case, check if is_active is toggled to true from false, if so, send email
-// create separate endpoint
