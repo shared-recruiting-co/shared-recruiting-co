@@ -68,10 +68,10 @@
 		});
 		// handle errors
 		if (resp.status !== 200) {
-			// TODO: Show error!
 			errors['activate'] = 'There was an error activating your email. Please try again.';
 			return;
 		}
+		// TODO: Trigger UI update
 	};
 </script>
 
