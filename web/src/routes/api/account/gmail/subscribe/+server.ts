@@ -1,8 +1,17 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
+import { CANDIDATE_GMAIL_PUBSUB_TOPIC } from '$env/static/private';
+
 import { watch } from '$lib/server/google/gmail';
+import type { WatchRequest } from '$lib/server/google/gmail';
 import { getRefreshedGoogleAccessToken } from '$lib/supabase/client.server';
+
+const candidateWatchRequest: WatchRequest = {
+	labelIds: ['UNREAD'],
+	labelFilterAction: 'include',
+	topicName: CANDIDATE_GMAIL_PUBSUB_TOPIC
+};
 
 export const POST: RequestHandler = async ({ request, locals: { getSession, supabase } }) => {
 	const session = await getSession();
@@ -25,7 +34,7 @@ export const POST: RequestHandler = async ({ request, locals: { getSession, supa
 		throw error(500, 'unexpected error occurred');
 	}
 	// watch for new emails
-	const watchResponse = await watch(accessToken);
+	const watchResponse = await watch(accessToken, candidateWatchRequest);
 
 	if (watchResponse.status !== 200) throw error(500, 'Failed to subscribe to gmail notifications');
 
