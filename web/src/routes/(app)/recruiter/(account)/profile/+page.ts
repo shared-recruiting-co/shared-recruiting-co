@@ -3,7 +3,7 @@ import type { PageLoad } from './$types';
 import type { Database } from '$lib/supabase/types';
 
 type Data = {
-	gmailAccounts: Database['public']['Views']['recruiter_oauth_token']['Row'][];
+	gmailAccounts: Database['public']['Tables']['user_oauth_token']['Row'][];
 };
 
 export const load: PageLoad<Data> = async ({ parent }) => {
