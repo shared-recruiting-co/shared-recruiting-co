@@ -32,7 +32,8 @@ import (
 )
 
 const (
-	provider = "google"
+	provider            = "google"
+	similarityThreshold = 0.6
 )
 
 func init() {
@@ -296,14 +297,19 @@ func (cf *CloudFunction) processMessage(id string) error {
 		// match to the first template
 		template := templates[0]
 
-		// save and label message
-		err = cf.saveMessage(firstMsg, template.TemplateID)
-		if err != nil {
-			return fmt.Errorf("error saving message: %w", err)
-		}
+		// only save if the similarity is above a threshold
+		// TODO: This should be happening via pg_trgm.similarity_threshold, but it's not working
+		if template.Similarity > similarityThreshold {
 
-		// done
-		return nil
+			// save and label message
+			err = cf.saveMessage(firstMsg, template.TemplateID)
+			if err != nil {
+				return fmt.Errorf("error saving message: %w", err)
+			}
+
+			// done
+			return nil
+		}
 	}
 	log.Printf("no matching template found for message %s", msg.Id)
 
