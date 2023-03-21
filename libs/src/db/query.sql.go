@@ -32,6 +32,7 @@ select
     recruiter.email,
     recruiter.first_name,
     recruiter.last_name,
+    recruiter.email_settings,
     recruiter.company_id,
     recruiter.created_at,
     recruiter.updated_at
@@ -42,13 +43,14 @@ limit 1
 `
 
 type GetRecruiterByEmailRow struct {
-	UserID    uuid.UUID `json:"user_id"`
-	Email     string    `json:"email"`
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
-	CompanyID uuid.UUID `json:"company_id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	UserID        uuid.UUID       `json:"user_id"`
+	Email         string          `json:"email"`
+	FirstName     string          `json:"first_name"`
+	LastName      string          `json:"last_name"`
+	EmailSettings json.RawMessage `json:"email_settings"`
+	CompanyID     uuid.UUID       `json:"company_id"`
+	CreatedAt     time.Time       `json:"created_at"`
+	UpdatedAt     time.Time       `json:"updated_at"`
 }
 
 func (q *Queries) GetRecruiterByEmail(ctx context.Context, email string) (GetRecruiterByEmailRow, error) {
@@ -59,6 +61,7 @@ func (q *Queries) GetRecruiterByEmail(ctx context.Context, email string) (GetRec
 		&i.Email,
 		&i.FirstName,
 		&i.LastName,
+		&i.EmailSettings,
 		&i.CompanyID,
 		&i.CreatedAt,
 		&i.UpdatedAt,

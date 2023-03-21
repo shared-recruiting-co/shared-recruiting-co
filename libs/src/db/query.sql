@@ -141,6 +141,7 @@ select
     recruiter.email,
     recruiter.first_name,
     recruiter.last_name,
+    recruiter.email_settings,
     recruiter.company_id,
     recruiter.created_at,
     recruiter.updated_at
