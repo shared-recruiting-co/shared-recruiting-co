@@ -61,7 +61,7 @@
 	// debounce input to limit database writes
 	const debouncedHandleInput = debounce(handleInput, debounceDelay);
 
-	const onConnect = async (email: string) => {
+	const onConnect = async (email?: string) => {
 		const resp = await fetch('/api/account/gmail/subscribe', {
 			method: 'POST',
 			body: JSON.stringify({ email })
@@ -309,7 +309,7 @@ Two States
 			</p>
 			<ConnectGoogleAccountButton {onConnect} />
 			{#if formError(errors, 'activate')}
-				<p class="mt21 text-xs text-rose-500">
+				<p class="mt-2 text-xs text-rose-500">
 					{formError(errors, 'activate')}
 					<br />
 					<span>
