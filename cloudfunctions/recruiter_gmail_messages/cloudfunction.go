@@ -183,7 +183,7 @@ func handler(ctx context.Context, e event.Event) error {
 		err = cf.processMessage(m)
 		if err != nil {
 			// for now abort on first error
-			return handleError("error creating cloud function", err)
+			return handleError("error processing message", err)
 		}
 	}
 
@@ -208,6 +208,11 @@ func (cf *CloudFunction) processMessage(id string) error {
 	// 1. Get Message
 	msg, err := cf.srv.GetMessage(id)
 	if err != nil {
+		if srcmail.IsNotFound(err) {
+			// message was deleted, skip
+			log.Printf("skipping message %s was deleted", id)
+			return nil
+		}
 		return fmt.Errorf("error getting message: %w", err)
 	}
 
