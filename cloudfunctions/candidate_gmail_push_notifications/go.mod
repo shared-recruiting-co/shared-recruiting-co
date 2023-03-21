@@ -7,7 +7,7 @@ require (
 	github.com/GoogleCloudPlatform/functions-framework-go v1.6.1
 	github.com/cloudevents/sdk-go/v2 v2.12.0
 	github.com/getsentry/sentry-go v0.16.0
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230320235405-410dcb5e6a25
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230321170220-1d645ce58297
 	google.golang.org/api v0.107.0
 )
 
