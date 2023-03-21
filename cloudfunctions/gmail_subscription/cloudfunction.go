@@ -118,7 +118,7 @@ func (cf *CloudFunction) isEmailActive(email string, inboxType db.InboxType) (bo
 	return false, fmt.Errorf("unsupported or invalid inbox type: %s", inboxType)
 }
 
-func (cf *CloudFunction) watch(users []db.UserOauthToken, arg *gmail.WatchRequest) []error {
+func (cf *CloudFunction) watch(inboxType db.InboxType, users []db.UserOauthToken, arg *gmail.WatchRequest) []error {
 	var err error
 	var srv *srcmail.Service
 	errs := []error{}
@@ -162,15 +162,15 @@ func (cf *CloudFunction) watch(users []db.UserOauthToken, arg *gmail.WatchReques
 		}
 
 		// validate the user's email is active
-		userProfile, err := cf.queries.GetUserProfileByEmail(cf.ctx, gmailProfile.EmailAddress)
+		isActive, err := cf.isEmailActive(gmailProfile.EmailAddress, inboxType)
 		if err != nil {
-			err = fmt.Errorf("error getting user profile: %w", err)
+			err = fmt.Errorf("error checking if email is active: %w", err)
 			errs = append(errs, err)
 			continue
 		}
 
-		if !userProfile.IsActive {
-			log.Printf("skipping deactivated email %s", userProfile.Email)
+		if !isActive {
+			log.Printf("skipping deactivated email %s", gmailProfile.EmailAddress)
 			continue
 		}
 
@@ -257,7 +257,7 @@ func recruiterGmailSubscription(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		errs := cf.watch(users, arg)
+		errs := cf.watch(db.InboxTypeRecruiter, users, arg)
 
 		for _, err := range errs {
 			log.Printf("error watching email: %v", err)
@@ -348,7 +348,7 @@ func candidateGmailSubscription(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		errs := cf.watch(users, arg)
+		errs := cf.watch(db.InboxTypeCandidate, users, arg)
 
 		for _, err := range errs {
 			log.Printf("error watching email: %v", err)
