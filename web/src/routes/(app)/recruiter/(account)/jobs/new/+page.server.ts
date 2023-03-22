@@ -68,6 +68,7 @@ export const actions: Actions = {
 			});
 		}
 
-		return { success: true };
+		// return to jobs page
+		return redirect(303, '/recruiter/jobs');
 	}
 };
