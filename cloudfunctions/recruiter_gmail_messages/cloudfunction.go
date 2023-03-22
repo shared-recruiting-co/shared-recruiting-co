@@ -449,9 +449,9 @@ func normalizeBody(body string) string {
 	// html2text adds 'null' for the text for hidden links
 	body = strings.ReplaceAll(body, " null ", " ")
 	// delete control characters
-	body = regexp.MustCompile(`\p{C}`).ReplaceAllString(body, " ")
+	body = controlCharsRegex.ReplaceAllString(body, " ")
 	// delete all the extra spaces
-	body = regexp.MustCompile(`\p{Zs}{2,}`).ReplaceAllString(body, " ")
+	body = extraSpacesRegex.ReplaceAllString(body, " ")
 	// trim leading and trailing spaces
 	body = strings.TrimSpace(body)
 
