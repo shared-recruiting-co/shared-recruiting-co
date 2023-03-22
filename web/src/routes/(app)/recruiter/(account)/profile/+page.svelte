@@ -214,14 +214,14 @@
 		</div>
 	</div>
 </div>
-	{#if hasGmailAccount}
-<div>
-	<h2 class="text-xl font-medium leading-6 text-slate-900 sm:text-2xl">Email Integration</h2>
-	<p class="mt-1 text-sm text-slate-500">
-		Connect the emails you use for candidate outreach. Once connceted, SRC will automatically import
-		and sync candidates you reach out to.
-	</p>
-</div>
+{#if hasGmailAccount}
+	<div>
+		<h2 class="text-xl font-medium leading-6 text-slate-900 sm:text-2xl">Email Integration</h2>
+		<p class="mt-1 text-sm text-slate-500">
+			Connect the emails you use for candidate outreach. Once connceted, SRC will automatically
+			import and sync candidates you reach out to.
+		</p>
+	</div>
 {/if}
 <!-- 
 Two States 
@@ -241,7 +241,7 @@ Two States
 		{/each}
 	{:else}
 		<div class="bg-white py-6 px-4 shadow sm:overflow-hidden sm:rounded-md sm:p-6">
-			<h3 class="text-lg leading-6 font-medium text-slate-900">Setup Your Account</h3>
+			<h3 class="text-lg font-medium leading-6 text-slate-900">Setup Your Account</h3>
 			<p class="my-2 text-sm">
 				We're excited to have you on board! To get started, we'll need to connect your Gmail
 				account. Make sure you connect the same account you use for candidate outreach.
