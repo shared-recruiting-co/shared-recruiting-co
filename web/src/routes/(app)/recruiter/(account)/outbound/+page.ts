@@ -36,6 +36,8 @@ export const load: PageLoad<Data> = async ({ url, parent }) => {
 
 	const stop = start + PAGE_SIZE;
 
+	// TODO: Use Promise.all() to get all the data at once
+
 	// Get outbound recruiter template
 	const { data: outboundTemplates } = await supabase
 		.from('recruiter_outbound_template')

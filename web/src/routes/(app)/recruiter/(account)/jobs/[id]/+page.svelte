@@ -13,8 +13,9 @@
 	//
 
 	// TODO
-	// Breadcrumbs
 	// Edit Job
+	// Delete Job
+	// Empty State
 </script>
 
 <nav class="flex" aria-label="Breadcrumb">
