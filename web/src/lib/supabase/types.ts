@@ -422,6 +422,18 @@ export interface Database {
 					user_id: string | null;
 				};
 			};
+			job_candidate_count: {
+				Row: {
+					job_id: string | null;
+					num_candidates: number | null;
+				};
+			};
+			outbound_template_recipient_count: {
+				Row: {
+					num_recipients: number | null;
+					template_id: string | null;
+				};
+			};
 			recruiter_oauth_token: {
 				Row: {
 					created_at: string | null;
