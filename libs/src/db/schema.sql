@@ -747,3 +747,24 @@ create or replace trigger candidate_company_inbound_trigger_user_profile after i
 --------------------------------
 -- End: Candidate Company Inbound Tables & Triggers
 --------------------------------
+
+
+--------------------------------
+-- Start: Views for Counts of Candidates (Recipients) per Template and for Jobs
+--------------------------------
+create or replace view outbound_template_recipient_count with (security_invoker) as
+select 
+   template_id,
+   count(distinct to_email) as num_recipients
+from recruiter_outbound_message
+group by template_id;
+
+create or replace view job_candidate_count with (security_invoker) as
+select
+  job_id,
+  count(distinct candidate_email) as num_candidates
+from candidate_company_inbound
+group by job_id;
+--------------------------------
+-- End: Views for Counts of Candidates (Recipients) per Template and for Jobs
+--------------------------------
