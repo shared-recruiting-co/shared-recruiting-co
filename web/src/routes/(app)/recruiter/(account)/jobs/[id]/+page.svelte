@@ -2,9 +2,12 @@
 	import type { PageData } from ',/$types';
 	import { page } from '$app/stores';
 
+	import Candidates from './Candidates.svelte';
+	import OutboundTemplates from './OutboundTemplates.svelte';
+
 	export let data: PageData;
 
-	$: ({ job } = data);
+	$: ({ job, candidates, outboundTemplates } = data);
 	$: hash = $page.url.hash || '#candidates';
 
 	//
@@ -14,9 +17,38 @@
 	// Edit Job
 </script>
 
+<nav class="flex" aria-label="Breadcrumb">
+	<ol role="list" class="flex items-center space-x-4">
+		<li>
+			<div class="flex items-center">
+				<a href="/recruiter/jobs" class="text-sm font-medium text-slate-500 hover:text-slate-700"
+					>Jobs</a
+				>
+			</div>
+		</li>
+
+		<li>
+			<div class="flex items-center">
+				<svg
+					class="h-5 w-5 flex-shrink-0 text-slate-300"
+					fill="currentColor"
+					viewBox="0 0 20 20"
+					aria-hidden="true"
+				>
+					<path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
+				</svg>
+				<a
+					href="#candidates"
+					class="ml-4 text-sm font-medium text-slate-500 hover:text-slate-700"
+					aria-current="page">{job.title}</a
+				>
+			</div>
+		</li>
+	</ol>
+</nav>
 <div>
 	<h1 class="text-3xl sm:text-4xl">{job.title}</h1>
-	<p class="mt-2 text-sm text-slate-500">
+	<p class="mt-2 pb-2 text-sm text-slate-500">
 		<a
 			href={job.description_url}
 			target="_blank"
@@ -47,7 +79,6 @@
 	<div>
 		<div class="border-b border-slate-200 md:text-lg">
 			<nav class="-mb-px flex space-x-8" aria-label="Tabs">
-				<!-- Current: "border-blue-500 text-blue-600", Default: "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700" -->
 				<a
 					href="#candidates"
 					class="group inline-flex items-center border-b-2 border-transparent py-4 px-1 text-sm font-medium md:text-base"
@@ -57,7 +88,6 @@
 					class:border-blue-500={hash === '#candidates'}
 					class:text-blue-600={hash === '#candidates'}
 				>
-					<!-- Current: "text-blue-500", Default: "text-slate-400 group-hover:text-slate-500" -->
 					<svg
 						class="-ml-0.5 mr-2 h-6 w-6"
 						class:text-slate-400={hash !== '#candidates'}
@@ -107,3 +137,8 @@
 		</div>
 	</div>
 </div>
+{#if hash === '#candidates'}
+	<Candidates {candidates} />
+{:else if hash === '#outbound'}
+	<OutboundTemplates {outboundTemplates} />
+{/if}
