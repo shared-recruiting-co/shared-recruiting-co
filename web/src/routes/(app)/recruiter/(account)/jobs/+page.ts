@@ -1,11 +1,10 @@
 import type { PageLoad } from './$types';
 import { redirect, error } from '@sveltejs/kit';
 
-type Job = {
-	job_id: string;
-	company_id: string;
-	title: string;
-	description_url: string;
+import type { Database } from '$lib/supabase/types';
+
+type Job = Database['public']['Tables']['job']['Row'] & {
+	candidate_count: number;
 };
 
 type Pagination = {
@@ -58,8 +57,30 @@ export const load: PageLoad<Data> = async ({ url, parent }) => {
 		throw error(500, countError?.message);
 	}
 
+	// candidate counts
+	const { data: candidateCounts, error: candidateCountsError } = await supabase
+		.from('job_candidate_count')
+		.select('*')
+		.in(
+			'job_id',
+			jobs.map((job) => job.job_id)
+		);
+
+	console.log(candidateCounts, candidateCountsError);
+
+	// add candidate counts to jobs
+	const jobsWithCandidateCounts = jobs.map((job) => {
+		const candidateCount = candidateCounts.find(
+			(candidateCount) => candidateCount.job_id === job.job_id
+		)?.num_candidates;
+		return {
+			...job,
+			candidate_count: candidateCount || 0
+		};
+	});
+
 	return {
-		jobs,
+		jobs: jobsWithCandidateCounts,
 		pagination: {
 			page,
 			perPage: PAGE_SIZE,
