@@ -5,7 +5,7 @@
 	export let data: PageData;
 
 	$: ({ job } = data);
-	$: hash = $page.url.hash;
+	$: hash = $page.url.hash || '#candidates';
 
 	//
 
@@ -51,18 +51,18 @@
 				<a
 					href="#candidates"
 					class="group inline-flex items-center border-b-2 border-transparent py-4 px-1 text-sm font-medium md:text-base"
-					class:text-slate-500={hash !== '#candidates' && hash !== ''}
-					class:hover:border-slate-300={hash !== '#candidates' && hash !== ''}
-					class:hover:text-slate-700={hash !== '#candidates' && hash !== ''}
-					class:border-blue-500={hash === '#candidates' || hash === ''}
-					class:text-blue-600={hash === '#candidates' || hash === ''}
+					class:text-slate-500={hash !== '#candidates'}
+					class:hover:border-slate-300={hash !== '#candidates'}
+					class:hover:text-slate-700={hash !== '#candidates'}
+					class:border-blue-500={hash === '#candidates'}
+					class:text-blue-600={hash === '#candidates'}
 				>
 					<!-- Current: "text-blue-500", Default: "text-slate-400 group-hover:text-slate-500" -->
 					<svg
 						class="-ml-0.5 mr-2 h-6 w-6"
-						class:text-slate-400={hash !== '#candidates' && hash !== ''}
-						class:group-hover:text-slate-500={hash !== '#candidates' && hash !== ''}
-						class:text-blue-500={hash === '#candidates' || hash === ''}
+						class:text-slate-400={hash !== '#candidates'}
+						class:group-hover:text-slate-500={hash !== '#candidates'}
+						class:text-blue-500={hash === '#candidates'}
 						viewBox="0 0 20 20"
 						fill="currentColor"
 						aria-hidden="true"
@@ -77,17 +77,17 @@
 				<a
 					href="#outbound"
 					class="group inline-flex items-center border-b-2 border-transparent py-4 px-1 text-sm font-medium md:text-base"
-					class:text-slate-500={hash !== '#outbound' && hash !== ''}
-					class:hover:border-slate-300={hash !== '#outbound' && hash !== ''}
-					class:hover:text-slate-700={hash !== '#outbound' && hash !== ''}
-					class:border-blue-500={hash === '#outbound' || hash === ''}
-					class:text-blue-600={hash === '#outbound' || hash === ''}
+					class:text-slate-500={hash !== '#outbound'}
+					class:hover:border-slate-300={hash !== '#outbound'}
+					class:hover:text-slate-700={hash !== '#outbound'}
+					class:border-blue-500={hash === '#outbound'}
+					class:text-blue-600={hash === '#outbound'}
 				>
 					<svg
 						class="-ml-0.5 mr-2 h-6 w-6"
-						class:text-slate-400={hash !== '#outbound' && hash !== ''}
-						class:group-hover:text-slate-500={hash !== '#outbound' && hash !== ''}
-						class:text-blue-500={hash === '#outbound' || hash === ''}
+						class:text-slate-400={hash !== '#outbound'}
+						class:group-hover:text-slate-500={hash !== '#outbound'}
+						class:text-blue-500={hash === '#outbound'}
 						fill="none"
 						viewBox="0 0 24 24"
 						stroke-width="1.5"
