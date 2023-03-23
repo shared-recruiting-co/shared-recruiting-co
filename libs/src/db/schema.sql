@@ -726,22 +726,22 @@ $$
 language plpgsql volatile;
 
 -- create a trigger for inserts into to recruiter_outbound_message
-create trigger insert_candidate_company_inbound_trigger_after_insert after insert on public.recruiter_outbound_message
+create or replace trigger insert_candidate_company_inbound_trigger_after_insert after insert on public.recruiter_outbound_message
   for each row execute function insert_candidate_company_inbound_trigger();
 
 -- create a trigger for inserts or updates into to recruiter_outbound_template
 -- TODO: Separate triggers for update and insert 
-create trigger candidate_company_inbound_trigger_recruiter_outbound_template after update on public.recruiter_outbound_template
+create or replace trigger candidate_company_inbound_trigger_recruiter_outbound_template after update on public.recruiter_outbound_template
   for each row 
   when (old.job_id is distinct from new.job_id)
   execute function update_job_for_template_candidate_company_inbound_trigger();
 
 -- create a trigger for inserts into to user_oauth_token
-create trigger candidate_company_inbound_trigger_user_oauth_token after insert or update on public.user_oauth_token
+create or replace trigger candidate_company_inbound_trigger_user_oauth_token after insert or update on public.user_oauth_token
   for each row execute function update_candidate_for_email_candidate_company_inbound_trigger(); 
 
 -- create a trigger for inserts into to user_profile
-create trigger candidate_company_inbound_trigger_user_profile after insert on public.user_profile
+create or replace trigger candidate_company_inbound_trigger_user_profile after insert on public.user_profile
   for each row execute function update_candidate_for_email_candidate_company_inbound_trigger();
 
 --------------------------------
