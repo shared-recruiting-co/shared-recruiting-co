@@ -31,10 +31,8 @@
 
 	// TODO
 	// Empty State
+	// Smaller Screens!
 	// No Job -> Create your first job notification
-	// All Sequences
-	// Pagination
-	// Candidate Counts
 	// All Sequences w/ Ignore Button & Toggle/Filter
 	// View in Gmail button?
 	// Use Combobox for Job Selection
@@ -65,6 +63,10 @@
 					<th scope="col" class="table-cell py-3.5 pl-4 pr-3 font-semibold text-slate-900 lg:px-3"
 						>Job</th
 					>
+					<th
+						scope="col"
+						class="table-cell py-3.5 pl-4 pr-3 font-semibold text-slate-900 lg:px-3"
+					/>
 				</tr>
 			</thead>
 			<tbody class="divide-y divide-slate-200 bg-white">
@@ -74,15 +76,15 @@
 							{sequence.subject}
 						</td>
 						<td
-							class="hidden truncate py-4 pl-4 pr-3 font-medium text-slate-900 lg:table-cell lg:px-3"
+							class="hidden truncate py-4 pl-4 pr-3 font-medium text-slate-700 lg:table-cell lg:px-3"
 						>
-							{sequence.body.slice(0, 50)}...
+							{sequence.body.slice(0, 40)}...
 						</td>
 						<td class="table-cell py-4 pl-4 pr-3 font-medium text-slate-900 lg:px-3">
 							<select
 								id="job"
 								name="job"
-								class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+								class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-slate-700 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-blue-600 sm:text-sm sm:leading-6"
 								on:change={onSelect(sequence.template_id)}
 							>
 								<option selected={sequence.job_id === null}>Not Assigned</option>
@@ -92,6 +94,26 @@
 									>
 								{/each}
 							</select>
+						</td>
+						<td
+							class="hidden truncate py-4 pl-4 pr-3 font-medium text-slate-900 lg:table-cell lg:px-3"
+						>
+							<div class="flex flex-row items-center text-slate-500">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 20 20"
+									fill="currentColor"
+									class="mr-1 h-5 w-5"
+								>
+									<path
+										d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.412A9.957 9.957 0 0010 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 00-13.074.003z"
+									/>
+								</svg>
+
+								<span>
+									{sequence.recipient_count}
+								</span>
+							</div>
 						</td>
 					</tr>
 				{/each}
