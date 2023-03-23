@@ -92,6 +92,7 @@ $function$
 CREATE OR REPLACE FUNCTION public.update_candidate_for_email_candidate_company_inbound_trigger()
  RETURNS trigger
  LANGUAGE plpgsql
+ SECURITY DEFINER
 AS $function$
 begin
 update public.candidate_company_inbound
@@ -105,6 +106,7 @@ $function$
 CREATE OR REPLACE FUNCTION public.update_job_for_template_candidate_company_inbound_trigger()
  RETURNS trigger
  LANGUAGE plpgsql
+ SECURITY DEFINER
 AS $function$
 begin
 update public.candidate_company_inbound
@@ -173,7 +175,7 @@ CREATE TRIGGER handle_updated_at_candidate_company_inbound BEFORE UPDATE ON publ
 
 CREATE TRIGGER insert_candidate_company_inbound_trigger_after_insert AFTER INSERT ON public.recruiter_outbound_message FOR EACH ROW EXECUTE FUNCTION insert_candidate_company_inbound_trigger();
 
-CREATE TRIGGER candidate_company_inbound_trigger_recruiter_outbound_template AFTER INSERT OR UPDATE ON public.recruiter_outbound_template FOR EACH ROW WHEN ((new.job_id IS NOT NULL)) EXECUTE FUNCTION update_job_for_template_candidate_company_inbound_trigger();
+CREATE TRIGGER candidate_company_inbound_trigger_recruiter_outbound_template AFTER UPDATE ON public.recruiter_outbound_template FOR EACH ROW WHEN ((old.job_id IS DISTINCT FROM new.job_id)) EXECUTE FUNCTION update_job_for_template_candidate_company_inbound_trigger();
 
 CREATE TRIGGER candidate_company_inbound_trigger_user_oauth_token AFTER INSERT OR UPDATE ON public.user_oauth_token FOR EACH ROW EXECUTE FUNCTION update_candidate_for_email_candidate_company_inbound_trigger();
 
