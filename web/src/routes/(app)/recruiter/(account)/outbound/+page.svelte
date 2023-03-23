@@ -76,15 +76,15 @@
 							{sequence.subject}
 						</td>
 						<td
-							class="hidden truncate py-4 pl-4 pr-3 font-medium text-slate-900 lg:table-cell lg:px-3"
+							class="hidden truncate py-4 pl-4 pr-3 font-medium text-slate-700 lg:table-cell lg:px-3"
 						>
-							{sequence.body.slice(0, 50)}...
+							{sequence.body.slice(0, 40)}...
 						</td>
 						<td class="table-cell py-4 pl-4 pr-3 font-medium text-slate-900 lg:px-3">
 							<select
 								id="job"
 								name="job"
-								class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+								class="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-slate-700 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-blue-600 sm:text-sm sm:leading-6"
 								on:change={onSelect(sequence.template_id)}
 							>
 								<option selected={sequence.job_id === null}>Not Assigned</option>
