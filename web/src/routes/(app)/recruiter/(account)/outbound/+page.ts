@@ -59,13 +59,11 @@ export const load: PageLoad<Data> = async ({ url, parent }) => {
 	}
 
 	// Get count of recipients (candidates) per template
-	console.log(outboundTemplates?.map((t) => t.template_id) || []);
 	const { data: recipientCounts, error: recipientCountsError } = await supabase
 		.from('outbound_template_recipient_count')
 		.select('*')
 		.in('template_id', outboundTemplates?.map((t) => t.template_id) || []);
 
-	console.log(recipientCounts, recipientCountsError);
 	// update sequences with recipient counts
 	const sequences = outboundTemplates?.map((sequence) => {
 		const recipientCount = recipientCounts?.find(

@@ -66,8 +66,6 @@ export const load: PageLoad<Data> = async ({ url, parent }) => {
 			jobs.map((job) => job.job_id)
 		);
 
-	console.log(candidateCounts, candidateCountsError);
-
 	// add candidate counts to jobs
 	const jobsWithCandidateCounts = jobs.map((job) => {
 		const candidateCount = candidateCounts.find(
