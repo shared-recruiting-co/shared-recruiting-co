@@ -658,6 +658,8 @@ where template_id = new.template_id;
 return null;
 end;
 $$
+-- escalate to security definer to grant update permissions on candidate_company_inbound
+security definer
 language plpgsql volatile;
 
 -- create function to update candidate_id for a given candidate_email
@@ -671,6 +673,8 @@ where candidate_email = new.email;
 return null;
 end;
 $$
+-- escalate to security definer to grant update permissions on candidate_company_inbound
+security definer
 language plpgsql volatile;
 
 -- create function to insert a row on every new recruiter_outbound_message
