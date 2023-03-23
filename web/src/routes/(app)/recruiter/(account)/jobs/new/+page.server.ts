@@ -69,6 +69,6 @@ export const actions: Actions = {
 		}
 
 		// return to jobs page
-		return redirect(303, '/recruiter/jobs');
+		throw redirect(303, '/recruiter/jobs');
 	}
 };
