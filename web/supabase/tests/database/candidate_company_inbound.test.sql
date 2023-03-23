@@ -5,7 +5,7 @@
 -- these tests verify that the triggers are working as expected.
 --------------
 begin;
-select plan( 6 );
+select plan( 7 );
 
 -- declare variables
 \set company_id 'f50bc4c9-b14e-406b-8b47-e1d0503f4ff9'
@@ -65,10 +65,13 @@ SELECT is(
     'candidate company inbound row created correctly'
 );
 
+-- TEST CASE: Verify job_id is update once it' assigned to an outbound template
+
 -- 6. create a job
 insert into job (job_id, company_id, recruiter_id, title, description_url) values (:'job_id', :'company_id', :'recruiter_id', 'Test Job', 'https://test.com');
 -- 7. update template's job
 update recruiter_outbound_template set job_id = :'job_id' where template_id = :'template_id';
+
 -- 8. CHECK candidate_company_inbound
 SELECT is(
     (
@@ -96,6 +99,8 @@ SELECT is(
     )::candidate_company_inbound,
     'candidate company inbound row updated with job'
 );
+
+-- TEST CASE: Verify candidate_id is update once the candidate is created
 -- 9. create a user_profile
 insert into auth.users (id, email, raw_app_meta_data, raw_user_meta_data, aud, role)
 values (:'candidate_id', :'candidate_email', '{"provider":"email"}', '{"full_name":"Test User"}', 'authenticated', 'authenticated');
@@ -129,7 +134,7 @@ SELECT is(
     'candidate company inbound row updated with candidate'
 );
 
--- verify candidate_id is inserted if it exists at time of outbound message
+-- TEST CASE: Verify candidate_id is inserted if it exists at time of outbound message
 
 -- 11. add another outbound template
 \set template_id_2 'f75b017d-484f-4704-b6a3-1e185fdd2ee4'
@@ -167,7 +172,7 @@ SELECT is(
     'candidate company inbound row updated with candidate'
 );
 
--- verify insert/updates to user_oauth_token
+-- TEST CASE: Verify insert/updates to user_oauth_token
 \set candidate_email_2 'two@candidate.com'
 
 -- 12. add another outbound message
@@ -206,6 +211,40 @@ SELECT is(
     )::candidate_company_inbound,
     'candidate company inbound row updated with candidate'
 );
+
+-- TODO: TEST CASE: "Unassigning" a job from a template
+
+-- 14. remove job from template
+update recruiter_outbound_template set job_id = null where template_id = :'template_id';
+SELECT is(
+    (
+    select (
+        candidate_email, 
+        candidate_id, 
+        company_id, 
+        recruiter_id, 
+        template_id, 
+        job_id,
+        now(),
+        now()
+    )::candidate_company_inbound
+    from candidate_company_inbound
+    where template_id = :'template_id'
+    and candidate_email = :'candidate_email'
+    ),
+    row( 
+        :'candidate_email', 
+        :'candidate_id', 
+        :'company_id', 
+        :'recruiter_id', 
+        :'template_id', 
+        null,
+        now(),
+        now()
+    )::candidate_company_inbound,
+    'candidate company inbound row updated when a job is unassigned from a template'
+);
+
 
 select * from finish();
 
