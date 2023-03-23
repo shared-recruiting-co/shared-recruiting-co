@@ -13,9 +13,14 @@ type Pagination = {
 	hasPrev: boolean;
 };
 
+type Sequence = Database['public']['Tables']['recruiter_outbound_template']['Row'] & {
+	recipient_count: number;
+	job: Database['public']['Tables']['job']['Row'];
+};
+
 type Data = {
 	pagination: Pagination;
-	sequences: Database['public']['Tables']['recruiter_outbound_template']['Row'][];
+	sequences: Sequence[];
 	jobs: {
 		job_id: string;
 		title: string;
@@ -53,14 +58,31 @@ export const load: PageLoad<Data> = async ({ url, parent }) => {
 		count = 0;
 	}
 
-	// TODO: Get count of messages (candidates) per template
+	// Get count of recipients (candidates) per template
+	console.log(outboundTemplates?.map((t) => t.template_id) || []);
+	const { data: recipientCounts, error: recipientCountsError } = await supabase
+		.from('outbound_template_recipient_count')
+		.select('*')
+		.in('template_id', outboundTemplates?.map((t) => t.template_id) || []);
+
+	console.log(recipientCounts, recipientCountsError);
+	// update sequences with recipient counts
+	const sequences = outboundTemplates?.map((sequence) => {
+		const recipientCount = recipientCounts?.find(
+			(recipientCount) => recipientCount.template_id === sequence.template_id
+		)?.num_recipients;
+		return {
+			...sequence,
+			recipient_count: recipientCount || 0
+		};
+	});
 
 	// fetch possible jobs
 	// TODO: Consider doing this client-side in the combo box
 	const { data: jobs } = await supabase.from('job').select('job_id,title');
 
 	return {
-		sequences: outboundTemplates,
+		sequences,
 		jobs,
 		pagination: {
 			page,
