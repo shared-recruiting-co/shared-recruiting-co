@@ -30,10 +30,10 @@
 	};
 
 	// TODO
-	// Empty State
 	// Smaller Screens!
 	// No Job -> Create your first job notification
 	// All Sequences w/ Ignore Button & Toggle/Filter
+	// Dropdown for ignoring? Hover over to show ignore button?
 	// View in Gmail button?
 	// Use Combobox for Job Selection
 </script>

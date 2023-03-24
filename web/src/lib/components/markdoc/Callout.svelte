@@ -1,7 +1,7 @@
 <script lang="ts">
 	export let title = '';
 	// Unused for now...we only have one type of callout
-	export let type: 'caution' | 'check' | 'note' | 'warning' = 'note';
+	// export let type: 'caution' | 'check' | 'note' | 'warning' = 'note';
 </script>
 
 <div
