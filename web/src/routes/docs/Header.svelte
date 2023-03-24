@@ -12,7 +12,7 @@
 			<Sidenav />
 		</div>
 		<a href="/" class="inline-block">
-			<img src="/logo.svg" alt="Shared Recruiting Co" class="h-10 w-10" />
+			<img src="/logo.svg" alt="Shared Recruiting Co" class="h-8 w-auto" />
 		</a>
 		<a href="/docs" class="hidden text-xl text-slate-900 sm:text-2xl md:min-w-[150px] lg:block"
 			>Documentation</a

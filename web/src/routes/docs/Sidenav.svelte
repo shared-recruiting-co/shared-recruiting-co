@@ -72,7 +72,7 @@
 						</svg>
 					</button>
 					<a href="/" class="block">
-						<img src="/logo.svg" alt="Shared Recruiting Co" class="h-10 w-10" />
+						<img src="/logo.svg" alt="Shared Recruiting Co" class="h-8 w-auto" />
 					</a>
 				</div>
 				<div class="mt-8 px-1">
