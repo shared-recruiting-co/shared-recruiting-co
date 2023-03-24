@@ -67,9 +67,11 @@
 
 		<p class="mt-2 text-lg font-medium">No outbound recruiting emails found.</p>
 		<p class="mt-4 text-sm font-medium text-slate-700">
-			Connect your Gmail account from your <a href="/recruiter/profile" class="underline">profile</a
-			> to import your outbound recruiting emails. Once conncected, SRC will automatically detect, import,
-			and sync outbound recruiting emails and display them here.
+			To import your recruiting outbound, connect your Gmail account from your <a
+				href="/recruiter/profile"
+				class="underline">profile</a
+			>. Once conncected, SRC will automatically detect, import, and sync outbound recruiting emails
+			and display them here.
 		</p>
 	</div>
 {:else}
