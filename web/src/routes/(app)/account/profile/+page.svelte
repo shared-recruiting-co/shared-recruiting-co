@@ -2,25 +2,23 @@
 	import { slide, draw, fade } from 'svelte/transition';
 	import type { PageData } from './$types';
 
-	import { UserEmailStats } from '$lib/supabase/client';
+	import { UserEmailStats, type UserEmailSettings } from '$lib/supabase/client';
+	import { debounce, formError } from '$lib/forms';
+	import type { FormErrors } from '$lib/forms';
 
-	import Toggle from '$lib/components/Toggle.svelte';
-	import AlertModal from '$lib/components/AlertModal.svelte';
-	import ConnectGoogleAccountButton from '$lib/components/ConnectGoogleAccountButton.svelte';
+	import EmailSettings from './EmailSettings.svelte';
 
 	export let data: PageData;
-	$: ({ supabase } = data);
+	$: ({ supabase, profile } = data);
 
 	// ui state
 	let profileSaved = false;
-	let settingsSaved = false;
-	let errors: Record<string, string> = {};
+	let errors: FormErrors = {};
 	// settings
 	let isActive = data.profile.isActive;
 	let isSetup = data.isSetup;
 	let autoContribute = data.profile.autoContribute;
 	let autoArchive = data.profile.autoArchive;
-	let showDeactivateEmailModal = false;
 	// stats
 	let lastSyncedAt = data.lastSyncedAt;
 	let numEmailsProcessed = data.numEmailsProcessed;
@@ -63,25 +61,8 @@
 		)
 		.subscribe();
 
-	const onConnect = () => {
-		isSetup = true;
-		isActive = true;
-	};
-
-	let debounceTimeout: NodeJS.Timeout;
 	const debounceDelay = 1000;
 	const savedMessageTimeout = 3000;
-
-	const formError = (e: typeof errors, field: string) => {
-		return e[field] || '';
-	};
-
-	const debounce = (func: (...args: any[]) => void, wait: number) => {
-		return function executedFunction(...args: any[]) {
-			clearTimeout(debounceTimeout);
-			debounceTimeout = setTimeout(() => func(...args), wait);
-		};
-	};
 
 	const handleInput = async (e: Event) => {
 		const target = e.target as HTMLInputElement;
@@ -115,54 +96,16 @@
 	// debounce input to limit database writes
 	const debouncedHandleInput = debounce(handleInput, debounceDelay);
 
-	const saveSettings = async () => {
-		settingsSaved = false;
-		const { data: profileData, error } = await supabase
+	const saveEmailSettings = async (_email: string, settings: UserEmailSettings) => {
+		const newAutoArchive = settings['auto_archive'] || false;
+		const newAutoContribute = settings['auto_contribute'] || false;
+		const { error } = await supabase
 			.from('user_profile')
-			.update({ auto_contribute: autoContribute, auto_archive: autoArchive })
-			.eq('user_id', data.session?.user.id)
-			.select()
-			.maybeSingle();
-		if (!error && profileData) {
-			settingsSaved = true;
-			setTimeout(() => {
-				settingsSaved = false;
-			}, savedMessageTimeout);
-			return;
+			.update({ auto_contribute: newAutoContribute, auto_archive: newAutoArchive })
+			.eq('user_id', data.session?.user.id);
+		if (error) {
+			throw error;
 		}
-		errors['settings'] = 'There was an error saving your changes. Please try again.';
-	};
-
-	const debouncedSaveSettings = debounce(saveSettings, debounceDelay);
-	let onSettingsToggle: (checked: boolean) => void;
-
-	$: {
-		// keep onSettingsToggle in sync with settings values
-		onSettingsToggle = (_checked: boolean) => {
-			debouncedSaveSettings();
-		};
-	}
-
-	const onDeactivateConfirm = async () => {
-		showDeactivateEmailModal = false;
-		const resp = await fetch('/api/account/gmail/unsubscribe', { method: 'POST' });
-		// handle errors
-		if (resp.status !== 200) {
-			errors['deactivate'] =
-				'There was an error deactivating the inbox assistant. Please try again.';
-			return;
-		}
-		isActive = false;
-	};
-
-	const activateEmail = async () => {
-		const resp = await fetch('/api/account/gmail/subscribe', { method: 'POST' });
-		// handle errors
-		if (resp.status !== 200) {
-			errors['activate'] = 'There was an error activating your inbox assistant. Please try again.';
-			return;
-		}
-		isActive = true;
 	};
 
 	const timeFormatter = new Intl.DateTimeFormat('en', {
@@ -299,178 +242,21 @@
 		</div>
 	</div>
 </div>
-{#if isActive && isSetup}
-	<div class="relative shadow sm:overflow-hidden sm:rounded-md">
-		{#if formError(errors, 'settings')}
-			<div class="absolute top-0 right-0 mt-6 mr-8 flex items-center space-x-2 text-green-600">
-				<p class="mt-1 text-xs text-rose-500">{formError(errors, 'settings')}</p>
-			</div>
-		{/if}
-		{#if settingsSaved}
-			<div
-				class="absolute top-0 right-0 mt-6 mr-8 flex items-center space-x-2 text-green-600"
-				in:slide
-				out:fade
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke-width="1.5"
-					stroke="currentColor"
-					class="h-6 w-6"
-				>
-					<path
-						transition:draw
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-					/>
-				</svg>
-				<span>Saved</span>
-			</div>
-		{/if}
-		<div class="space-y-6 bg-white py-6 px-4 sm:p-6">
-			<div>
-				<h3 class="text-lg font-medium leading-6 text-slate-900">Email Settings</h3>
-				<p class="mt-1 text-sm text-slate-500">Manage your email settings and preferences.</p>
-			</div>
-			<ul class="mt-2 divide-y divide-slate-200">
-				<li class="flex items-center justify-between py-4">
-					<div class="flex flex-col pr-4 sm:pr-8">
-						<p class="text-sm font-medium text-slate-900" id="privacy-option-2-label">
-							Hide Recruiting Emails from Inbox
-						</p>
-						<p class="mt-1 text-xs text-slate-500 sm:text-sm" id="privacy-option-2-description">
-							Keep your inbox distraction free when you aren't actively looking for a new role.
-							<br />
-							Recruiting emails are always accessible under the @SRC folder.
-						</p>
-					</div>
-					<Toggle
-						bind:checked={autoArchive}
-						label="Recruiting Assistant"
-						onToggle={onSettingsToggle}
-					/>
-				</li>
-				<li class="flex items-center justify-between py-4">
-					<div class="flex flex-col pr-4 sm:pr-8">
-						<p class="text-sm font-medium text-slate-900" id="privacy-option-1-label">
-							Auto-Contribute Recruiting Emails
-						</p>
-						<p class="mt-1 text-xs text-slate-500 sm:text-sm" id="privacy-option-1-description">
-							Help us build the best product for candidates by automatically contributing your
-							inbound recruiting emails to our recruiting email dataset.
-							<br />
-							You can always manually contribute emails by forwarding them to
-							<a class="underline" href="mailto:examples@sharedrecruiting.co"
-								>examples@sharedrecruiting.co</a
-							>.
-						</p>
-					</div>
-					<Toggle
-						bind:checked={autoContribute}
-						label="Auto Contribute"
-						onToggle={onSettingsToggle}
-					/>
-				</li>
-				<li class="flex items-center justify-between py-4">
-					<div class="flex flex-col pr-4 sm:pr-8">
-						<p class="text-sm font-medium text-slate-900" id="privacy-option-3-label">
-							Block Automated Email Sequences&NonBreakingSpace;
-							<span class="text-slate-500">(Coming Soon)</span>
-						</p>
-						<p class="mt-1 text-xs text-slate-500 sm:text-sm" id="privacy-option-3-description">
-							Block automated recruiting sequences by automatically replying to recruiters with a
-							standard message.
-						</p>
-					</div>
-					<Toggle checked={false} disabled label="Auto-Reply" />
-				</li>
-			</ul>
-		</div>
-	</div>
-	<div class="shadow sm:overflow-hidden sm:rounded-md">
-		<div class="space-y-6 bg-white py-6 px-4 sm:p-6">
-			<div class="max-w-2xl">
-				<h3 class="text-lg font-medium leading-6 text-slate-900">Deactivate Inbox Assistant</h3>
-				<p class="mt-1 text-sm text-slate-500">
-					Deactivate the SRC inbox assistant. While disabled, recruiting emails will no longer be
-					automatically labeled or managed for you. This will not delete your account nor any data.
-					The @SRC labels will remain in your inbox. You can reactivate SRC at anytime.
-				</p>
-			</div>
-			<button
-				type="button"
-				class="inline-flex w-full justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:w-auto sm:text-sm"
-				on:click={() => {
-					showDeactivateEmailModal = true;
-				}}>Deactivate</button
-			>
-			{#if formError(errors, 'deactivate')}
-				<p class="mt-1 text-xs text-rose-500">
-					{formError(errors, 'deactivate')}
-					<br />
-					<span>
-						If the error persists, please reach out to <a
-							href="mailto:team@sharedrecruiting.co?subject=Error Deactivating Inbox Assistant"
-							class="underline">team@sharedrecruiting.co</a
-						>
-					</span>
-				</p>
-			{/if}
-		</div>
-		<AlertModal
-			bind:show={showDeactivateEmailModal}
-			title="Deactive Inbox Assistant?"
-			description="Are you sure you want to deactivate the SRC inbox assistant? While disabled, recruiting emails will no longer be automatically labeled or managed for you."
-			cta="Deactivate"
-			onConfirm={onDeactivateConfirm}
-		/>
-	</div>
-{:else if !isSetup}
-	<div class="shadow sm:overflow-hidden sm:rounded-md">
-		<div class="space-y-6 bg-sky-50 py-6 px-4 sm:p-6">
-			<div class="max-w-2xl">
-				<h3 class="text-lg font-medium leading-6 text-slate-900">Connect Gmail Account</h3>
-				<p class="mt-1 text-sm text-slate-500">
-					We lost connection to your Gmail account. Please reconnect to continue using SRC. Once
-					re-enabled, SRC will re-sync your inbox between now and the last time the connection was
-					active.
-				</p>
-			</div>
-			<ConnectGoogleAccountButton {onConnect} email={data.profile?.email} />
-		</div>
-	</div>
-	<!-- else not active -->
-{:else}
-	<div class="shadow sm:overflow-hidden sm:rounded-md">
-		<div class="space-y-6 bg-white py-6 px-4 sm:p-6">
-			<div class="max-w-2xl">
-				<h3 class="text-lg font-medium leading-6 text-slate-900">Activate Inbox Assistant</h3>
-				<p class="mt-1 text-sm text-slate-500">
-					Your SRC Inbox Assistant is currently disabled. Re-enable it to start monitoring your
-					inbox for job opportunities. Once re-enabled, SRC will re-sync your inbox between now and
-					the last time SRC was active.
-				</p>
-			</div>
-			<button
-				type="button"
-				class="inline-flex w-full justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:w-auto sm:text-sm"
-				on:click={activateEmail}>Activate</button
-			>
-			{#if formError(errors, 'activate')}
-				<p class="mt-1 text-xs text-rose-500">
-					{formError(errors, 'activate')}
-					<br />
-					<span>
-						If the error persists, please reach out to <a
-							href="mailto:team@sharedrecruiting.co?subject=Error Activating Inbox Assistant"
-							class="underline">team@sharedrecruiting.co</a
-						>
-					</span>
-				</p>
-			{/if}
-		</div>
-	</div>
-{/if}
+<div>
+	<h2 class="text-xl font-medium leading-6 text-slate-900 sm:text-2xl">Connected Accounts</h2>
+	<p class="mt-2 text-sm text-slate-500">
+		Customize your connected accounts settings to your preferences.
+	</p>
+</div>
+<div class="space-y-6">
+	<EmailSettings
+		isValid={isSetup}
+		email={profile.email}
+		saveSettings={saveEmailSettings}
+		settings={{
+			is_active: isActive,
+			auto_archive: autoArchive,
+			auto_contribute: autoContribute
+		}}
+	/>
+</div>
