@@ -245,7 +245,7 @@
 <div>
 	<h2 class="text-xl font-medium leading-6 text-slate-900 sm:text-2xl">Connected Accounts</h2>
 	<p class="mt-2 text-sm text-slate-500">
-		Customize your connected accounts settings to your preferences.
+		Connect and configure your email accounts to get the most of SRC.
 	</p>
 </div>
 <div class="space-y-6">
