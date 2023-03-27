@@ -28,7 +28,6 @@
 		<a href="/" class="hidden text-2xl text-slate-900 md:block md:min-w-[150px]"
 			>Shared Recruiting Co.</a
 		>
-		<a href="/" class="text-2xl text-slate-900 md:hidden md:min-w-[150px]">SRC</a>
 	</div>
 	<div class="hidden md:space-x-4 lg:flex">
 		<a
@@ -125,7 +124,7 @@
 				<div class="flex items-center gap-x-6">
 					<a href="/" class="-m-1.5 p-1.5">
 						<span class="sr-only">Shared Recruiting Co.</span>
-						<img class="h-10 w-auto" src="/logo.svg" alt="SRC" />
+						<img class="h-8 w-auto" src="/logo.svg" alt="SRC" />
 					</a>
 					{#if session}
 						<a

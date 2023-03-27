@@ -151,7 +151,7 @@
 				{/if}
 				<AlertModal
 					bind:show={showDeactivateEmailModal}
-					title="Deactive Inbox Assistant?"
+					title="Deactivate Inbox Assistant?"
 					description="Deactivate the SRC inbox assistant. While disabled, new outbound emails will no longer be automatically imported and synced with SRC. This will not delete your account nor any data. The @SRC labels will remain in your inbox. You can reactivate SRC at anytime."
 					cta="Deactivate"
 					onConfirm={onDeactivateConfirm}
@@ -160,7 +160,7 @@
 				<div class="max-w-2xl">
 					<h3 class="text-lg font-medium leading-6 text-slate-900">Activate</h3>
 					<p class="mt-2 mb-4 text-sm text-slate-500">
-						Your SRC integration is current disabled. Re-enable it to start automatically syncing
+						Your SRC integration is currently disabled. Re-enable it to start automatically syncing
 						your outbound emails with SRC. Once re-enabled, SRC will re-sync your inbox between now
 						and the last time SRC was active.
 					</p>

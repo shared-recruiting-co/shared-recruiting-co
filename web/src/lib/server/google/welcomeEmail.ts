@@ -1,4 +1,4 @@
-import { SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { refreshAccessToken } from '$lib/server/google/oauth';
 import { sendMessage } from '$lib/server/google/gmail';
