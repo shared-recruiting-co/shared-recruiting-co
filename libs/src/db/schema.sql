@@ -771,6 +771,7 @@ select
   candidate_id,
   count(distinct job_id) as num_jobs
 from candidate_company_inbound
+where candidate_id is not null
 group by candidate_id;
 --------------------------------
 -- End: Views for Counts of Candidates (Recipients) per Template and for Jobs

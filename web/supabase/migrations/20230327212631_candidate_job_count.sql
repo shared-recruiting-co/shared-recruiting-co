@@ -1,4 +1,6 @@
-create or replace view "public"."candidate_job_count" as  SELECT candidate_company_inbound.candidate_id,
-    count(DISTINCT candidate_company_inbound.job_id) AS num_jobs
-   FROM candidate_company_inbound
-  GROUP BY candidate_company_inbound.candidate_id;
+create or replace view "public"."candidate_job_count" as  
+  select candidate_company_inbound.candidate_id,
+  count(distinct candidate_company_inbound.job_id) as num_jobs
+from candidate_company_inbound
+where candidate_company_inbound.candidate_id is not null
+group by candidate_company_inbound.candidate_id;
