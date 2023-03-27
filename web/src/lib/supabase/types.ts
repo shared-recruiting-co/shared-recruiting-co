@@ -411,6 +411,12 @@ export interface Database {
 			};
 		};
 		Views: {
+			candidate_job_count: {
+				Row: {
+					candidate_id: string | null;
+					num_jobs: number | null;
+				};
+			};
 			candidate_oauth_token: {
 				Row: {
 					created_at: string | null;

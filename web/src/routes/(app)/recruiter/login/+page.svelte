@@ -24,7 +24,7 @@
 </script>
 
 <header
-	class="sticky top-0 z-10 flex flex-row flex-nowrap items-center justify-between space-x-4 bg-blue-50  px-4 py-4 text-lg sm:text-xl"
+	class="sticky top-0 z-10 flex flex-row flex-nowrap items-center justify-between space-x-4 bg-blue-50 px-4 py-4 text-lg sm:text-xl"
 >
 	<div class="flex w-96 flex-row items-center space-x-4">
 		<a href="/" class="-m-1.5 p-1.5">
