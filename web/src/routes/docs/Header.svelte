@@ -5,7 +5,7 @@
 </script>
 
 <header
-	class="sticky top-0 z-10 flex flex-row flex-nowrap items-center justify-between space-x-4 bg-white px-4  py-4 text-lg shadow-md shadow-slate-900/5 transition duration-500 dark:bg-transparent dark:shadow-none sm:text-xl"
+	class="sticky top-0 z-10 flex flex-row flex-nowrap items-center justify-between space-x-4 bg-white px-4 py-4 text-lg shadow-md shadow-slate-900/5 transition duration-500 dark:bg-transparent dark:shadow-none sm:text-xl"
 >
 	<div class="flex items-center space-x-4">
 		<div class="mr-4 block lg:mr-0 lg:hidden">
