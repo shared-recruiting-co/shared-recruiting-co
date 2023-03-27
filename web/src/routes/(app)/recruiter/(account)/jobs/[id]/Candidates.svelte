@@ -2,6 +2,9 @@
 	import type { Database } from '$lib/supabase/types';
 
 	export let candidates: Database['public']['Tables']['candidate_company_inbound']['Row'][];
+
+	// TODO
+	// What columns do we want to show?
 </script>
 
 <div>
@@ -57,7 +60,7 @@
 							<td class="table-cell py-4 pl-4 pr-3 font-medium text-slate-900 lg:px-3">
 								{new Date(candidate.updated_at).toLocaleDateString()}
 							</td>
-							<td class="table-cell py-4 pl-4 pr-3 font-medium text-slate-900 lg:px-3"> todo </td>
+							<td class="table-cell py-4 pl-4 pr-3 font-medium text-slate-900 lg:px-3" />
 						</tr>
 					{/each}
 				</tbody>

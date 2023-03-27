@@ -13,7 +13,6 @@ export const load: PageLoad<Data> = async ({ params, parent }) => {
 	const { id: jobID } = params;
 	const { supabase } = await parent();
 
-	// TODO: Use Promise.all() to get all the data at once
 	const { data: job, error: jobErr } = await supabase
 		.from('job')
 		.select('*')
@@ -25,7 +24,9 @@ export const load: PageLoad<Data> = async ({ params, parent }) => {
 	}
 	if (jobErr) throw error(500, jobErr);
 
-	// TODO: Pagination!
+	// TODO:
+	// Pagination!
+	// Recipient Counts
 	let [
 		// eslint-disable-next-line
 		{ data: candidates = [], error: candidatesErr },
