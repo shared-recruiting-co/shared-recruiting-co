@@ -21,8 +21,8 @@
 	let autoArchive = data.profile.autoArchive;
 	// stats
 	let lastSyncedAt = data.lastSyncedAt;
-	let numEmailsProcessed = data.numEmailsProcessed;
-	let numJobsDetected = data.numJobsDetected;
+	let numInboundJobs = data.numInboundJobs;
+	let numOfficialJobs = data.numOfficialJobs;
 
 	supabase
 		?.channel('table-db-changes')
@@ -38,10 +38,8 @@
 				const { new: changed } = payload;
 				if (!changed) return;
 				// TODO: Show a cool animation when the numbers of stats change
-				if (changed.stat_id === UserEmailStats.EmailsProcessed) {
-					numEmailsProcessed = changed.stat_value;
-				} else if (changed.stat_id === UserEmailStats.JobsDetected) {
-					numJobsDetected = changed.stat_value;
+				if (changed.stat_id === UserEmailStats.JobsDetected) {
+					numInboundJobs = changed.stat_value;
 				}
 			}
 		)
@@ -145,16 +143,15 @@
 			</div>
 
 			<div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-				<dt class="truncate text-sm font-medium text-gray-500">Emails Analyzed</dt>
+				<dt class="truncate text-sm font-medium text-gray-500">Inbound Jobs</dt>
 				<dd class="mt-1 text-2xl tracking-tight text-gray-900">
-					{numberFormatter.format(numEmailsProcessed)}
+					{numberFormatter.format(numInboundJobs)}
 				</dd>
 			</div>
-
 			<div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-				<dt class="truncate text-sm font-medium text-gray-500">Jobs Identified</dt>
+				<dt class="truncate text-sm font-medium text-gray-500">Verified Jobs</dt>
 				<dd class="mt-1 text-2xl tracking-tight text-gray-900">
-					{numberFormatter.format(numJobsDetected)}
+					{numberFormatter.format(numOfficialJobs)}
 				</dd>
 			</div>
 		</dl>
