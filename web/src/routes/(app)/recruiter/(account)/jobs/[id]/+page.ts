@@ -6,14 +6,13 @@ import type { Database } from '$lib/supabase/types';
 type Data = {
 	job: Database['public']['Tables']['job']['Row'];
 	candidates: Database['public']['Tables']['candidate_company_inbound']['Row'][];
-	outboundTemplates: Database['public']['Tables']['recruiter_outbound_template']['Row'];
+	outboundTemplates: Database['public']['Tables']['recruiter_outbound_template']['Row'][];
 };
 
-export const load: PageLoad = async ({ params, parent }) => {
+export const load: PageLoad<Data> = async ({ params, parent }) => {
 	const { id: jobID } = params;
 	const { supabase } = await parent();
 
-	// TODO: Use Promise.all() to get all the data at once
 	const { data: job, error: jobErr } = await supabase
 		.from('job')
 		.select('*')
@@ -25,23 +24,24 @@ export const load: PageLoad = async ({ params, parent }) => {
 	}
 	if (jobErr) throw error(500, jobErr);
 
-	// TODO: Pagination!
-
-	// get all the candidates for a job
-	const { data: candidates, error: candidatesErr } = await supabase
-		.from('candidate_company_inbound')
-		.select('*')
-		.eq('job_id', jobID);
+	// TODO:
+	// Pagination!
+	// Recipient Counts
+	let [
+		// eslint-disable-next-line
+		{ data: candidates = [], error: candidatesErr },
+		// eslint-disable-next-line
+		{ data: outboundTemplates, error: outboundTemplateErr }
+	] = await Promise.all([
+		supabase.from('candidate_company_inbound').select('*').eq('job_id', jobID),
+		supabase.from('recruiter_outbound_template').select('*').eq('job_id', jobID)
+	]);
 
 	if (candidatesErr) throw error(500, candidatesErr);
-	console.log(candidates);
-
-	const { data: outboundTemplates, error: outboundTemplateErr } = await supabase
-		.from('recruiter_outbound_template')
-		.select('*')
-		.eq('job_id', jobID);
+	if (!candidates) candidates = [];
 
 	if (outboundTemplateErr) throw error(500, outboundTemplateErr);
+	if (!outboundTemplates) outboundTemplates = [];
 
 	return {
 		job,

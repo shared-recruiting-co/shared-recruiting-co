@@ -10,16 +10,13 @@
 	$: ({ job, candidates, outboundTemplates } = data);
 	$: hash = $page.url.hash || '#candidates';
 
-	//
-
 	// TODO
 	// Edit Job
 	// Delete Job
-	// Empty State
 </script>
 
 <nav class="flex" aria-label="Breadcrumb">
-	<ol role="list" class="flex items-center space-x-4">
+	<ol class="flex items-center space-x-4">
 		<li>
 			<div class="flex items-center">
 				<a href="/recruiter/jobs" class="text-sm font-medium text-slate-500 hover:text-slate-700"
