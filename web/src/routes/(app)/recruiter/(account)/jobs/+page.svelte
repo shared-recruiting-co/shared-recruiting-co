@@ -54,6 +54,7 @@
 							>Candidates</th
 						>
 						<th scope="col" class="px-3 py-3.5 font-semibold text-slate-900">Date</th>
+						<th scope="col" class="px-3 py-3.5" />
 					</tr>
 				</thead>
 				<tbody class="divide-y divide-slate-200 bg-white">
@@ -63,7 +64,12 @@
 								{job.title}
 							</td>
 							<td class="px-3 py-4">{job.candidate_count}</td>
-							<td class="px-3 py-4">{new Date(job.updated_at).toLocaleDateString()}</td>
+							<td class="px-3 py-4">{new Date(job.updated_at).toLocaleDateString()} </td>
+							<td class="px-3 py-4">
+								<a href="/recruiter/jobs/{job.job_id}" class="text-blue-500 hover:text-blue-600"
+									>View</a
+								>
+							</td>
 						</tr>
 					{/each}
 				</tbody>
