@@ -765,6 +765,13 @@ select
   count(distinct candidate_email) as num_candidates
 from candidate_company_inbound
 group by job_id;
+
+create or replace view candidate_job_count with (security_invoker) as
+select
+  candidate_id,
+  count(distinct job_id) as num_jobs
+from candidate_company_inbound
+group by candidate_id;
 --------------------------------
 -- End: Views for Counts of Candidates (Recipients) per Template and for Jobs
 --------------------------------
