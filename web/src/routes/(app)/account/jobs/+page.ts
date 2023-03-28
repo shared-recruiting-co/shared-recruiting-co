@@ -8,6 +8,9 @@ type Job = {
 	emailed_at: string;
 	recruiter: string;
 	recruiter_email: string;
+	is_verified: boolean;
+	company_website: string;
+	job_description_url: string;
 };
 
 type Pagination = {
@@ -64,8 +67,11 @@ export const load: PageLoad<Data> = async ({ url, parent }) => {
 		...job,
 		emailed_at: new Date(job.emailed_at).toLocaleDateString(),
 		// TS is complaining because jsonb can technically be string, number, boolean, or JSON, or JSON[]
-		recruiter: data?.recruiter,
-		recruiter_email: data?.recruiter_email
+		recruiter: (data as { recruiter: string })?.recruiter,
+		recruiter_email: (data as { recruiter_email: string })?.recruiter_email,
+		is_verified: false,
+		company_website: '',
+		job_description_url: ''
 	}));
 
 	return {
