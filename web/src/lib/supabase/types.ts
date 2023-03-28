@@ -451,6 +451,21 @@ export interface Database {
 					user_id: string | null;
 				};
 			};
+			vw_job_board: {
+				Row: {
+					company_name: string | null;
+					company_website: string | null;
+					emailed_at: string | null;
+					is_verified: boolean | null;
+					job_description_url: string | null;
+					job_id: string | null;
+					job_title: string | null;
+					recruiter_email: string | null;
+					recruiter_name: string | null;
+					user_email: string | null;
+					user_id: string | null;
+				};
+			};
 		};
 		Functions: {
 			get_recruiter_by_email: {
