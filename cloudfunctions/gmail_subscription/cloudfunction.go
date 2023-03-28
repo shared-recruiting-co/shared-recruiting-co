@@ -107,6 +107,7 @@ func (cf *CloudFunction) isEmailActive(email string, inboxType db.InboxType) (bo
 		if err != nil {
 			return false, fmt.Errorf("error unmarshalling email settings: %w", err)
 		}
+		fmt.Printf("email settings: %v for email %s", emailSettings, email)
 
 		settings, ok := emailSettings[email]
 		if !ok {

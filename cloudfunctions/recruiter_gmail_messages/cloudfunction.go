@@ -186,6 +186,8 @@ func handler(ctx context.Context, e event.Event) error {
 			// for now abort on first error
 			return handleError("error processing message", err)
 		}
+		// Verbose logging while we get started
+		log.Printf("Processed message: %s\n", m)
 	}
 
 	return nil
@@ -306,6 +308,7 @@ func (cf *CloudFunction) processMessage(id string) error {
 			if err != nil {
 				return fmt.Errorf("error saving message: %w", err)
 			}
+			log.Printf("saved message %s to database with template id %s", firstMsg.Id, template.TemplateID.String())
 
 			// done
 			return nil
