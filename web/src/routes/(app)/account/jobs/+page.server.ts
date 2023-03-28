@@ -55,7 +55,7 @@ export const load: PageServerLoad<Data> = async ({
 			.order('emailed_at', { ascending: false })
 			.range(start, stop),
 		supabaseAdmin
-			.from('job_board')
+			.from('vw_job_board')
 			.select('*', {
 				head: true,
 				count: 'exact'
