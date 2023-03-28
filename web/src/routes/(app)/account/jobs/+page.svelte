@@ -55,7 +55,7 @@
 										class="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100"
 										alt="Company Intial"
 									>
-										A
+										{job.company[0] || '?'}
 									</div>
 									<div>
 										<div class="flex items-center space-x-2">
