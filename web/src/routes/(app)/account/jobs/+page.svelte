@@ -55,7 +55,7 @@
 										class="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100"
 										alt="Company Intial"
 									>
-										{job.company_name[0] || '?'}
+										{job.company_name[0]?.toUpperCase() || '?'}
 									</div>
 									<div>
 										<div class="flex items-center space-x-2">
