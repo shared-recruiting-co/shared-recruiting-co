@@ -246,7 +246,15 @@ func (cf *CloudFunction) processMessage(id string) error {
 	var firstMsg *gmail.Message
 	if len(thread.Messages) > 1 {
 		srcmessage.SortByDate(thread.Messages)
-		firstMsg = thread.Messages[0]
+		// The first message in the thread is the earliest message
+		earliestMsg := thread.Messages[0]
+		// only reassign if the earliest message is not the current message
+		// otherwise we lose the current message payload
+		if earliestMsg.Id != msg.Id {
+			firstMsg = earliestMsg
+		} else {
+			firstMsg = msg
+		}
 	} else {
 		// TODO: search for previous emails to the recipient within 3 months
 		firstMsg = msg
