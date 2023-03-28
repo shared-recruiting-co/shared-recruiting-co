@@ -18,6 +18,8 @@
 	// TOOD:
 	// Error state (icon + No jobs + Description)
 	// Realtime
+	// Show Actions (Interested, Not Interested, Remove)
+	// Show Company Favicon/Logo
 </script>
 
 <div>
@@ -36,45 +38,120 @@
 					<tr>
 						<th
 							scope="col"
-							class="hidden py-3.5 pl-4 pr-3 font-semibold text-slate-900 sm:pl-6 lg:table-cell"
-							>Company</th
-						>
-						<th scope="col" class="table-cell py-3.5 pl-4 pr-3 font-semibold text-slate-900 lg:px-3"
-							>Role</th
+							class="py-3.5 pl-4 pr-3 font-semibold text-slate-900 sm:pl-6 lg:table-cell">Role</th
 						>
 						<th scope="col" class="px-3 py-3.5 font-semibold text-slate-900 sm:table-cell"
 							>Recruiter</th
 						>
-						<th scope="col" class="hidden px-3 py-3.5 font-semibold text-slate-900 lg:table-cell"
-							>Email</th
-						>
-						<th scope="col" class="px-3 py-3.5 font-semibold text-slate-900">Date</th>
+						<th scope="col" class="px-3 py-3.5 font-semibold text-slate-900" />
 					</tr>
 				</thead>
 				<tbody class="divide-y divide-slate-200 bg-white">
 					{#each data.jobs as job}
-						<tr class="text-sm text-slate-700">
-							<td class="hidden py-4 pl-4 pr-3 font-medium text-slate-900 sm:pl-6 lg:table-cell">
-								{job.company}
+						<tr class="text-sm text-slate-700" class:bg-blue-50={job.is_verified}>
+							<td class="table-cell py-4 pl-4 pr-3 text-base font-medium text-slate-900 lg:pl-6">
+								<div class="flex items-center space-x-4">
+									<div
+										class="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100"
+										alt="Company Intial"
+									>
+										{job.company[0] || '?'}
+									</div>
+									<div>
+										<div class="flex items-center space-x-2">
+											<span>
+												{job.company}
+											</span>
+											{#if job.is_verified}
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													viewBox="0 0 24 24"
+													fill="currentColor"
+													class="h-5 w-5 text-blue-500"
+												>
+													<path
+														fill-rule="evenodd"
+														d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
+														clip-rule="evenodd"
+													/>
+												</svg>
+											{/if}
+										</div>
+										<dl class="text-xs sm:text-sm">
+											<dt class="sr-only">Job Title</dt>
+											<dd class="mt-1 truncate">{job.job_title}</dd>
+										</dl>
+									</div>
+								</div>
 							</td>
-							<td class="table-cell py-4 pl-4 pr-3 font-medium text-slate-900 lg:px-3">
-								{job.job_title}
-								<dl class="font-normal lg:hidden">
-									<dt class="sr-only">Company</dt>
-									<dd class="mt-1 truncate text-xs">{job.company}</dd>
-								</dl>
-							</td>
-							<td
-								class="w-full max-w-0 py-4 px-3 text-slate-900 sm:w-auto sm:max-w-none lg:text-slate-700"
-							>
+							<td class="w-full max-w-0 py-4 px-3 text-base text-slate-900 sm:w-auto sm:max-w-none">
 								{job.recruiter}
-								<dl class="font-normal lg:hidden">
-									<dt class="sr-only">Email</dt>
-									<dd class="mt-1 truncate text-xs">{job.recruiter_email}</dd>
+								<dl class="text-xs sm:text-sm">
+									<dt class="sr-only">Recruiter Email</dt>
+									<dd class="mt-1 truncate">{job.recruiter_email}</dd>
 								</dl>
 							</td>
-							<td class="hidden px-3 py-4 lg:table-cell">{job.recruiter_email} </td>
-							<td class="px-3 py-4">{job.emailed_at}</td>
+							<td class="px-3 py-4 text-sm">
+								<div class="space-y-1">
+									{#if job.company_website}
+										<div class="flex items-center space-x-2">
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												fill="none"
+												viewBox="0 0 24 24"
+												stroke-width="1.5"
+												stroke="currentColor"
+												class="h-5 w-5"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418"
+												/>
+											</svg>
+											<span> Company Website </span>
+										</div>
+									{/if}
+									{#if job.job_description_url}
+										<div class="flex items-center space-x-2">
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												fill="none"
+												viewBox="0 0 24 24"
+												stroke-width="1.5"
+												stroke="currentColor"
+												class="h-5 w-5"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z"
+												/>
+											</svg>
+											<span> Job Description</span>
+										</div>
+									{/if}
+									<div class="flex items-center space-x-2">
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											fill="none"
+											viewBox="0 0 24 24"
+											stroke-width="1.5"
+											stroke="currentColor"
+											class="hidden h-5 w-5 sm:block"
+										>
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z"
+											/>
+										</svg>
+										<span>
+											{job.emailed_at}
+										</span>
+									</div>
+								</div>
+							</td>
 						</tr>
 					{/each}
 				</tbody>
