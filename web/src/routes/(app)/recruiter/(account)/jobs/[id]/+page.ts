@@ -3,10 +3,14 @@ import { error } from '@sveltejs/kit';
 
 import type { Database } from '$lib/supabase/types';
 
+type Sequence = Database['public']['Tables']['recruiter_outbound_template']['Row'] & {
+	recipient_count: number;
+};
+
 type Data = {
 	job: Database['public']['Tables']['job']['Row'];
 	candidates: Database['public']['Tables']['candidate_company_inbound']['Row'][];
-	outboundTemplates: Database['public']['Tables']['recruiter_outbound_template']['Row'][];
+	outboundTemplates: Sequence[];
 };
 
 export const load: PageLoad<Data> = async ({ params, parent }) => {
@@ -43,9 +47,29 @@ export const load: PageLoad<Data> = async ({ params, parent }) => {
 	if (outboundTemplateErr) throw error(500, outboundTemplateErr);
 	if (!outboundTemplates) outboundTemplates = [];
 
+	const { data: recipientCounts, error: recipientCountsError } = await supabase
+		.from('outbound_template_recipient_count')
+		.select('*')
+		.in('template_id', outboundTemplates?.map((t) => t.template_id) || []);
+
+	if (recipientCountsError) {
+		// for now just log
+		console.error('error fetching outbound_template_recipient_count:', recipientCountsError);
+	}
+
+	const sequences = outboundTemplates?.map((sequence) => {
+		const recipientCount = recipientCounts?.find(
+			(recipientCount) => recipientCount.template_id === sequence.template_id
+		)?.num_recipients;
+		return {
+			...sequence,
+			recipient_count: recipientCount || 0
+		};
+	});
+
 	return {
 		job,
 		candidates,
-		outboundTemplates
+		outboundTemplates: sequences
 	};
 };
