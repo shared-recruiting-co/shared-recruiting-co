@@ -330,6 +330,10 @@ func (s *Service) IsSenderAllowed(sender string) (bool, error) {
 		return s.Users.Messages.List(s.UserID).Q(q).Do()
 	})
 
+	if err != nil {
+		return false, err
+	}
+
 	return len(resp.Messages) > 0, err
 }
 
@@ -367,6 +371,9 @@ func (s *Service) IsSenderBlocked(sender string) (bool, error) {
 	resp, err = ExecuteWithRetries(func() (*gmail.ListMessagesResponse, error) {
 		return s.Users.Messages.List(s.UserID).Q(q).Do()
 	})
+	if err != nil {
+		return false, err
+	}
 
 	return len(resp.Messages) > 0, err
 }
