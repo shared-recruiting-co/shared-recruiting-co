@@ -507,7 +507,7 @@ func (q *HTTPQueries) GetRecruiterOutboundMessage(ctx context.Context, arg GetRe
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return result, fmt.Errorf("fetch user email sync history: %s", resp.Status)
+		return result, fmt.Errorf("error fetching recruiter outbound message: %s", resp.Status)
 	}
 
 	var results []RecruiterOutboundMessage
@@ -533,7 +533,7 @@ func (q *HTTPQueries) GetRecruiterOutboundMessageByRecipient(ctx context.Context
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return result, fmt.Errorf("fetch user email sync history: %s", resp.Status)
+		return result, fmt.Errorf("error fetching recruiter outbound message by recipient: %s", resp.Status)
 	}
 
 	var results []RecruiterOutboundMessage
