@@ -519,6 +519,32 @@ func (q *HTTPQueries) GetRecruiterOutboundMessage(ctx context.Context, arg GetRe
 	return result, err
 }
 
+// GetRecruiterOutboundMessageByRecipient fetches a recruiter's outbound message by message ID
+func (q *HTTPQueries) GetRecruiterOutboundMessageByRecipient(ctx context.Context, arg GetRecruiterOutboundMessageByRecipientParams) (RecruiterOutboundMessage, error) {
+	basePath := "/recruiter_outbound_message"
+	query := fmt.Sprintf("select=*&to_email=eq.%s&internal_message_id=eq.%s", arg.ToEmail, arg.InternalMessageID)
+	path := fmt.Sprintf("%s?%s", basePath, query)
+	var result RecruiterOutboundMessage
+
+	resp, err := q.DoRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return result, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return result, fmt.Errorf("fetch user email sync history: %s", resp.Status)
+	}
+
+	var results []RecruiterOutboundMessage
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+		return result, err
+	}
+
+	result, err = singleOrError(results)
+	return result, err
+}
+
 // InsertRecruiterOutboundMessage inserts a recruiter's outbound message
 func (q *HTTPQueries) InsertRecruiterOutboundMessage(ctx context.Context, arg InsertRecruiterOutboundMessageParams) error {
 	basePath := "/recruiter_outbound_message"

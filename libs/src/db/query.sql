@@ -164,6 +164,20 @@ select
 from public.recruiter_outbound_message
 where recruiter_id = $1 and message_id = $2;
 
+-- name: GetRecruiterOutboundMessageByRecipient :one
+select
+    recruiter_id,
+    message_id,
+    internal_message_id,
+    from_email,
+    to_email,
+    sent_at,
+    template_id,
+    created_at,
+    updated_at
+from public.recruiter_outbound_message
+where to_email = $1 and internal_message_id = $2;
+
 -- name: InsertRecruiterOutboundMessage :exec
 insert into public.recruiter_outbound_message(recruiter_id, message_id, internal_message_id, from_email, to_email, sent_at, template_id)
 values ($1, $2, $3, $4, $5, $6, $7);
