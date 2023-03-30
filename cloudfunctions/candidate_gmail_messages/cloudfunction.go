@@ -364,8 +364,41 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 		}
 
 		messages[message.Id] = message
-
 	}
+
+	// 1. Check if message ID is a known recruiting outbound message
+	// 2. If so, we know it's a recruiting email and we can
+	// - skip the prediction step
+	// - skip parsing and adding to the database (it's already there)
+	// - add the job labels
+	knownRecruitingEmails := []string{}
+	for _, message := range messages {
+		// check if message is a known recruiting outbound message
+		internalMessageID := srcmessage.Header(message, "Message-ID")
+		if internalMessageID == "" {
+			log.Printf("skipping message: %s, no Message-ID header", message.Id)
+			continue
+		}
+		// check if message is a known recruiting outbound message
+		// look up by RFC2822 message ID and to_email
+		// TODO: Is it better to use the recipient email from the header or the current user?
+		recipient := srcmessage.RecipientEmail(message)
+		_, err := cf.queries.GetRecruiterOutboundMessageByRecipient(cf.ctx, db.GetRecruiterOutboundMessageByRecipientParams{
+			ToEmail:           recipient,
+			InternalMessageID: internalMessageID,
+		})
+		// we expect a not found error
+		if err == nil {
+			// log and add to known messages
+			log.Printf("found known recruiting message: %s", message.Id)
+			// add to known messages
+			knownRecruitingEmails = append(knownRecruitingEmails, message.Id)
+			// remove from messages
+			delete(messages, message.Id)
+			continue
+		}
+	}
+
 	// Create examples for classification
 	examples := map[string]*ml.ClassifyRequest{}
 	for _, message := range messages {
@@ -393,7 +426,7 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 	// Get IDs of new recruiting emails
 	recruitingEmailIDs := []string{}
 	for id, isRecruitingEmail := range results.Results {
-		// ignore non-recruting emails based on classification
+		// ignore non-recruiting emails based on classification
 		if !isRecruitingEmail {
 			continue
 		}
@@ -425,6 +458,9 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 			continue
 		}
 	}
+
+	// add known recruiting emails
+	recruitingEmailIDs = append(recruitingEmailIDs, knownRecruitingEmails...)
 
 	log.Printf("number of recruiting emails: %d", len(recruitingEmailIDs))
 
