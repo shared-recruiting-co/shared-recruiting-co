@@ -5,6 +5,8 @@
 
 	export let data: PageData;
 
+	$: ({ supabase, profile } = data);
+
 	$: showingStart = (data.pagination.page - 1) * data.pagination.perPage + 1;
 	$: showingEnd = Math.min(
 		data.pagination.page * data.pagination.perPage,
@@ -14,6 +16,65 @@
 	$: nextPage = data.pagination.hasNext ? data.pagination.page + 1 : data.pagination.page;
 
 	$: pages = getPaginationPages(data.pagination.page, data.pagination.numPages);
+
+	/**
+	 * Function handles removing a job from the job board, given a job, this wil:
+	 * 	 - If there is an email associated with the job, remove any SRC gmail lables
+	 * 	- Remove the job from Supabase table `user_email_job`
+	 *  - Remove the job from the locally scoped `data.jobs` array so it is removed from the UI
+	 * @param {string} jobId - The UUID of the job to be removed
+	 * @returns {Promise<void>}
+	 */
+	const handleJobRemoval = async (jobId: string): Promise<void> => {
+
+		// query Supabase to get the needed data from the table `user_email_job` before its deleted
+		const { data: user_email_job_data } = await supabase
+			.from('user_email_job')
+			.select('email_thread_id')
+			.eq('job_id', jobId)
+			.maybeSingle()
+
+		// delete the entry in the user_email_job table the corresponds to the selected job
+		const { error: job_deletion_error } = await supabase
+			.from('user_email_job')
+			.delete()
+			.eq('job_id', jobId)
+
+		// if the the delete above is successful, update `data.jobs`
+		if (!job_deletion_error) {
+
+			// find index of the deleted job in the locally scoped data.jobs and remove it
+			const jobIndex = data.jobs.findIndex((job: { job_id: string }) => job.job_id === jobId);
+
+			// if the index exists, remove that job from the `data.jobs` array
+			if (jobIndex !== -1) {
+				data.jobs.splice(jobIndex, 1);
+				data = { ...data, jobs: [...data.jobs] };
+			}
+		}
+		
+		// get the email thread ID (the ID identifying the specific email) from the data above
+		const email_thread_id = user_email_job_data?.email_thread_id
+		
+		// if we can find the specific email assocaiated with this job, remove its SRC email labels
+		if (email_thread_id) {
+
+			// get the users email from the current profile
+			let user_email = profile.email
+
+			// the remove-email-labels will attempt to remove any SRC labels from the associated email
+			const resp = await fetch('/api/account/gmail/remove-email-labels', {
+				method: 'POST',
+				body: JSON.stringify({ user_email, email_thread_id })
+			});
+
+			// handle errors
+			if (resp.status !== 200) {
+				return;
+			}
+		}
+		
+	}
 
 	// TOOD:
 	// Error state (icon + No jobs + Description)
@@ -44,6 +105,7 @@
 							>Recruiter</th
 						>
 						<th scope="col" class="px-3 py-3.5 font-semibold text-slate-900" />
+						<th scope="col" class="px-3 py-3.5" />
 					</tr>
 				</thead>
 				<tbody class="divide-y divide-slate-200 bg-white">
@@ -167,6 +229,23 @@
 										</span>
 									</div>
 								</div>
+							</td>
+							<td class="align-top px-3 py-4 flex justify-end">
+								<button 
+									class="hover:text-red-500"
+									title="Remove this job"
+									on:click={handleJobRemoval(job.job_id)}
+								>
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											fill="none" 
+											viewBox="0 0 24 24" 
+											stroke-width="1.5" 
+											stroke="currentColor" 
+											class="w-4 h-4">
+											<path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+										</svg> 
+								</button>
 							</td>
 						</tr>
 					{/each}
