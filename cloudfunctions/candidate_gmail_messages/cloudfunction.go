@@ -2,6 +2,7 @@ package cloudfunctions
 
 import (
 	"context"
+	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -371,7 +372,7 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 	// - skip the prediction step
 	// - skip parsing and adding to the database (it's already there)
 	// - add the job labels
-	knownRecruitingEmails := []string{}
+	knownRecruitingEmailIDs := []string{}
 	for _, message := range messages {
 		// check if message is a known recruiting outbound message
 		internalMessageID := srcmessage.Header(message, "Message-ID")
@@ -383,6 +384,11 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 		// look up by RFC2822 message ID and to_email
 		// TODO: Is it better to use the recipient email from the header or the current user?
 		recipient := srcmessage.RecipientEmail(message)
+		if recipient == "" {
+			log.Printf("skipping message: %s, no recipient email", message.Id)
+			continue
+		}
+
 		_, err := cf.queries.GetRecruiterOutboundMessageByRecipient(cf.ctx, db.GetRecruiterOutboundMessageByRecipientParams{
 			ToEmail:           recipient,
 			InternalMessageID: internalMessageID,
@@ -392,14 +398,66 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 			// log and add to known messages
 			log.Printf("found known recruiting message: %s", message.Id)
 			// add to known messages
-			knownRecruitingEmails = append(knownRecruitingEmails, message.Id)
+			knownRecruitingEmailIDs = append(knownRecruitingEmailIDs, message.Id)
 			// remove from messages
 			delete(messages, message.Id)
 			continue
+		} else if err != sql.ErrNoRows {
+			log.Printf("error looking up known recruiting message: %v", err)
 		}
 	}
 
-	// Create examples for classification
+	if len(messages) == 0 && len(knownRecruitingEmailIDs) == 0 {
+		return nil
+	}
+
+	log.Printf("number of emails to classify: %d", len(messages))
+
+	// Get IDs of new recruiting emails
+	recruitingEmailIDs, err := cf.classifyAndParseMessages(messages)
+	// TODO: Support partial failures
+	if err != nil {
+		return fmt.Errorf("error classifying and parsing messages: %v", err)
+	}
+
+	// add known recruiting emails
+	recruitingEmailIDs = append(recruitingEmailIDs, knownRecruitingEmailIDs...)
+
+	log.Printf("number of recruiting emails: %d", len(recruitingEmailIDs))
+
+	// Label new recruiting emails
+	err = cf.processRecruitingEmails(recruitingEmailIDs)
+	if err != nil {
+		return fmt.Errorf("error processing recruiting emails: %v", err)
+	}
+
+	// Save statistics at end to avoid re-counting
+	if !cf.settings.DryRun && len(messages) > 0 {
+		err := cf.queries.IncrementUserEmailStat(
+			context.Background(),
+			db.IncrementUserEmailStatParams{
+				UserID:    cf.user.UserID,
+				Email:     cf.user.Email,
+				StatID:    "emails_processed",
+				StatValue: int32(len(messages)),
+			},
+		)
+		if err != nil {
+			// print error, but don't abort
+			log.Printf("error incrementing user email stat: %v", err)
+		}
+	}
+
+	return nil
+}
+
+func (cf *CloudFunction) classifyAndParseMessages(messages map[string]*gmail.Message) ([]string, error) {
+	// Get IDs of new recruiting emails
+	recruitingEmailIDs := []string{}
+	if len(messages) == 0 {
+		return recruitingEmailIDs, nil
+	}
+
 	examples := map[string]*ml.ClassifyRequest{}
 	for _, message := range messages {
 		examples[message.Id] = &ml.ClassifyRequest{
@@ -409,22 +467,13 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 		}
 	}
 
-	log.Printf("number of emails to classify: %d", len(examples))
-	if len(examples) == 0 {
-		return nil
-	}
-
-	// TODO: Support partial failures and retry only for those that failed
-	// Batch predict on new emails
 	results, err := cf.model.BatchClassify(&ml.BatchClassifyRequest{
 		Inputs: examples,
 	})
 	if err != nil {
-		return fmt.Errorf("error predicting on examples: %v", err)
+		return recruitingEmailIDs, fmt.Errorf("error predicting on examples: %v", err)
 	}
 
-	// Get IDs of new recruiting emails
-	recruitingEmailIDs := []string{}
 	for id, isRecruitingEmail := range results.Results {
 		// ignore non-recruiting emails based on classification
 		if !isRecruitingEmail {
@@ -441,7 +490,7 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 		job, err := cf.ParseEmail(message)
 		// for now, abort on error
 		if err != nil {
-			return err
+			return recruitingEmailIDs, err
 		}
 
 		// if fields are missing, skip
@@ -459,50 +508,7 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 		}
 	}
 
-	// add known recruiting emails
-	recruitingEmailIDs = append(recruitingEmailIDs, knownRecruitingEmails...)
-
-	log.Printf("number of recruiting emails: %d", len(recruitingEmailIDs))
-
-	// Label new recruiting emails
-	err = cf.processRecruitingEmails(recruitingEmailIDs)
-	if err != nil {
-		return fmt.Errorf("error processing recruiting emails: %v", err)
-	}
-
-	// Save statistics at end to avoid re-counting
-	if !cf.settings.DryRun && len(examples) > 0 {
-		err := cf.queries.IncrementUserEmailStat(
-			context.Background(),
-			db.IncrementUserEmailStatParams{
-				UserID:    cf.user.UserID,
-				Email:     cf.user.Email,
-				StatID:    "emails_processed",
-				StatValue: int32(len(examples)),
-			},
-		)
-		if err != nil {
-			// print error, but don't abort
-			log.Printf("error incrementing user email stat: %v", err)
-		}
-	}
-	if !cf.settings.DryRun && len(recruitingEmailIDs) > 0 {
-		err = cf.queries.IncrementUserEmailStat(
-			context.Background(),
-			db.IncrementUserEmailStatParams{
-				UserID:    cf.user.UserID,
-				Email:     cf.user.Email,
-				StatID:    "jobs_detected",
-				StatValue: int32(len(recruitingEmailIDs)),
-			},
-		)
-		if err != nil {
-			// print error, but don't abort
-			log.Printf("error incrementing user email stat: %v", err)
-		}
-	}
-
-	return nil
+	return recruitingEmailIDs, nil
 }
 
 func (cf *CloudFunction) processRecruitingEmails(messageIDs []string) error {
