@@ -21,5 +21,9 @@ SELECT has_column(
     'id should exist'
 );
 
+-- check helper functions are available
+call auth.login_as_anon();
+call auth.logout();
+
 select * from finish();
 rollback;
