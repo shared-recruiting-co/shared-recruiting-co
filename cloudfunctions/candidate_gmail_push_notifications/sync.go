@@ -109,6 +109,7 @@ func (cf *CloudFunction) syncHistory(
 		}
 
 		labelChanges := cf.historyToEmailLabelChanges(history)
+		// TODO: Filter for ONLY using cf.CandidateLabels instead of filtering out systemLabels
 		filteredLabelChanges := filterEmailLabelChanges(labelChanges, systemLabels)
 
 		if len(filteredLabelChanges.Changes) > 0 {
