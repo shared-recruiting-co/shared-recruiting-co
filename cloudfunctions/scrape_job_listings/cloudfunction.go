@@ -22,28 +22,19 @@ import (
 	"github.com/gocolly/colly/v2/debug"
 )
 
-var YcPattern = safeCompile(`.*(ycombinator.com)\/companies.*\/jobs\/`)
+var YcPattern = regexp.MustCompile(`.*(ycombinator\.com)\/companies.*\/jobs\/`)
 
 // handling https://jobs.lever.co/memfault/730541eb-637f-4d9d-9526-8949432f9a34
 // to check for UUIDs
-var LeverPattern = safeCompile(`.*jobs\.lever\.co\/[a-zA-Z0-9._%+-]+\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
+var LeverPattern = regexp.MustCompile(`.*jobs\.lever\.co\/[a-zA-Z0-9._%+-]+\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
 // handling https://boards.greenhouse.io/supabase/jobs/4777008004
-var GreenhousePattern = safeCompile(`.*(boards.greenhouse.io)\/.*\/jobs\/`)
+var GreenhousePattern = regexp.MustCompile(`.*(boards\.greenhouse\.io)\/.*\/jobs\/`)
 
 var LinkPatterns = []*regexp.Regexp{
 	YcPattern,
 	LeverPattern,
 	GreenhousePattern,
-}
-
-func safeCompile(pattern string) *regexp.Regexp {
-	// Compile the regex pattern
-	regex, err := regexp.Compile(pattern)
-	if err != nil {
-		panic(err)
-	}
-	return regex
 }
 
 func CheckLinkPatterns(absoluteLink string) bool {
