@@ -9,3 +9,4 @@ This cloud function serves many purposes:
 - Keep track of most recent user inbox history ID that SRC has synced to
 - Trigger a historic inbox sync if it's the user's first sync or if the history ID has expired (over one week since last sync)
 - Fetch new messages since last sync 
+- Fetches any changes to `@SRC` Gmail labels and pushes them to a separate topic

@@ -389,6 +389,9 @@ func (i *Infra) candidateGmailPushNotifications(emailSync *CloudFunction) (*Clou
 				"GMAIL_MESSAGES_TOPIC": i.Topics.CandidateGmailMessages.Name.ApplyT(func(name string) string {
 					return name
 				}).(pulumi.StringOutput),
+				"GMAIL_LABEL_CHANGES_TOPIC": i.Topics.CandidateGmailLabelChanges.Name.ApplyT(func(name string) string {
+					return name
+				}).(pulumi.StringOutput),
 			},
 			IngressSettings:            pulumi.String("ALLOW_INTERNAL_ONLY"),
 			AllTrafficOnLatestRevision: pulumi.Bool(true),
@@ -405,6 +408,7 @@ func (i *Infra) candidateGmailPushNotifications(emailSync *CloudFunction) (*Clou
 	}, pulumi.DependsOn([]pulumi.Resource{
 		i.Topics.CandidateGmailSubscription,
 		i.Topics.CandidateGmailMessages,
+		i.Topics.CandidateGmailLabelChanges,
 		obj,
 		sa,
 		emailSync.Function,
