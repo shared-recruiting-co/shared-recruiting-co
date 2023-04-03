@@ -8,7 +8,6 @@ import (
 )
 
 const maxResults = 250
-const historyTypeMessageAdded = "messageAdded"
 
 var (
 	// historyTypes is a list of all the history types that we want to fetch.
