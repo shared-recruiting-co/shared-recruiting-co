@@ -56,5 +56,5 @@ type EmailLabelChanges struct {
 	// Email is the email address of the user.
 	Email string `json:"email"`
 	// Changes is the list of label changes.
-	Changes *[]EmailLabelChange `json:"changes"`
+	Changes []EmailLabelChange `json:"changes"`
 }
