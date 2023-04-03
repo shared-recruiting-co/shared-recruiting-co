@@ -44,6 +44,15 @@ func handleError(msg string, err error) error {
 	return err
 }
 
+func contains[T comparable](list []T, item T) bool {
+	for _, element := range list {
+		if element == item {
+			return true
+		}
+	}
+	return false
+}
+
 type PubSubTopics struct {
 	CandidateGmailMessages *pubsub.Topic
 }

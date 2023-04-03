@@ -109,9 +109,10 @@ func (cf *CloudFunction) syncHistory(
 		}
 
 		labelChanges := cf.historyToEmailLabelChanges(history)
+		filteredLabelChanges := filterEmailLabelChanges(labelChanges, systemLabels)
 
-		if len(*labelChanges.Changes) > 0 {
-			_, err := cf.PublishEmailLabelChanges(labelChanges)
+		if len(*filteredLabelChanges.Changes) > 0 {
+			_, err := cf.PublishEmailLabelChanges(filteredLabelChanges)
 			if err != nil {
 				return fmt.Errorf("error publishing label changes: %w", err)
 			}
