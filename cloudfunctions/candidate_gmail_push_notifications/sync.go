@@ -64,7 +64,7 @@ func (cf *CloudFunction) syncHistory(
 ) error {
 	var err error
 	pageToken := ""
-	var messages []*gmail.Message
+	var history []*gmail.History
 	var results []*pubsub.PublishResult
 	historyIDExpired := false
 
@@ -82,7 +82,7 @@ func (cf *CloudFunction) syncHistory(
 			// done!
 			return nil
 		} else {
-			messages, pageToken, err = fetchNewEmailsSinceHistoryID(cf.srv, uint64(syncHistory.HistoryID), pageToken)
+			history, pageToken, err = fetchChangesSinceHistoryID(cf.srv, uint64(syncHistory.HistoryID), pageToken)
 		}
 
 		// for now, abort on error
@@ -98,6 +98,7 @@ func (cf *CloudFunction) syncHistory(
 			return fmt.Errorf("error fetching emails: %v", err)
 		}
 
+		messages := historyToAddedMessages(history)
 		if len(messages) > 0 {
 			result, err := cf.PublishCandidateMessages(messages)
 			if err != nil {
@@ -105,6 +106,17 @@ func (cf *CloudFunction) syncHistory(
 			}
 
 			results = append(results, result)
+		}
+
+		labelChanges := cf.historyToEmailLabelChanges(history)
+
+		if len(*labelChanges.Changes) > 0 {
+			_, err := cf.PublishEmailLabelChanges(labelChanges)
+			if err != nil {
+				return fmt.Errorf("error publishing label changes: %w", err)
+			}
+
+			// results = append(results, result)
 		}
 
 		if pageToken == "" {
@@ -143,4 +155,17 @@ func (cf *CloudFunction) PublishCandidateMessages(messages []*gmail.Message) (*p
 	})
 
 	return result, nil
+}
+
+func (cf *CloudFunction) PublishEmailLabelChanges(changes *schema.EmailLabelChanges) (*pubsub.PublishResult, error) {
+	rawMessage, err := json.Marshal(changes)
+	if err != nil {
+		log.Printf("error marshalling email label changes: %v", err)
+		// return nil, fmt.Errorf("error marshalling email label changes: %w", err)
+	} else {
+		// while testing, log messages instead of publishing
+		log.Printf("publishing email label changes: %s", string(rawMessage))
+	}
+
+	return nil, nil
 }

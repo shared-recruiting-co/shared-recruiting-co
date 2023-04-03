@@ -38,3 +38,23 @@ type EmailMessagesSettings struct {
 	// Reclassify indicates whether we should reclassify already classified messages or not.
 	Reclassify bool `json:"reclassify"`
 }
+
+// EmailLabelChangeTypeAdded indicates a label was added to a message
+const EmailLabelChangeTypeAdded = "added"
+
+// EmailLabelChangeTypeRemoved indicates a label was removed from a message
+const EmailLabelChangeTypeRemoved = "removed"
+
+// EmailLabelChange is the payload for a label change event
+type EmailLabelChange struct {
+	MessageID  string   `json:"message_id"`
+	LabelIDs   []string `json:"label_ids"`
+	ChangeType string   `json:"change_type"`
+}
+
+type EmailLabelChanges struct {
+	// Email is the email address of the user.
+	Email string `json:"email"`
+	// Changes is the list of label changes.
+	Changes *[]EmailLabelChange `json:"changes"`
+}
