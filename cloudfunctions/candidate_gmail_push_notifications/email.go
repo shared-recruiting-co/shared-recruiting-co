@@ -36,14 +36,6 @@ func fetchChangesSinceHistoryID(srv *srcmail.Service, historyID uint64, pageToke
 		return nil, "", err
 	}
 
-	messages := []*gmail.Message{}
-	for _, h := range r.History {
-		// only look at messages added
-		for _, m := range h.MessagesAdded {
-			messages = append(messages, m.Message)
-		}
-	}
-
 	return r.History, r.NextPageToken, nil
 }
 
