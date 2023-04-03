@@ -444,6 +444,7 @@ func (i *Infra) candidateGmailPushNotifications(emailSync *CloudFunction) (*Clou
 		return nil, err
 	}
 
+	// Grant publish permission to the necessary topics
 	_, err = pubsub.NewTopicIAMMember(i.ctx, fmt.Sprintf("%s-publish-to-candidate-gmail-messages", name), &pubsub.TopicIAMMemberArgs{
 		Topic:   i.Topics.CandidateGmailMessages.ID(),
 		Role:    pulumi.String("roles/pubsub.publisher"),
@@ -453,6 +454,20 @@ func (i *Infra) candidateGmailPushNotifications(emailSync *CloudFunction) (*Clou
 		cf,
 		sa,
 		i.Topics.CandidateGmailMessages,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = pubsub.NewTopicIAMMember(i.ctx, fmt.Sprintf("%s-publish-to-candidate-gmail-label-changes", name), &pubsub.TopicIAMMemberArgs{
+		Topic:   i.Topics.CandidateGmailLabelChanges.ID(),
+		Role:    pulumi.String("roles/pubsub.publisher"),
+		Member:  pulumi.Sprintf("serviceAccount:%s", sa.Email),
+		Project: pulumi.String(*i.Project.ProjectId),
+	}, pulumi.DependsOn([]pulumi.Resource{
+		cf,
+		sa,
+		i.Topics.CandidateGmailLabelChanges,
 	}))
 	if err != nil {
 		return nil, err
