@@ -54,7 +54,8 @@ func contains[T comparable](list []T, item T) bool {
 }
 
 type PubSubTopics struct {
-	CandidateGmailMessages *pubsub.Topic
+	CandidateGmailMessages     *pubsub.Topic
+	CandidateGmailLabelChanges *pubsub.Topic
 }
 
 type CloudFunction struct {
@@ -139,14 +140,20 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailPushNotification)
 		// TODO: Handle error.
 		log.Printf("failed to create pubsub client: %v", err)
 	}
-	topicName := os.Getenv("GMAIL_MESSAGES_TOPIC")
-	if topicName == "" {
+
+	messagesTopic := os.Getenv("GMAIL_MESSAGES_TOPIC")
+	if messagesTopic == "" {
 		return nil, fmt.Errorf("GMAIL_MESSAGES_TOPIC env var is not set")
 	}
-	topic := client.Topic(topicName)
+
+	labelChangesTopic := os.Getenv("GMAIL_LABEL_CHANGES_TOPIC")
+	if labelChangesTopic == "" {
+		return nil, fmt.Errorf("GMAIL_LABEL_CHANGES_TOPIC env var is not set")
+	}
 
 	topics := &PubSubTopics{
-		CandidateGmailMessages: topic,
+		CandidateGmailMessages:     client.Topic(messagesTopic),
+		CandidateGmailLabelChanges: client.Topic(labelChangesTopic),
 	}
 
 	return &CloudFunction{
