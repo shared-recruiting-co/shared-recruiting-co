@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go/pubsub v1.28.0
 	github.com/GoogleCloudPlatform/functions-framework-go v1.6.1
 	github.com/getsentry/sentry-go v0.16.0
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230403030352-1010958435e2
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230403211827-7ab25bc2a69e
 	google.golang.org/api v0.114.0
 )
 
