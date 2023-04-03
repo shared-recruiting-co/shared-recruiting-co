@@ -27,6 +27,7 @@ type Topics struct {
 	RecruiterGmailSubscription *pubsub.Topic
 	CandidateGmailMessages     *pubsub.Topic
 	RecruiterGmailMessages     *pubsub.Topic
+	CandidateGmailLabelChanges *pubsub.Topic
 }
 
 type Infra struct {
