@@ -2,7 +2,7 @@ package cloudfunction
 
 import "testing"
 
-func TestSkipThread(t *testing.T) {
+func TestUrlChecks(t *testing.T) {
 	tests := []struct {
 		link string
 		want bool
