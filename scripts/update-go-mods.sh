@@ -8,6 +8,7 @@ pkgs=(
 "./cloudfunctions/recruiter_email_sync"
 "./cloudfunctions/recruiter_gmail_push_notifications"
 "./cloudfunctions/recruiter_gmail_messages"
+"./cloudfunctions/scrape_job_listings"
 )
 sha=$(git rev-parse origin/main)
 
