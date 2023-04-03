@@ -18,6 +18,23 @@ var (
 		"labelAdded",
 		"labelRemoved",
 	}
+	systemLabels = []string{
+		"UNREAD",
+		"INBOX",
+		"IMPORTANT",
+		"STARRED",
+		"SNOOZED",
+		"TRASH",
+		"SPAM",
+		"DRAFT",
+		"SENT",
+		"CHAT",
+		"CATEGORY_PERSONAL",
+		"CATEGORY_SOCIAL",
+		"CATEGORY_PROMOTIONS",
+		"CATEGORY_UPDATES",
+		"CATEGORY_FORUMS",
+	}
 )
 
 func fetchChangesSinceHistoryID(srv *srcmail.Service, historyID uint64, pageToken string) ([]*gmail.History, string, error) {
@@ -69,5 +86,22 @@ func (cf *CloudFunction) historyToEmailLabelChanges(histories []*gmail.History) 
 	return &schema.EmailLabelChanges{
 		Email:   cf.payload.Email,
 		Changes: &changes,
+	}
+}
+
+func filterEmailLabelChanges(changes *schema.EmailLabelChanges, labelIDs []string) *schema.EmailLabelChanges {
+	filtered := []schema.EmailLabelChange{}
+	for _, c := range *changes.Changes {
+		// filter out changes that only contain labels that we don't care about
+		for _, l := range c.LabelIDs {
+			if !contains(labelIDs, l) {
+				filtered = append(filtered, c)
+				break
+			}
+		}
+	}
+	return &schema.EmailLabelChanges{
+		Email:   changes.Email,
+		Changes: &filtered,
 	}
 }
