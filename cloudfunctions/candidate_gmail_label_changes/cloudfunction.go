@@ -12,6 +12,7 @@ import (
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
 	"github.com/getsentry/sentry-go"
+	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/idtoken"
 
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/db"
@@ -43,6 +44,15 @@ func jsonFromEnv(env string) ([]byte, error) {
 	return decoded, err
 }
 
+func contains[T comparable](list []T, item T) bool {
+	for _, element := range list {
+		if element == item {
+			return true
+		}
+	}
+	return false
+}
+
 type CloudFunction struct {
 	ctx                  context.Context
 	queries              db.Querier
@@ -52,6 +62,8 @@ type CloudFunction struct {
 	user                 db.UserProfile
 	examplesCollectorSrv *srcmail.Service
 	payload              *schema.EmailLabelChanges
+	addedLabelFuncs      map[string]func(msg *gmail.Message) error
+	removedLabelFuncs    map[string]func(msg *gmail.Message) error
 }
 
 func NewCloudFunction(ctx context.Context, payload schema.EmailLabelChanges) (*CloudFunction, error) {
@@ -145,6 +157,15 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailLabelChanges) (*C
 		AuthToken: idToken.AccessToken,
 	})
 
+	// set up label handlers
+	// use label IDs as keys
+	addedLabelFuncs := map[string]func(msg *gmail.Message) error{
+		labels.JobsOpportunity.Id: handleAddedJobOpportunityLabel,
+	}
+	removedLabelFuncs := map[string]func(msg *gmail.Message) error{
+		labels.JobsOpportunity.Id: handleRemovedJobOpportunityLabel,
+	}
+
 	return &CloudFunction{
 		ctx:                  ctx,
 		queries:              queries,
@@ -154,6 +175,8 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailLabelChanges) (*C
 		user:                 user,
 		examplesCollectorSrv: examplesCollectorSrv,
 		payload:              &payload,
+		addedLabelFuncs:      addedLabelFuncs,
+		removedLabelFuncs:    removedLabelFuncs,
 	}, nil
 }
 
@@ -213,7 +236,85 @@ func (cf *CloudFunction) processLabelChanges(changes []schema.EmailLabelChange) 
 	// for now, we'll just log the changes
 	for _, change := range changes {
 		log.Printf("change: %v", change)
+		// 1. get the message
+		msg, err := cf.srv.GetMessage(change.MessageID)
+		if err != nil {
+			log.Printf("error getting message: %v", err)
+			continue
+		}
+		if change.ChangeType == schema.EmailLabelChangeTypeAdded {
+			// 2. for each label, check if we have a function for it
+			for _, label := range change.LabelIDs {
+				// Check the label is still added
+				if !contains(msg.LabelIds, label) {
+					log.Printf("label %s was removed from message %s before processing", label, change.MessageID)
+					continue
+				}
+				// process
+				err = cf.processLabelAdded(msg, label)
+				// abort on error so we can retry
+				if err != nil {
+					return fmt.Errorf("error processing label added: %w", err)
+				}
+			}
+		} else if change.ChangeType == schema.EmailLabelChangeTypeRemoved {
+			// Check the label is still removed
+			for _, label := range change.LabelIDs {
+				if contains(msg.LabelIds, label) {
+					log.Printf("label %s was added back to message %s before processing", label, change.MessageID)
+					continue
+				}
+				// process
+				err = cf.processLabelRemoved(msg, label)
+				// abort on error so we can retry
+				if err != nil {
+					return fmt.Errorf("error processing label removed: %w", err)
+				}
+			}
+		} else {
+			log.Printf("unknown change type: %v", change.ChangeType)
+		}
 	}
 
+	return nil
+}
+
+func (cf *CloudFunction) processLabelAdded(msg *gmail.Message, labelID string) error {
+	// 1. check if we have a function for the label
+	fn, ok := cf.addedLabelFuncs[labelID]
+	if !ok {
+		log.Printf("no add function found for label %s", labelID)
+		return nil
+	}
+	// 2. run the function
+	return fn(msg)
+}
+
+func (cf *CloudFunction) processLabelRemoved(msg *gmail.Message, labelID string) error {
+	// 1. check if we have a function for the label
+	fn, ok := cf.removedLabelFuncs[labelID]
+	if !ok {
+		log.Printf("no remove function found for label %s", labelID)
+		return nil
+	}
+	// 2. run the function
+	return fn(msg)
+}
+
+// Label Functions
+
+func handleAddedJobOpportunityLabel(msg *gmail.Message) error {
+	// For now log
+	log.Printf("added job opportunities label: %s", msg.Id)
+	// TODO
+	// process as a recruiting email
+	return nil
+}
+
+func handleRemovedJobOpportunityLabel(msg *gmail.Message) error {
+	// For now log
+	log.Printf("removed job opportunities label: %s", msg.Id)
+	// TODO
+	// Remove from a user's user_email_job if it exists
 	return nil
 }
