@@ -144,7 +144,7 @@ func initCrawlers(messages chan<- JobPosting) []*colly.Collector {
 	ycFetcher.OnHTML("div.mx-auto.max-w-ycdc-page > section > div > div.flex-grow.space-y-5", func(e *colly.HTMLElement) {
 		posting, err := processHtml(e)
 		if err != nil {
-			log.Printf("failed to parse %e", err)
+			log.Printf("failed to parse YC page %e", err)
 		}
 		messages <- posting
 	})
@@ -152,7 +152,7 @@ func initCrawlers(messages chan<- JobPosting) []*colly.Collector {
 	greenhouseFetcher.OnHTML("#content", func(e *colly.HTMLElement) {
 		posting, err := processHtml(e)
 		if err != nil {
-			log.Printf("failed to parse %e", err)
+			log.Printf("failed to parse Greenhouse page %e", err)
 		}
 		messages <- posting
 	})
@@ -160,7 +160,7 @@ func initCrawlers(messages chan<- JobPosting) []*colly.Collector {
 	leverFetcher.OnHTML("body > div.content-wrapper.posting-page > div", func(e *colly.HTMLElement) {
 		posting, err := processHtml(e)
 		if err != nil {
-			log.Printf("failed to parse %e", err)
+			log.Printf("failed to parse Lever page %e", err)
 		}
 		messages <- posting
 
@@ -200,6 +200,7 @@ func Run() {
 	messages := make(chan JobPosting)
 	crawler := initCrawlers(messages)
 	var count int
+
 	go func(messages <-chan JobPosting) {
 		for msg := range messages {
 			log.Printf("Received Job Posting %s", msg)
