@@ -13,13 +13,16 @@ For the most part, the heuristics look a links
 package cloudfunction
 
 import (
+	"crypto/md5"
+	"encoding/hex"
+	"fmt"
 	"log"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/gocolly/colly/v2"
-	"github.com/gocolly/colly/v2/debug"
+	"github.com/jaytaylor/html2text"
 )
 
 var YcPattern = regexp.MustCompile(`.*(ycombinator\.com)\/companies.*\/jobs\/`)
@@ -65,33 +68,90 @@ func ShouldFetchJobListing(text, absoluteLink string) bool {
 	return CheckLinkPatterns(absoluteLink)
 }
 
+type JobPosting struct {
+	AbsoluteURL    string
+	ListingContent string
+	CompanyName    string
+	JobBoard       string
+	Md5Hash        string
+	FetchedAt      time.Time
+}
+
+func ProcessHtml(e *colly.HTMLElement) (JobPosting, error) {
+	hostname := e.Request.URL.Host
+	absoluteUrl := e.Request.URL.String()
+	listingContent, err := html2text.FromString(e.Text,
+		html2text.Options{
+			PrettyTables: false,
+			OmitLinks:    true,
+			TextOnly:     true,
+		})
+	if err != nil {
+		log.Printf("error converting html to text: %v", err)
+		return JobPosting{}, err
+	}
+	log.Printf("Hashed body at link: %q \n", e.Request.URL.Host)
+	hash := md5.Sum([]byte(listingContent))
+	// Convert the hash to a hex string
+	md5Hash := hex.EncodeToString(hash[:])
+
+	var jobBoard string
+	var companyName string
+
+	if strings.Contains(e.Request.URL.Host, "jobs.lever") {
+		jobBoard = "lever"
+		companyName = strings.Split(absoluteUrl, "/")[3]
+
+	} else if strings.Contains(e.Request.URL.Host, "ycombinator") {
+		jobBoard = "ycombinator"
+		companyName = strings.Split(absoluteUrl, "/")[4]
+
+	} else if strings.Contains(e.Request.URL.Host, "greenhouse") {
+		jobBoard = "greenhouse"
+		companyName = strings.Split(absoluteUrl, "/")[3]
+	} else {
+		return JobPosting{}, fmt.Errorf("unhandled hostname: %s", hostname)
+	}
+
+	return JobPosting{
+		absoluteUrl,
+		listingContent,
+		companyName,
+		jobBoard,
+		md5Hash,
+		time.Now(),
+	}, nil
+}
+
 func InitCrawler() *colly.Collector {
 	// Instantiate default collector
 	ycCrawler := colly.NewCollector(
 		colly.MaxDepth(3),
 		colly.Async(true),
 	)
-
-	jobPostingFetch := colly.NewCollector(
-		colly.Async(false),
-		colly.Debugger(&debug.LogDebugger{}),
-		colly.DisallowedDomains("account.ycombinator.com"),
-	)
-
-	jobPostingFetch.OnResponse(func(r *colly.Response) {
-		// Hash the body of the response using MD5
-		// hash := md5.Sum(r.Body)
-		// text := string(r.Body)
-
-		// Convert the hash to a hex string
-		// hashString := hex.EncodeToString(hash[:])
-		log.Printf("Hashed body at link: %q \n", r.Request.URL)
-
-	})
 	// Set max Parallelism and introduce a Random Delay
 	ycCrawler.Limit(&colly.LimitRule{
 		Parallelism: 2,
 		RandomDelay: 5 * time.Second,
+	})
+
+	ycFetcher := colly.NewCollector(
+		colly.DisallowedDomains("account.ycombinator.com"),
+	)
+	greenhouseFetcher := colly.NewCollector()
+	leverFetcher := colly.NewCollector()
+
+	ycFetcher.OnHTML("div.mx-auto.max-w-ycdc-page > section > div > div.flex-grow.space-y-5", func(e *colly.HTMLElement) {
+		log.Println(ProcessHtml(e))
+	})
+
+	greenhouseFetcher.OnHTML("#content", func(e *colly.HTMLElement) {
+		log.Println(ProcessHtml(e))
+	})
+
+	leverFetcher.OnHTML("body > div.content-wrapper.posting-page > div", func(e *colly.HTMLElement) {
+		log.Println(ProcessHtml(e))
+
 	})
 
 	// On every a element which has href attribute call callback
@@ -104,7 +164,15 @@ func InitCrawler() *colly.Collector {
 			ycCrawler.Visit(absoluteLink)
 		}
 		if ShouldFetchJobListing(e.Text, absoluteLink) {
-			jobPostingFetch.Visit(absoluteLink)
+			if strings.Contains(e.Request.URL.Host, "jobs.lever") {
+				leverFetcher.Visit(absoluteLink)
+
+			} else if strings.Contains(e.Request.URL.Host, "ycombinator") {
+				ycFetcher.Visit(absoluteLink)
+
+			} else if strings.Contains(e.Request.URL.Host, "greenhouse") {
+				greenhouseFetcher.Visit(absoluteLink)
+			}
 		}
 
 	})
