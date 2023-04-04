@@ -123,47 +123,29 @@ func processHtml(e *colly.HTMLElement) (JobPosting, error) {
 	}, nil
 }
 
+type JobListingFetcher struct {
+	collector    *colly.Collector
+	htmlSelector string
+}
+
+var Fetchers = map[string]JobListingFetcher{
+	"ycombinator": {
+		colly.NewCollector(colly.DisallowedDomains("account.ycombinator.com")),
+		"div.mx-auto.max-w-ycdc-page > section > div > div.flex-grow.space-y-5"},
+	"greenhouse": {colly.NewCollector(colly.Async(true)), "#content"},
+	"jobs.lever": {colly.NewCollector(colly.Async(true)), "body > div.content-wrapper.posting-page > div"},
+}
+
 func initCrawlers(messages chan<- JobPosting) []*colly.Collector {
 	// Instantiate default collector
 	ycCrawler := colly.NewCollector(
-		colly.MaxDepth(3),
+		colly.MaxDepth(5),
 		colly.Async(true),
 	)
 	// Set max Parallelism and introduce a Random Delay
 	ycCrawler.Limit(&colly.LimitRule{
 		Parallelism: 2,
 		RandomDelay: 5 * time.Second,
-	})
-
-	ycFetcher := colly.NewCollector(
-		colly.DisallowedDomains("account.ycombinator.com"),
-	)
-	greenhouseFetcher := colly.NewCollector()
-	leverFetcher := colly.NewCollector()
-
-	ycFetcher.OnHTML("div.mx-auto.max-w-ycdc-page > section > div > div.flex-grow.space-y-5", func(e *colly.HTMLElement) {
-		posting, err := processHtml(e)
-		if err != nil {
-			log.Printf("failed to parse YC page %e", err)
-		}
-		messages <- posting
-	})
-
-	greenhouseFetcher.OnHTML("#content", func(e *colly.HTMLElement) {
-		posting, err := processHtml(e)
-		if err != nil {
-			log.Printf("failed to parse Greenhouse page %e", err)
-		}
-		messages <- posting
-	})
-
-	leverFetcher.OnHTML("body > div.content-wrapper.posting-page > div", func(e *colly.HTMLElement) {
-		posting, err := processHtml(e)
-		if err != nil {
-			log.Printf("failed to parse Lever page %e", err)
-		}
-		messages <- posting
-
 	})
 
 	// On every a element which has href attribute call callback
@@ -175,14 +157,11 @@ func initCrawlers(messages chan<- JobPosting) []*colly.Collector {
 			ycCrawler.Visit(absoluteLink)
 		}
 		if shouldFetchJobListing(e.Text, absoluteLink) {
-			if strings.Contains(e.Request.URL.Host, "jobs.lever") {
-				leverFetcher.Visit(absoluteLink)
-
-			} else if strings.Contains(e.Request.URL.Host, "ycombinator") {
-				ycFetcher.Visit(absoluteLink)
-
-			} else if strings.Contains(e.Request.URL.Host, "greenhouse") {
-				greenhouseFetcher.Visit(absoluteLink)
+			for host, fetcher := range Fetchers {
+				if strings.Contains(e.Request.URL.Host, host) {
+					fetcher.collector.Visit(absoluteLink)
+					break
+				}
 			}
 		}
 
@@ -191,9 +170,26 @@ func initCrawlers(messages chan<- JobPosting) []*colly.Collector {
 		log.Println("visiting", r.URL.String())
 	})
 
+	for host, fetcher := range Fetchers {
+		fetcher.collector.OnHTML(fetcher.htmlSelector, func(e *colly.HTMLElement) {
+			posting, err := processHtml(e)
+			if err != nil {
+				log.Printf("failed to parse %s page %e", host, err)
+			}
+			messages <- posting
+		})
+	}
+
 	// Starting point
 	ycCrawler.Visit("https://news.ycombinator.com/jobs")
-	return []*colly.Collector{ycCrawler, leverFetcher, greenhouseFetcher, ycFetcher}
+
+	// Aggregate colly collectors so we can .Wait on all of them
+	collectors := []*colly.Collector{}
+	collectors = append(collectors, ycCrawler)
+	for _, fetcher := range Fetchers {
+		collectors = append(collectors, fetcher.collector)
+	}
+	return collectors
 }
 
 func Run() {
