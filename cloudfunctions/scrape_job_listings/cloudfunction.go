@@ -56,7 +56,7 @@ func shouldContinueCrawl(text, absoluteLink string) bool {
 	if strings.HasSuffix(searchStr, "jobs") || strings.HasSuffix(searchStr, "careers") {
 		return true
 	}
-	// looks like a hn posting
+	// looks like a hn listing
 	if strings.Contains(searchStr, "hiring") {
 		return true
 	}
@@ -68,7 +68,7 @@ func shouldFetchJobListing(text, absoluteLink string) bool {
 	return isAnyLinkMatch(absoluteLink)
 }
 
-type JobPosting struct {
+type JobListing struct {
 	AbsoluteURL    string
 	ListingContent string
 	CompanyName    string
@@ -77,7 +77,7 @@ type JobPosting struct {
 	FetchedAt      time.Time
 }
 
-func processHtml(e *colly.HTMLElement) (JobPosting, error) {
+func processHtml(e *colly.HTMLElement) (JobListing, error) {
 	hostname := e.Request.URL.Host
 	absoluteUrl := e.Request.URL.String()
 	listingContent, err := html2text.FromString(e.Text,
@@ -88,7 +88,7 @@ func processHtml(e *colly.HTMLElement) (JobPosting, error) {
 		})
 	if err != nil {
 		log.Printf("error converting html to text: %v", err)
-		return JobPosting{}, err
+		return JobListing{}, err
 	}
 	hash := md5.Sum([]byte(listingContent))
 	// Convert the hash to a hex string
@@ -110,10 +110,10 @@ func processHtml(e *colly.HTMLElement) (JobPosting, error) {
 		jobBoard = "greenhouse"
 		companyName = strings.Split(absoluteUrl, "/")[3]
 	} else {
-		return JobPosting{}, fmt.Errorf("unhandled hostname: %s", hostname)
+		return JobListing{}, fmt.Errorf("unhandled hostname: %s", hostname)
 	}
 
-	return JobPosting{
+	return JobListing{
 		absoluteUrl,
 		listingContent,
 		companyName,
@@ -136,7 +136,7 @@ var Fetchers = map[string]JobListingFetcher{
 	"jobs.lever": {colly.NewCollector(colly.Async(true)), "body > div.content-wrapper.posting-page > div"},
 }
 
-func initCrawlers(messages chan<- JobPosting) []*colly.Collector {
+func initCrawlers(messages chan<- JobListing) []*colly.Collector {
 	// Instantiate default collector
 	ycCrawler := colly.NewCollector(
 		colly.MaxDepth(5),
@@ -172,11 +172,11 @@ func initCrawlers(messages chan<- JobPosting) []*colly.Collector {
 
 	for host, fetcher := range Fetchers {
 		fetcher.collector.OnHTML(fetcher.htmlSelector, func(e *colly.HTMLElement) {
-			posting, err := processHtml(e)
+			listing, err := processHtml(e)
 			if err != nil {
 				log.Printf("failed to parse %s page %e", host, err)
 			}
-			messages <- posting
+			messages <- listing
 		})
 	}
 
@@ -193,13 +193,13 @@ func initCrawlers(messages chan<- JobPosting) []*colly.Collector {
 }
 
 func Run() {
-	messages := make(chan JobPosting)
+	messages := make(chan JobListing)
 	crawler := initCrawlers(messages)
 	var count int
 
-	go func(messages <-chan JobPosting) {
+	go func(messages <-chan JobListing) {
 		for msg := range messages {
-			log.Printf("Received Job Posting %s", msg)
+			log.Printf("Received Job Listing %s", msg)
 			count++
 		}
 	}(messages)
