@@ -307,6 +307,7 @@ func handleAddedJobOpportunityLabel(msg *gmail.Message) error {
 	// For now log
 	log.Printf("added job opportunities label: %s", msg.Id)
 	// TODO
+	// process as a recruiting email
 	return nil
 }
 
@@ -314,5 +315,6 @@ func handleRemovedJobOpportunityLabel(msg *gmail.Message) error {
 	// For now log
 	log.Printf("removed job opportunities label: %s", msg.Id)
 	// TODO
+	// Remove from a user's user_email_job if it exists
 	return nil
 }
