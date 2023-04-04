@@ -4,11 +4,6 @@ Perform relatively shallow crawl, using heuristics to classify JobListings and t
 There are two colly collectors
 1. Traversing links starting from the hn job board
 2. Collecting HTML bodies and their hashes for further processing
-
-For the most part, the heuristics look a links
-- Yc Jobs
-- Lever
-- Greenhouse
 */
 package cloudfunction
 
