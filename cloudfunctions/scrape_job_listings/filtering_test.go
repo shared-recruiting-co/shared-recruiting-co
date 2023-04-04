@@ -35,7 +35,7 @@ func TestUrlChecks(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.link, func(t *testing.T) {
-			got := CheckLinkPatterns(tc.link)
+			got := isAnyLinkMatch(tc.link)
 			if got != tc.want {
 				t.Fail()
 			}

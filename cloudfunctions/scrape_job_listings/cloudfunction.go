@@ -40,7 +40,7 @@ var LinkPatterns = []*regexp.Regexp{
 	GreenhousePattern,
 }
 
-func CheckLinkPatterns(absoluteLink string) bool {
+func isAnyLinkMatch(absoluteLink string) bool {
 	for _, pattern := range LinkPatterns {
 		if pattern.MatchString(absoluteLink) {
 			return true
@@ -49,7 +49,7 @@ func CheckLinkPatterns(absoluteLink string) bool {
 	return false
 }
 
-func ShouldContinueCrawl(text, absoluteLink string) bool {
+func shouldContinueCrawl(text, absoluteLink string) bool {
 	searchStr := strings.ToLower(text)
 	// ends with /careers
 	// ends with /jobs
@@ -60,12 +60,12 @@ func ShouldContinueCrawl(text, absoluteLink string) bool {
 	if strings.Contains(searchStr, "hiring") {
 		return true
 	}
-	return CheckLinkPatterns(absoluteLink)
+	return isAnyLinkMatch(absoluteLink)
 
 }
 
-func ShouldFetchJobListing(text, absoluteLink string) bool {
-	return CheckLinkPatterns(absoluteLink)
+func shouldFetchJobListing(text, absoluteLink string) bool {
+	return isAnyLinkMatch(absoluteLink)
 }
 
 type JobPosting struct {
@@ -77,7 +77,7 @@ type JobPosting struct {
 	FetchedAt      time.Time
 }
 
-func ProcessHtml(e *colly.HTMLElement) (JobPosting, error) {
+func processHtml(e *colly.HTMLElement) (JobPosting, error) {
 	hostname := e.Request.URL.Host
 	absoluteUrl := e.Request.URL.String()
 	listingContent, err := html2text.FromString(e.Text,
@@ -90,10 +90,10 @@ func ProcessHtml(e *colly.HTMLElement) (JobPosting, error) {
 		log.Printf("error converting html to text: %v", err)
 		return JobPosting{}, err
 	}
-	log.Printf("Hashed body at link: %q \n", e.Request.URL.Host)
 	hash := md5.Sum([]byte(listingContent))
 	// Convert the hash to a hex string
 	md5Hash := hex.EncodeToString(hash[:])
+	log.Printf("Hashed body at link: %q \n", e.Request.URL.Host)
 
 	var jobBoard string
 	var companyName string
@@ -123,7 +123,7 @@ func ProcessHtml(e *colly.HTMLElement) (JobPosting, error) {
 	}, nil
 }
 
-func InitCrawler() *colly.Collector {
+func initCrawlers(messages chan<- JobPosting) []*colly.Collector {
 	// Instantiate default collector
 	ycCrawler := colly.NewCollector(
 		colly.MaxDepth(3),
@@ -142,15 +142,27 @@ func InitCrawler() *colly.Collector {
 	leverFetcher := colly.NewCollector()
 
 	ycFetcher.OnHTML("div.mx-auto.max-w-ycdc-page > section > div > div.flex-grow.space-y-5", func(e *colly.HTMLElement) {
-		log.Println(ProcessHtml(e))
+		posting, err := processHtml(e)
+		if err != nil {
+			log.Printf("failed to parse %e", err)
+		}
+		messages <- posting
 	})
 
 	greenhouseFetcher.OnHTML("#content", func(e *colly.HTMLElement) {
-		log.Println(ProcessHtml(e))
+		posting, err := processHtml(e)
+		if err != nil {
+			log.Printf("failed to parse %e", err)
+		}
+		messages <- posting
 	})
 
 	leverFetcher.OnHTML("body > div.content-wrapper.posting-page > div", func(e *colly.HTMLElement) {
-		log.Println(ProcessHtml(e))
+		posting, err := processHtml(e)
+		if err != nil {
+			log.Printf("failed to parse %e", err)
+		}
+		messages <- posting
 
 	})
 
@@ -158,12 +170,11 @@ func InitCrawler() *colly.Collector {
 	ycCrawler.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		link := e.Attr("href")
 		absoluteLink := e.Request.AbsoluteURL(link)
-		// log.Printf("Link found: %q -> %s\n", e.Text, absoluteLink)
 
-		if ShouldContinueCrawl(e.Text, absoluteLink) {
+		if shouldContinueCrawl(e.Text, absoluteLink) {
 			ycCrawler.Visit(absoluteLink)
 		}
-		if ShouldFetchJobListing(e.Text, absoluteLink) {
+		if shouldFetchJobListing(e.Text, absoluteLink) {
 			if strings.Contains(e.Request.URL.Host, "jobs.lever") {
 				leverFetcher.Visit(absoluteLink)
 
@@ -182,10 +193,23 @@ func InitCrawler() *colly.Collector {
 
 	// Starting point
 	ycCrawler.Visit("https://news.ycombinator.com/jobs")
-	return ycCrawler
+	return []*colly.Collector{ycCrawler, leverFetcher, greenhouseFetcher, ycFetcher}
 }
 
 func Run() {
-	crawler := InitCrawler()
-	crawler.Wait()
+	messages := make(chan JobPosting)
+	crawler := initCrawlers(messages)
+	var count int
+	go func(messages <-chan JobPosting) {
+		for msg := range messages {
+			log.Printf("Received Job Posting %s", msg)
+			count++
+		}
+	}(messages)
+
+	for _, c := range crawler {
+		c.Wait()
+	}
+	close(messages)
+	log.Printf("Found %d jobs", count)
 }
