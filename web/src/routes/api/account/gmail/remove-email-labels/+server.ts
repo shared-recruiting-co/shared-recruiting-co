@@ -179,7 +179,7 @@ export const POST: RequestHandler = async ({ request, locals: { getSession, supa
   // check the thread actually exists in Gmail before attempting the update
   const isValidGmailThread = await isGmailThreadIdValid(accessToken, threadId)
   if (!isValidGmailThread) {
-    return new Response({status: 200, statusText: "No corresponding Gmail thread"});
+    return new Response({status: 404, statusText: "No corresponding Gmail thread"});
   }
 
   // Get the label IDs for all "@SRC" labels
