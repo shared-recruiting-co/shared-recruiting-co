@@ -30,9 +30,13 @@
 		// query Supabase to get the needed data from the table `user_email_job` before its deleted
 		const { data: user_email_job_data } = await supabase
 			.from('user_email_job')
-			.select('email_thread_id')
+			.select('email_thread_id, user_email')
 			.eq('job_id', jobId)
 			.maybeSingle()
+
+		// get the email thread ID and user email for this job
+		const email_thread_id = user_email_job_data?.email_thread_id
+		const user_email = user_email_job_data?.user_email
 
 		// delete the entry in the user_email_job table the corresponds to the selected job
 		const { error: job_deletion_error } = await supabase
@@ -53,14 +57,8 @@
 			}
 		}
 		
-		// get the email thread ID (the ID identifying the specific email) from the data above
-		const email_thread_id = user_email_job_data?.email_thread_id
-		
 		// if we can find the specific email assocaiated with this job, remove its SRC email labels
-		if (email_thread_id) {
-
-			// get the users email from the current profile
-			let user_email = profile.email
+		if (email_thread_id && user_email) {
 
 			// the remove-email-labels will attempt to remove any SRC labels from the associated email
 			const resp = await fetch('/api/account/gmail/remove-email-labels', {
