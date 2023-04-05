@@ -36,7 +36,7 @@
 
 		// get the email thread ID and user email for this job
 		const email_thread_id = user_email_job_data?.email_thread_id
-		const user_email = user_email_job_data?.user_email
+		const email = user_email_job_data?.user_email
 
 		// delete the entry in the user_email_job table the corresponds to the selected job
 		const { error: job_deletion_error } = await supabase
@@ -58,12 +58,12 @@
 		}
 		
 		// if we can find the specific email assocaiated with this job, remove its SRC email labels
-		if (email_thread_id && user_email) {
+		if (email_thread_id && email) {
 
 			// the remove-email-labels will attempt to remove any SRC labels from the associated email
 			const resp = await fetch('/api/account/gmail/remove-email-labels', {
 				method: 'POST',
-				body: JSON.stringify({ user_email, email_thread_id })
+				body: JSON.stringify({ email, email_thread_id })
 			});
 
 			// handle errors

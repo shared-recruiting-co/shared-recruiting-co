@@ -1,6 +1,7 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getRefreshedGoogleAccessToken } from '$lib/supabase/client.server';
+import { email } from '$lib/components/ConnectGoogleAccountButton.svelte';
 
 /**
  * Retrieves the IDs of all Gmail labels that start with "@SRC"
@@ -160,15 +161,11 @@ export const POST: RequestHandler = async ({ request, locals: { getSession, supa
   const session = await getSession();
   if (!session) throw error(401, 'unauthorized');
 
-  // Get the email and thread ID from the request body (if they exist)
-  let email = session.user.email;
-  let threadId = 'not present';
-  try {
-    const { user_email: reqEmail, email_thread_id: reqThreadId } = await request.json();
-    email = reqEmail || email;
-    threadId = reqThreadId || threadId;
-  } catch (err) {
-    // Do nothing
+  // retrieve the necessary information from the request 
+  const { email, email_thread_id: threadId } = await request.json();
+
+  if (!email || !threadId) {
+    throw error(400, 'Could not find both email and email_thread_id from request json');
   }
 
   // Get a refreshed Google access token for the current user
@@ -176,7 +173,7 @@ export const POST: RequestHandler = async ({ request, locals: { getSession, supa
   try {
     accessToken = await getRefreshedGoogleAccessToken(supabase, email);
   } catch (err) {
-    throw error(500, err instanceof Error ? err : 'unexpected error occurred');
+    throw error(500, err instanceof Error ? err : 'Could not retrieve access token');
   }
 
   // check the thread actually exists in Gmail before attempting the update
