@@ -1,4 +1,4 @@
-create policy "Enable delete for users based on user_id"
+create policy "Users can delete their own jobs"
 on "public"."user_email_job"
 as permissive
 for delete
