@@ -5,7 +5,7 @@
 
 	export let data: PageData;
 
-	$: ({ supabase, profile } = data);
+	$: ({ supabase, profile, jobs } = data);
 
 	$: showingStart = (data.pagination.page - 1) * data.pagination.perPage + 1;
 	$: showingEnd = Math.min(
@@ -40,16 +40,16 @@
 			.delete()
 			.eq('job_id', jobId)
 
-		// if the the delete above is successful, update `data.jobs`
+		// if the the delete above is successful, update `jobs`
 		if (!job_deletion_error) {
 
-			// find index of the deleted job in the locally scoped data.jobs and remove it
-			const jobIndex = data.jobs.findIndex((job: { job_id: string }) => job.job_id === jobId);
+			// find index of the deleted job in the locally scoped jobs and remove it
+			const jobIndex = jobs.findIndex((job: { job_id: string }) => job.job_id === jobId);
 
-			// if the index exists, remove that job from the `data.jobs` array
+			// if the index exists, remove that job from the `jobs` array
 			if (jobIndex !== -1) {
-				data.jobs.splice(jobIndex, 1);
-				data = { ...data, jobs: [...data.jobs] };
+				jobs.splice(jobIndex, 1);
+				jobs = { ...jobs };
 			}
 		}
 		
@@ -91,7 +91,7 @@
 		describe the company and role will be added to your job board.
 	</p>
 </div>
-{#if data.jobs && data.jobs.length > 0}
+{#if jobs && jobs.length > 0}
 	<div>
 		<div class="mt-8 overflow-hidden rounded-lg shadow ring-1 ring-black ring-opacity-5 md:mx-0">
 			<table class="min-w-full divide-y divide-slate-300">
@@ -109,7 +109,7 @@
 					</tr>
 				</thead>
 				<tbody class="divide-y divide-slate-200 bg-white">
-					{#each data.jobs as job}
+					{#each jobs as job}
 						<tr class="text-sm text-slate-700" class:bg-sky-50={job.is_verified}>
 							<td class="table-cell py-4 pl-4 pr-3 text-base font-medium text-slate-900 lg:pl-6">
 								<div class="flex items-center space-x-4">
