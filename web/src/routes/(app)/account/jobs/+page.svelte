@@ -228,6 +228,7 @@
 									</div>
 								</div>
 							</td>
+							{#if !job.is_verified}
 							<td class="align-top px-3 py-4 flex justify-end">
 								<button 
 									class="hover:text-red-500"
@@ -245,6 +246,7 @@
 										</svg> 
 								</button>
 							</td>
+							{/if}
 						</tr>
 					{/each}
 				</tbody>
