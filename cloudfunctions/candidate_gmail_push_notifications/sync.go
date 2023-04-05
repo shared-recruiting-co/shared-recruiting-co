@@ -109,15 +109,16 @@ func (cf *CloudFunction) syncHistory(
 		}
 
 		labelChanges := cf.historyToEmailLabelChanges(history)
+		// TODO: Filter for ONLY using cf.CandidateLabels instead of filtering out systemLabels
 		filteredLabelChanges := filterEmailLabelChanges(labelChanges, systemLabels)
 
-		if len(*filteredLabelChanges.Changes) > 0 {
-			_, err := cf.PublishEmailLabelChanges(filteredLabelChanges)
+		if len(filteredLabelChanges.Changes) > 0 {
+			result, err := cf.PublishEmailLabelChanges(filteredLabelChanges)
 			if err != nil {
 				return fmt.Errorf("error publishing label changes: %w", err)
 			}
 
-			// results = append(results, result)
+			results = append(results, result)
 		}
 
 		if pageToken == "" {
@@ -161,12 +162,13 @@ func (cf *CloudFunction) PublishCandidateMessages(messages []*gmail.Message) (*p
 func (cf *CloudFunction) PublishEmailLabelChanges(changes *schema.EmailLabelChanges) (*pubsub.PublishResult, error) {
 	rawMessage, err := json.Marshal(changes)
 	if err != nil {
-		log.Printf("error marshalling email label changes: %v", err)
-		// return nil, fmt.Errorf("error marshalling email label changes: %w", err)
-	} else {
-		// while testing, log messages instead of publishing
-		log.Printf("publishing email label changes: %s", string(rawMessage))
+		return nil, fmt.Errorf("error marshalling email label changes: %w", err)
 	}
 
-	return nil, nil
+	// publish message
+	result := cf.topics.CandidateGmailLabelChanges.Publish(cf.ctx, &pubsub.Message{
+		Data: rawMessage,
+	})
+
+	return result, nil
 }

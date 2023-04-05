@@ -85,13 +85,13 @@ func (cf *CloudFunction) historyToEmailLabelChanges(histories []*gmail.History) 
 	}
 	return &schema.EmailLabelChanges{
 		Email:   cf.payload.Email,
-		Changes: &changes,
+		Changes: changes,
 	}
 }
 
 func filterEmailLabelChanges(changes *schema.EmailLabelChanges, labelIDs []string) *schema.EmailLabelChanges {
 	filtered := []schema.EmailLabelChange{}
-	for _, c := range *changes.Changes {
+	for _, c := range changes.Changes {
 		// filter out changes that only contain labels that we don't care about
 		for _, l := range c.LabelIDs {
 			if !contains(labelIDs, l) {
@@ -102,6 +102,6 @@ func filterEmailLabelChanges(changes *schema.EmailLabelChanges, labelIDs []strin
 	}
 	return &schema.EmailLabelChanges{
 		Email:   changes.Email,
-		Changes: &filtered,
+		Changes: filtered,
 	}
 }

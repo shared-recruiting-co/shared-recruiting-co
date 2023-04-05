@@ -73,6 +73,11 @@ func (i *Infra) createCloudFunctions() error {
 		return err
 	}
 
+	_, err = i.candidateGmailLabelChanges()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -384,6 +389,9 @@ func (i *Infra) candidateGmailPushNotifications(emailSync *CloudFunction) (*Clou
 				"GMAIL_MESSAGES_TOPIC": i.Topics.CandidateGmailMessages.Name.ApplyT(func(name string) string {
 					return name
 				}).(pulumi.StringOutput),
+				"GMAIL_LABEL_CHANGES_TOPIC": i.Topics.CandidateGmailLabelChanges.Name.ApplyT(func(name string) string {
+					return name
+				}).(pulumi.StringOutput),
 			},
 			IngressSettings:            pulumi.String("ALLOW_INTERNAL_ONLY"),
 			AllTrafficOnLatestRevision: pulumi.Bool(true),
@@ -400,6 +408,7 @@ func (i *Infra) candidateGmailPushNotifications(emailSync *CloudFunction) (*Clou
 	}, pulumi.DependsOn([]pulumi.Resource{
 		i.Topics.CandidateGmailSubscription,
 		i.Topics.CandidateGmailMessages,
+		i.Topics.CandidateGmailLabelChanges,
 		obj,
 		sa,
 		emailSync.Function,
@@ -435,6 +444,7 @@ func (i *Infra) candidateGmailPushNotifications(emailSync *CloudFunction) (*Clou
 		return nil, err
 	}
 
+	// Grant publish permission to the necessary topics
 	_, err = pubsub.NewTopicIAMMember(i.ctx, fmt.Sprintf("%s-publish-to-candidate-gmail-messages", name), &pubsub.TopicIAMMemberArgs{
 		Topic:   i.Topics.CandidateGmailMessages.ID(),
 		Role:    pulumi.String("roles/pubsub.publisher"),
@@ -444,6 +454,20 @@ func (i *Infra) candidateGmailPushNotifications(emailSync *CloudFunction) (*Clou
 		cf,
 		sa,
 		i.Topics.CandidateGmailMessages,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = pubsub.NewTopicIAMMember(i.ctx, fmt.Sprintf("%s-publish-to-candidate-gmail-label-changes", name), &pubsub.TopicIAMMemberArgs{
+		Topic:   i.Topics.CandidateGmailLabelChanges.ID(),
+		Role:    pulumi.String("roles/pubsub.publisher"),
+		Member:  pulumi.Sprintf("serviceAccount:%s", sa.Email),
+		Project: pulumi.String(*i.Project.ProjectId),
+	}, pulumi.DependsOn([]pulumi.Resource{
+		cf,
+		sa,
+		i.Topics.CandidateGmailLabelChanges,
 	}))
 	if err != nil {
 		return nil, err
@@ -1049,6 +1073,89 @@ func (i *Infra) adhoc() (*CloudFunction, error) {
 		Project:  i.Project.ProjectId,
 	})
 
+	if err != nil {
+		return nil, err
+	}
+
+	return &CloudFunction{
+		Name:           name,
+		ServiceAccount: sa,
+		Function:       cf,
+		Service:        srv,
+	}, nil
+}
+
+func (i *Infra) candidateGmailLabelChanges() (*CloudFunction, error) {
+	name := "candidate-gmail-label-changes"
+	sa, err := i.createCloudFunctionServiceAccount(name)
+	if err != nil {
+		return nil, err
+	}
+	obj, err := i.uploadCloudFunction(name, "")
+	if err != nil {
+		return nil, err
+	}
+
+	cf, err := cloudfunctionsv2.NewFunction(i.ctx, name, &cloudfunctionsv2.FunctionArgs{
+		Name: pulumi.String(name),
+		// use the same location as the bucket
+		Location:    pulumi.String(DefaultRegion),
+		Project:     pulumi.String(*i.Project.ProjectId),
+		Description: pulumi.String("Handle candidate gmail label changes"),
+		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
+			Runtime:    pulumi.String("go119"),
+			EntryPoint: pulumi.String("Handler"),
+			EnvironmentVariables: pulumi.StringMap{
+				// Use hash to force redeploy when code changes
+				"FUNCTION_NAME":         pulumi.String(name),
+				"FUNCTION_CONTENT_HASH": obj.Md5hash,
+			},
+			Source: &cloudfunctionsv2.FunctionBuildConfigSourceArgs{
+				StorageSource: &cloudfunctionsv2.FunctionBuildConfigSourceStorageSourceArgs{
+					Bucket: i.GCFBucket.Name,
+					Object: obj.Name,
+				},
+			},
+		},
+		ServiceConfig: &cloudfunctionsv2.FunctionServiceConfigArgs{
+			AvailableMemory:  pulumi.String("256M"),
+			MinInstanceCount: pulumi.Int(0),
+			MaxInstanceCount: pulumi.Int(5),
+			TimeoutSeconds:   pulumi.Int(MaxEventArcTriggerTimeout),
+			EnvironmentVariables: pulumi.StringMap{
+				"SUPABASE_API_URL":           pulumi.String(i.config.Require("SUPABASE_API_URL")),
+				"SUPABASE_API_KEY":           i.config.RequireSecret("SUPABASE_API_KEY"),
+				"GOOGLE_OAUTH2_CREDENTIALS":  i.config.RequireSecret("GOOGLE_OAUTH2_CREDENTIALS"),
+				"ML_SERVICE_URL":             i.config.RequireSecret("ML_SERVICE_URL"),
+				"SENTRY_DSN":                 i.config.RequireSecret("SENTRY_DSN"),
+				"EXAMPLES_GMAIL_OAUTH_TOKEN": i.config.RequireSecret("EXAMPLES_GMAIL_OAUTH_TOKEN"),
+			},
+			IngressSettings:            pulumi.String("ALLOW_INTERNAL_ONLY"),
+			AllTrafficOnLatestRevision: pulumi.Bool(true),
+			ServiceAccountEmail:        sa.Email,
+		},
+		EventTrigger: &cloudfunctionsv2.FunctionEventTriggerArgs{
+			TriggerRegion: pulumi.String(DefaultRegion),
+			PubsubTopic:   i.Topics.CandidateGmailLabelChanges.ID(),
+			EventType:     pulumi.String("google.cloud.pubsub.topic.v1.messagePublished"),
+			// Always retry failed messages
+			RetryPolicy:         pulumi.String("RETRY_POLICY_RETRY"),
+			ServiceAccountEmail: sa.Email,
+		},
+	}, pulumi.DependsOn([]pulumi.Resource{
+		i.Topics.CandidateGmailLabelChanges,
+		obj,
+		sa,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	srv, err := cloudrun.LookupService(i.ctx, &cloudrun.LookupServiceArgs{
+		Name:     name,
+		Location: DefaultRegion,
+		Project:  i.Project.ProjectId,
+	})
 	if err != nil {
 		return nil, err
 	}
