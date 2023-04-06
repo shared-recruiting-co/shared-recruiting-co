@@ -88,14 +88,13 @@ func isMessageBeforeReply(messages []*gmail.Message, messageID string) bool {
 }
 
 type CloudFunction struct {
-	ctx                  context.Context
-	queries              db.Querier
-	srv                  *srcmail.Service
-	labels               *srclabel.CandidateLabels
-	model                ml.Service
-	user                 db.UserProfile
-	examplesCollectorSrv *srcmail.Service
-	settings             schema.EmailMessagesSettings
+	ctx      context.Context
+	queries  db.Querier
+	srv      *srcmail.Service
+	labels   *srclabel.CandidateLabels
+	model    ml.Service
+	user     db.UserProfile
+	settings schema.EmailMessagesSettings
 }
 
 func NewCloudFunction(ctx context.Context, payload schema.EmailMessages) (*CloudFunction, error) {
@@ -113,18 +112,6 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailMessages) (*Cloud
 	user, err := queries.GetUserProfileByEmail(ctx, payload.Email)
 	if err != nil {
 		return nil, fmt.Errorf("error getting user profile by email: %w", err)
-	}
-
-	var examplesCollectorSrv *srcmail.Service
-	if user.AutoContribute {
-		auth, err := jsonFromEnv("EXAMPLES_GMAIL_OAUTH_TOKEN")
-		if err != nil {
-			return nil, fmt.Errorf("error parsing EXAMPLES_GMAIL_OAUTH_TOKEN: %w", err)
-		}
-		examplesCollectorSrv, err = srcmail.NewService(ctx, creds, auth)
-		if err != nil {
-			return nil, fmt.Errorf("error creating examples collector service: %w", err)
-		}
 	}
 
 	// 2. Get User' OAuth Token
@@ -190,14 +177,13 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailMessages) (*Cloud
 	})
 
 	return &CloudFunction{
-		ctx:                  ctx,
-		queries:              queries,
-		srv:                  srv,
-		labels:               labels,
-		model:                model,
-		user:                 user,
-		examplesCollectorSrv: examplesCollectorSrv,
-		settings:             payload.Settings,
+		ctx:      ctx,
+		queries:  queries,
+		srv:      srv,
+		labels:   labels,
+		model:    model,
+		user:     user,
+		settings: payload.Settings,
 	}, nil
 }
 
