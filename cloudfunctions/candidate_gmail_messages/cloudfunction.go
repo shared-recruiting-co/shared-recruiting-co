@@ -88,14 +88,13 @@ func isMessageBeforeReply(messages []*gmail.Message, messageID string) bool {
 }
 
 type CloudFunction struct {
-	ctx                  context.Context
-	queries              db.Querier
-	srv                  *srcmail.Service
-	labels               *srclabel.CandidateLabels
-	model                ml.Service
-	user                 db.UserProfile
-	examplesCollectorSrv *srcmail.Service
-	settings             schema.EmailMessagesSettings
+	ctx      context.Context
+	queries  db.Querier
+	srv      *srcmail.Service
+	labels   *srclabel.CandidateLabels
+	model    ml.Service
+	user     db.UserProfile
+	settings schema.EmailMessagesSettings
 }
 
 func NewCloudFunction(ctx context.Context, payload schema.EmailMessages) (*CloudFunction, error) {
@@ -113,18 +112,6 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailMessages) (*Cloud
 	user, err := queries.GetUserProfileByEmail(ctx, payload.Email)
 	if err != nil {
 		return nil, fmt.Errorf("error getting user profile by email: %w", err)
-	}
-
-	var examplesCollectorSrv *srcmail.Service
-	if user.AutoContribute {
-		auth, err := jsonFromEnv("EXAMPLES_GMAIL_OAUTH_TOKEN")
-		if err != nil {
-			return nil, fmt.Errorf("error parsing EXAMPLES_GMAIL_OAUTH_TOKEN: %w", err)
-		}
-		examplesCollectorSrv, err = srcmail.NewService(ctx, creds, auth)
-		if err != nil {
-			return nil, fmt.Errorf("error creating examples collector service: %w", err)
-		}
 	}
 
 	// 2. Get User' OAuth Token
@@ -190,14 +177,13 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailMessages) (*Cloud
 	})
 
 	return &CloudFunction{
-		ctx:                  ctx,
-		queries:              queries,
-		srv:                  srv,
-		labels:               labels,
-		model:                model,
-		user:                 user,
-		examplesCollectorSrv: examplesCollectorSrv,
-		settings:             payload.Settings,
+		ctx:      ctx,
+		queries:  queries,
+		srv:      srv,
+		labels:   labels,
+		model:    model,
+		user:     user,
+		settings: payload.Settings,
 	}, nil
 }
 
@@ -250,48 +236,6 @@ func handler(ctx context.Context, e event.Event) error {
 	}
 
 	return nil
-}
-
-func (cf *CloudFunction) ParseEmail(message *gmail.Message) (*ml.ParseJobResponse, error) {
-	parseRequest := ml.ParseJobRequest{
-		From:    srcmessage.Sender(message),
-		Subject: srcmessage.Subject(message),
-		Body:    srcmessage.Body(message),
-	}
-	log.Printf("parsing email: %s", message.Id)
-	return cf.model.ParseJob(&parseRequest)
-}
-
-func (cf *CloudFunction) InsertRecruiterEmailIntoDB(message *gmail.Message, company, title, recruiter string) error {
-	recruiterEmail := srcmessage.SenderEmail(message)
-	data := map[string]interface{}{
-		"recruiter":       recruiter,
-		"recruiter_email": recruiterEmail,
-	}
-
-	// turn data into json.RawMessage
-	b, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
-
-	// convert epoch ms to time.Time
-	emailedAt := srcmessage.CreatedAt(message)
-	profile, err := cf.srv.Profile()
-
-	if err != nil {
-		return fmt.Errorf("error getting profile: %w", err)
-	}
-
-	return cf.queries.InsertUserEmailJob(cf.ctx, db.InsertUserEmailJobParams{
-		UserID:        cf.user.UserID,
-		UserEmail:     profile.EmailAddress,
-		EmailThreadID: message.ThreadId,
-		EmailedAt:     emailedAt,
-		Company:       company,
-		JobTitle:      title,
-		Data:          b,
-	})
 }
 
 func (cf *CloudFunction) processMessages(messageIDs []string) error {
@@ -414,7 +358,7 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 	log.Printf("number of emails to classify: %d", len(messages))
 
 	// Get IDs of new recruiting emails
-	recruitingEmailIDs, err := cf.classifyAndParseMessages(messages)
+	recruitingEmailIDs, err := cf.classifyRecruitingEmails(messages)
 	// TODO: Support partial failures
 	if err != nil {
 		return fmt.Errorf("error classifying and parsing messages: %v", err)
@@ -451,7 +395,7 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 	return nil
 }
 
-func (cf *CloudFunction) classifyAndParseMessages(messages map[string]*gmail.Message) ([]string, error) {
+func (cf *CloudFunction) classifyRecruitingEmails(messages map[string]*gmail.Message) ([]string, error) {
 	// Get IDs of new recruiting emails
 	recruitingEmailIDs := []string{}
 	if len(messages) == 0 {
@@ -480,32 +424,6 @@ func (cf *CloudFunction) classifyAndParseMessages(messages map[string]*gmail.Mes
 			continue
 		}
 		recruitingEmailIDs = append(recruitingEmailIDs, id)
-
-		// do not parse emails if dry run
-		if cf.settings.DryRun {
-			continue
-		}
-
-		message := messages[id]
-		job, err := cf.ParseEmail(message)
-		// for now, abort on error
-		if err != nil {
-			return recruitingEmailIDs, err
-		}
-
-		// if fields are missing, skip
-		if job.Company == "" || job.Title == "" || job.Recruiter == "" {
-			// print sender and subject
-			log.Printf("skipping job: %v", job)
-			continue
-		}
-		err = cf.InsertRecruiterEmailIntoDB(message, job.Company, job.Title, job.Recruiter)
-
-		// for now, continue on error
-		if err != nil {
-			log.Printf("error inserting job (%v): %v", job, err)
-			continue
-		}
 	}
 
 	return recruitingEmailIDs, nil
@@ -535,25 +453,6 @@ func (cf *CloudFunction) processRecruitingEmails(messageIDs []string) error {
 
 		if err != nil {
 			return fmt.Errorf("error modifying recruiting emails: %v", err)
-		}
-	}
-
-	if cf.user.AutoContribute {
-		for _, id := range messageIDs {
-			// shouldn't happen
-			if cf.examplesCollectorSrv == nil {
-				log.Print("examples collector service not initialized")
-				break
-			}
-			// clone the message to the examples inbox
-			_, err := srcmail.CloneMessage(cf.srv, cf.examplesCollectorSrv, id, []string{"INBOX", "UNREAD"})
-
-			if err != nil {
-				// don't abort on error
-				log.Printf("error collecting email %s: %v", id, err)
-				sentry.CaptureException(fmt.Errorf("error collecting email %s: %w", id, err))
-				continue
-			}
 		}
 	}
 

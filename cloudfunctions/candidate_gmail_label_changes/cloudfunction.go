@@ -18,6 +18,7 @@ import (
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/db"
 	srcmail "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail"
 	srclabel "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/label"
+	srcmessage "github.com/shared-recruiting-co/shared-recruiting-co/libs/src/mail/gmail/message"
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/ml"
 	"github.com/shared-recruiting-co/shared-recruiting-co/libs/src/pubsub/schema"
 )
@@ -62,8 +63,8 @@ type CloudFunction struct {
 	user                 db.UserProfile
 	examplesCollectorSrv *srcmail.Service
 	payload              *schema.EmailLabelChanges
-	addedLabelFuncs      map[string]func(msg *gmail.Message) error
-	removedLabelFuncs    map[string]func(msg *gmail.Message) error
+	addedLabelFuncs      map[string]func(cf *CloudFunction, msg *gmail.Message) error
+	removedLabelFuncs    map[string]func(cf *CloudFunction, msg *gmail.Message) error
 }
 
 func NewCloudFunction(ctx context.Context, payload schema.EmailLabelChanges) (*CloudFunction, error) {
@@ -159,10 +160,10 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailLabelChanges) (*C
 
 	// set up label handlers
 	// use label IDs as keys
-	addedLabelFuncs := map[string]func(msg *gmail.Message) error{
+	addedLabelFuncs := map[string]func(cf *CloudFunction, msg *gmail.Message) error{
 		labels.JobsOpportunity.Id: handleAddedJobOpportunityLabel,
 	}
-	removedLabelFuncs := map[string]func(msg *gmail.Message) error{
+	removedLabelFuncs := map[string]func(cf *CloudFunction, msg *gmail.Message) error{
 		labels.JobsOpportunity.Id: handleRemovedJobOpportunityLabel,
 	}
 
@@ -287,7 +288,7 @@ func (cf *CloudFunction) processLabelAdded(msg *gmail.Message, labelID string) e
 		return nil
 	}
 	// 2. run the function
-	return fn(msg)
+	return fn(cf, msg)
 }
 
 func (cf *CloudFunction) processLabelRemoved(msg *gmail.Message, labelID string) error {
@@ -298,20 +299,92 @@ func (cf *CloudFunction) processLabelRemoved(msg *gmail.Message, labelID string)
 		return nil
 	}
 	// 2. run the function
-	return fn(msg)
+	return fn(cf, msg)
+}
+
+func (cf *CloudFunction) ParseEmail(msg *gmail.Message) (*ml.ParseJobResponse, error) {
+	parseRequest := ml.ParseJobRequest{
+		From:    srcmessage.Sender(msg),
+		Subject: srcmessage.Subject(msg),
+		Body:    srcmessage.Body(msg),
+	}
+	log.Printf("parsing email: %s", msg.Id)
+	return cf.model.ParseJob(&parseRequest)
+}
+
+func (cf *CloudFunction) InsertRecruiterEmailIntoDB(msg *gmail.Message, company, title, recruiter string) error {
+	recruiterEmail := srcmessage.SenderEmail(msg)
+	data := map[string]interface{}{
+		"recruiter":       recruiter,
+		"recruiter_email": recruiterEmail,
+	}
+
+	// turn data into json.RawMessage
+	b, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	return cf.queries.InsertUserEmailJob(cf.ctx, db.InsertUserEmailJobParams{
+		UserID:        cf.user.UserID,
+		UserEmail:     cf.payload.Email,
+		EmailThreadID: msg.ThreadId,
+		// convert epoch ms to time.Time
+		EmailedAt: srcmessage.CreatedAt(msg),
+		Company:   company,
+		JobTitle:  title,
+		Data:      b,
+	})
 }
 
 // Label Functions
 
-func handleAddedJobOpportunityLabel(msg *gmail.Message) error {
+// handleAddedJobOpportunityLabel handles the added job opportunities label
+// 1. check if the user has auto contribute enabled
+// 2. parse the email and add to the user's job board
+func handleAddedJobOpportunityLabel(cf *CloudFunction, msg *gmail.Message) error {
 	// For now log
 	log.Printf("added job opportunities label: %s", msg.Id)
-	// TODO
-	// process as a recruiting email
+
+	// 1. check if the user has auto contribute enabled
+	if cf.user.AutoContribute && cf.examplesCollectorSrv != nil {
+		// clone the message to the examples inbox
+		_, err := srcmail.CloneMessage(cf.srv, cf.examplesCollectorSrv, msg.Id, []string{"INBOX", "UNREAD"})
+
+		if err != nil {
+			// don't abort on error
+			log.Printf("error collecting email %s: %v", msg.Id, err)
+			sentry.CaptureException(fmt.Errorf("error collecting email %s: %w", msg.Id, err))
+		}
+	}
+
+	// 2. parse the email and add to the user's job board
+	job, err := cf.ParseEmail(msg)
+	// for now, abort on error
+	if err != nil {
+		return err
+	}
+
+	// if fields are missing, skip
+	if job.Company == "" || job.Title == "" || job.Recruiter == "" {
+		// print sender and subject
+		log.Printf("skipping job: %v", job)
+		return nil
+	}
+
+	err = cf.InsertRecruiterEmailIntoDB(msg, job.Company, job.Title, job.Recruiter)
+
+	// for now, continue on error
+	if err != nil {
+		log.Printf("error inserting job (%v): %v", job, err)
+	}
+
 	return nil
 }
 
-func handleRemovedJobOpportunityLabel(msg *gmail.Message) error {
+// handleRemovedJobOpportunityLabel handles the removed job opportunities label
+// 1. remove from a user's user_email_job if it exists
+func handleRemovedJobOpportunityLabel(cf *CloudFunction, msg *gmail.Message) error {
 	// For now log
 	log.Printf("removed job opportunities label: %s", msg.Id)
 	// TODO
