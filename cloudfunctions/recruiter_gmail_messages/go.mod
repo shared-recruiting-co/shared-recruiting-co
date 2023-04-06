@@ -1,6 +1,6 @@
 module github.com/shared-recruiting-co/shared-recruiting-co/cloudfunctions/recruiter_gmail_messages
 
-go 1.19
+go 1.20
 
 require (
 	github.com/GoogleCloudPlatform/functions-framework-go v1.6.1
@@ -8,7 +8,7 @@ require (
 	github.com/getsentry/sentry-go v0.18.0
 	github.com/google/uuid v1.3.0
 	github.com/jaytaylor/html2text v0.0.0-20230321000545-74c2419ad056
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230403211827-7ab25bc2a69e
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230406032152-c8e0a3a338c7
 	google.golang.org/api v0.114.0
 )
 
