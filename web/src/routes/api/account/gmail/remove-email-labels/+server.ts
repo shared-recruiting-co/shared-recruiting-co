@@ -108,7 +108,7 @@ const removeLabelsFromThread = async (accessToken: string, threadId: string, lab
  * @returns {Promise<boolean>} - A promise that resolves with a boolean indicating whether or not the thread ID corresponds to a Gmail thread.
  * @throws {Error} - Throws an error if the API request fails or if the response is invalid.
  */
-const isGmailThreadIdValid = async (accessToken: string, threadId: string): Promise<boolean> => {
+const isThreadValid = async (accessToken: string, threadId: string): Promise<boolean> => {
   // The Gmail thread endpoint, which gives the details of a specific Gmail thread
   const threadEndpoint = `https://gmail.googleapis.com/gmail/v1/users/me/threads/${threadId}`;
 
@@ -161,7 +161,7 @@ export const POST: RequestHandler = async ({ request, locals: { getSession, supa
   }
 
   // check the thread actually exists in Gmail before attempting the update
-  const isValidGmailThread = await isGmailThreadIdValid(accessToken, threadId)
+  const isValidGmailThread = await isThreadValid(accessToken, threadId)
   if (!isValidGmailThread) {
     return new Response({status: 404, statusText: "No corresponding Gmail thread"});
   }
