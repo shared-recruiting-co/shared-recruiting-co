@@ -12,9 +12,14 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
+	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
+	"github.com/getsentry/sentry-go"
 
 	"github.com/gocolly/colly/v2"
 	"github.com/jaytaylor/html2text"
@@ -123,7 +128,7 @@ type JobListingFetcher struct {
 	htmlSelector string
 }
 
-var Fetchers = map[string]JobListingFetcher{
+var fetchers = map[string]JobListingFetcher{
 	"ycombinator": {
 		colly.NewCollector(colly.DisallowedDomains("account.ycombinator.com")),
 		"div.mx-auto.max-w-ycdc-page > section > div > div.flex-grow.space-y-5"},
@@ -152,7 +157,7 @@ func initCrawlers(messages chan<- JobListing) []*colly.Collector {
 			ycCrawler.Visit(absoluteLink)
 		}
 		if shouldFetchJobListing(e.Text, absoluteLink) {
-			for host, fetcher := range Fetchers {
+			for host, fetcher := range fetchers {
 				if strings.Contains(e.Request.URL.Host, host) {
 					fetcher.collector.Visit(absoluteLink)
 					break
@@ -165,7 +170,7 @@ func initCrawlers(messages chan<- JobListing) []*colly.Collector {
 		log.Println("visiting", r.URL.String())
 	})
 
-	for host, fetcher := range Fetchers {
+	for host, fetcher := range fetchers {
 		fetcher.collector.OnHTML(fetcher.htmlSelector, func(e *colly.HTMLElement) {
 			listing, err := processHtml(e)
 			if err != nil {
@@ -181,7 +186,7 @@ func initCrawlers(messages chan<- JobListing) []*colly.Collector {
 	// Aggregate colly collectors so we can .Wait on all of them
 	collectors := []*colly.Collector{}
 	collectors = append(collectors, ycCrawler)
-	for _, fetcher := range Fetchers {
+	for _, fetcher := range fetchers {
 		collectors = append(collectors, fetcher.collector)
 	}
 	return collectors
@@ -194,7 +199,7 @@ func Run() {
 
 	go func(messages <-chan JobListing) {
 		for msg := range messages {
-			log.Printf("Received Job Listing %s", msg)
+			log.Println("Received Job Listing. Not sending message.", msg)
 			count++
 		}
 	}(messages)
@@ -203,5 +208,36 @@ func Run() {
 		c.Wait()
 	}
 	close(messages)
-	log.Printf("Found %d jobs", count)
+	log.Printf("Completed. Found %d jobs", count)
+}
+
+func init() {
+	functions.HTTP("Handler", handler)
+}
+
+func handleError(w http.ResponseWriter, msg string, err error) {
+	err = fmt.Errorf("%s: %w", msg, err)
+	log.Print(err)
+	sentry.CaptureException(err)
+	http.Error(w, err.Error(), http.StatusInternalServerError)
+
+}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: os.Getenv("SENTRY_DSN"),
+		// Set TracesSampleRate to 1.0 to capture 100%
+		// of transactions for performance monitoring.
+		// We recommend adjusting this value in production,
+		TracesSampleRate: 1.0,
+		ServerName:       os.Getenv("FUNCTION_NAME"),
+	})
+	if err != nil {
+		handleError(w, "Error intializing sentry", err)
+	}
+	// Flush buffered events before the program terminates.
+	defer sentry.Flush(2 * time.Second)
+	defer sentry.RecoverWithContext(ctx)
+	Run()
 }
