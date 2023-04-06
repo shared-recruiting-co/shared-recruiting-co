@@ -387,7 +387,15 @@ func handleAddedJobOpportunityLabel(cf *CloudFunction, msg *gmail.Message) error
 func handleRemovedJobOpportunityLabel(cf *CloudFunction, msg *gmail.Message) error {
 	// For now log
 	log.Printf("removed job opportunities label: %s", msg.Id)
-	// TODO
+
 	// Remove from a user's user_email_job if it exists
+	err := cf.queries.DeleteUserEmailJobByEmailThreadID(cf.ctx, db.DeleteUserEmailJobByEmailThreadIDParams{
+		UserEmail:     cf.payload.Email,
+		EmailThreadID: msg.ThreadId,
+	})
+	if err != nil {
+		log.Printf("error deleting job: %v", err)
+	}
+
 	return nil
 }

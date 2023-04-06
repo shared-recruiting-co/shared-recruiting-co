@@ -130,6 +130,10 @@ where job_id = $1;
 insert into public.user_email_job(user_id, user_email, email_thread_id, emailed_at, company, job_title, data)
 values ($1, $2, $3, $4, $5, $6, $7);
 
+-- name: DeleteUserEmailJobByEmailThreadID :exec
+delete from public.user_email_job
+where user_email = $1 and email_thread_id = $2;
+
 -- name: CountUserEmailJobs :one
 select count(*) as cnt
 from public.user_email_job
