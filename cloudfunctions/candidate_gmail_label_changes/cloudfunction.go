@@ -2,6 +2,7 @@ package cloudfunctions
 
 import (
 	"context"
+	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -337,6 +338,37 @@ func (cf *CloudFunction) InsertRecruiterEmailIntoDB(msg *gmail.Message, company,
 	})
 }
 
+func (cf *CloudFunction) IsKnownRecruitingEmail(msg *gmail.Message) bool {
+	// check if message is a known recruiting outbound message
+	internalMessageID := srcmessage.Header(msg, "Message-ID")
+	if internalMessageID == "" {
+		log.Printf("skipping message: %s, no Message-ID header", msg.Id)
+		return false
+	}
+	// check if message is a known recruiting outbound message
+	// look up by RFC2822 message ID and to_email
+	// TODO: Is it better to use the recipient email from the header or the current user?
+	recipient := srcmessage.RecipientEmail(msg)
+	if recipient == "" {
+		log.Printf("skipping message: %s, no recipient email", msg.Id)
+		return false
+	}
+
+	_, err := cf.queries.GetRecruiterOutboundMessageByRecipient(cf.ctx, db.GetRecruiterOutboundMessageByRecipientParams{
+		ToEmail:           recipient,
+		InternalMessageID: internalMessageID,
+	})
+	// we expect a not found error
+	if err == nil {
+		// log and add to known messages
+		log.Printf("found known recruiting message: %s", msg.Id)
+		return true
+	} else if err != sql.ErrNoRows {
+		log.Printf("error looking up known recruiting message: %v", err)
+	}
+	return false
+}
+
 // Label Functions
 
 // handleAddedJobOpportunityLabel handles the added job opportunities label
@@ -359,24 +391,28 @@ func handleAddedJobOpportunityLabel(cf *CloudFunction, msg *gmail.Message) error
 	}
 
 	// 2. parse the email and add to the user's job board
-	job, err := cf.ParseEmail(msg)
-	// for now, abort on error
-	if err != nil {
-		return err
-	}
+	// only parse jobs if the msg is NOT a verified job
+	if !cf.IsKnownRecruitingEmail(msg) {
+		job, err := cf.ParseEmail(msg)
+		// for now, abort on error
+		if err != nil {
+			return err
+		}
 
-	// if fields are missing, skip
-	if job.Company == "" || job.Title == "" || job.Recruiter == "" {
-		// print sender and subject
-		log.Printf("skipping job: %v", job)
-		return nil
-	}
+		// if fields are missing, skip
+		if job.Company == "" || job.Title == "" || job.Recruiter == "" {
+			// print sender and subject
+			log.Printf("skipping job: %v", job)
+			return nil
+		}
 
-	err = cf.InsertRecruiterEmailIntoDB(msg, job.Company, job.Title, job.Recruiter)
+		err = cf.InsertRecruiterEmailIntoDB(msg, job.Company, job.Title, job.Recruiter)
 
-	// for now, continue on error
-	if err != nil {
-		log.Printf("error inserting job (%v): %v", job, err)
+		// for now, continue on error
+		if err != nil {
+			log.Printf("error inserting job (%v): %v", job, err)
+		}
+
 	}
 
 	return nil
