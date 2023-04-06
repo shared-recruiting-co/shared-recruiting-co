@@ -46,15 +46,7 @@
 
 		// if the the delete above is successful, update `jobs`
 		if (!job_deletion_error) {
-
-			// find index of the deleted job in the locally scoped jobs and remove it
-			const jobIndex = jobs.findIndex((job: { job_id: string }) => job.job_id === jobId);
-
-			// if the index exists, remove that job from the `jobs` array
-			if (jobIndex !== -1) {
-				jobs.splice(jobIndex, 1);
-				jobs = { ...jobs };
-			}
+			jobs = jobs.filter((job: { job_id: string }) => job.job_id !== jobId);
 		}
 		
 		// if we can find the specific email assocaiated with this job, remove its SRC email labels
