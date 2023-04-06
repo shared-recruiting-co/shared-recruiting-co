@@ -5,7 +5,7 @@
 
 	export let data: PageData;
 
-	$: ({ supabase, profile, jobs } = data);
+	$: ({ supabase, jobs } = data);
 
 	$: showingStart = (data.pagination.page - 1) * data.pagination.perPage + 1;
 	$: showingEnd = Math.min(
