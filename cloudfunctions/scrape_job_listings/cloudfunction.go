@@ -71,7 +71,7 @@ func shouldFetchJobListing(text, absoluteLink string) bool {
 type JobListing struct {
 	AbsoluteURL    string
 	ListingContent string
-	CompanyName    string
+	CompanySlug    string
 	JobBoard       string
 	Md5Hash        string
 	FetchedAt      time.Time
@@ -96,19 +96,19 @@ func processHtml(e *colly.HTMLElement) (JobListing, error) {
 	log.Printf("Hashed body at link: %q \n", e.Request.URL.Host)
 
 	var jobBoard string
-	var companyName string
+	var companySlug string
 
 	if strings.Contains(e.Request.URL.Host, "jobs.lever") {
 		jobBoard = "lever"
-		companyName = strings.Split(absoluteUrl, "/")[3]
+		companySlug = strings.Split(absoluteUrl, "/")[3]
 
 	} else if strings.Contains(e.Request.URL.Host, "ycombinator") {
 		jobBoard = "ycombinator"
-		companyName = strings.Split(absoluteUrl, "/")[4]
+		companySlug = strings.Split(absoluteUrl, "/")[4]
 
 	} else if strings.Contains(e.Request.URL.Host, "greenhouse") {
 		jobBoard = "greenhouse"
-		companyName = strings.Split(absoluteUrl, "/")[3]
+		companySlug = strings.Split(absoluteUrl, "/")[3]
 	} else {
 		return JobListing{}, fmt.Errorf("unhandled hostname: %s", hostname)
 	}
@@ -116,7 +116,7 @@ func processHtml(e *colly.HTMLElement) (JobListing, error) {
 	return JobListing{
 		absoluteUrl,
 		listingContent,
-		companyName,
+		companySlug,
 		jobBoard,
 		md5Hash,
 		time.Now(),
@@ -132,11 +132,11 @@ var fetchers = map[string]JobListingFetcher{
 	"ycombinator": {
 		colly.NewCollector(colly.DisallowedDomains("account.ycombinator.com")),
 		"div.mx-auto.max-w-ycdc-page > section > div > div.flex-grow.space-y-5"},
-	"greenhouse": {colly.NewCollector(colly.Async(true)), "#content"},
-	"jobs.lever": {colly.NewCollector(colly.Async(true)), "body > div.content-wrapper.posting-page > div"},
+	"greenhouse": {colly.NewCollector(colly.Async(false)), "#content"},
+	"jobs.lever": {colly.NewCollector(colly.Async(false)), "body > div.content-wrapper.posting-page > div"},
 }
 
-func initCrawlers(messages chan<- JobListing) []*colly.Collector {
+func initCrawlers(messages chan<- JobListing) *colly.Collector {
 	// Instantiate default collector
 	ycCrawler := colly.NewCollector(
 		colly.MaxDepth(5),
@@ -184,12 +184,7 @@ func initCrawlers(messages chan<- JobListing) []*colly.Collector {
 	ycCrawler.Visit("https://news.ycombinator.com/jobs")
 
 	// Aggregate colly collectors so we can .Wait on all of them
-	collectors := []*colly.Collector{}
-	collectors = append(collectors, ycCrawler)
-	for _, fetcher := range fetchers {
-		collectors = append(collectors, fetcher.collector)
-	}
-	return collectors
+	return ycCrawler
 }
 
 func Run() {
@@ -204,9 +199,7 @@ func Run() {
 		}
 	}(messages)
 
-	for _, c := range crawler {
-		c.Wait()
-	}
+	crawler.Wait()
 	close(messages)
 	log.Printf("Completed. Found %d jobs", count)
 }
