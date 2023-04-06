@@ -173,7 +173,7 @@ export const removeLabelsFromThread = async (accessToken: string, threadId: stri
  * @returns {Promise<boolean>} - A promise that resolves with a boolean indicating whether or not the thread ID corresponds to a Gmail thread.
  * @throws {Error} - Throws an error if the API request fails or if the response is invalid.
  */
-export const isThreadValid = async (accessToken: string, threadId: string): Promise<boolean> => {
+export const isValidThread = async (accessToken: string, threadId: string): Promise<boolean> => {
   // The Gmail thread endpoint, which gives the details of a specific Gmail thread
   const threadEndpoint = `https://gmail.googleapis.com/gmail/v1/users/me/threads/${threadId}`;
 
