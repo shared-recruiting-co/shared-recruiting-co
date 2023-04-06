@@ -2,6 +2,13 @@ import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getRefreshedGoogleAccessToken } from '$lib/supabase/client.server';
 import { email } from '$lib/components/ConnectGoogleAccountButton.svelte';
+import {
+  getSrcLabelIds,
+  getThreadLabels,
+  removeLabelsFromThread,
+  isValidThread
+} from '$lib/server/google/gmail';
+
 
 /**
  * Main handler function for this POST request route
