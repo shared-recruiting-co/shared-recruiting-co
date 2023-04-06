@@ -26,6 +26,21 @@ func (q *Queries) CountUserEmailJobs(ctx context.Context, userID uuid.UUID) (int
 	return cnt, err
 }
 
+const deleteUserEmailJobByEmailThreadID = `-- name: DeleteUserEmailJobByEmailThreadID :exec
+delete from public.user_email_job
+where user_email = $1 and email_thread_id = $2
+`
+
+type DeleteUserEmailJobByEmailThreadIDParams struct {
+	UserEmail     string `json:"user_email"`
+	EmailThreadID string `json:"email_thread_id"`
+}
+
+func (q *Queries) DeleteUserEmailJobByEmailThreadID(ctx context.Context, arg DeleteUserEmailJobByEmailThreadIDParams) error {
+	_, err := q.exec(ctx, q.deleteUserEmailJobByEmailThreadIDStmt, deleteUserEmailJobByEmailThreadID, arg.UserEmail, arg.EmailThreadID)
+	return err
+}
+
 const getRecruiterByEmail = `-- name: GetRecruiterByEmail :one
 select 
     recruiter.user_id,

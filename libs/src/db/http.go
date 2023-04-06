@@ -436,6 +436,23 @@ func (q *HTTPQueries) InsertUserEmailJob(ctx context.Context, arg InsertUserEmai
 	return nil
 }
 
+// DeleteUserEmailJobByEmailThreadID deletes a user's email job by email thread ID.
+func (q *HTTPQueries) DeleteUserEmailJobByEmailThreadID(ctx context.Context, arg DeleteUserEmailJobByEmailThreadIDParams) error {
+	basePath := "/user_email_job"
+	query := fmt.Sprintf("user_id=eq.%s&email_thread_id=eq.%s", arg.UserEmail, arg.EmailThreadID)
+	path := fmt.Sprintf("%s?%s", basePath, query)
+
+	resp, err := q.DoRequest(ctx, http.MethodDelete, path, nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("error deleting user email job: %s", resp.Status)
+	}
+
+	return nil
+}
+
 // CountUserEmailJobs counts the number of user's email jobs.
 func (q *HTTPQueries) CountUserEmailJobs(ctx context.Context, userID uuid.UUID) (int64, error) {
 	basePath := "/user_email_job"

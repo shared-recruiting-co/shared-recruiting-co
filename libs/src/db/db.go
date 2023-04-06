@@ -27,6 +27,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.countUserEmailJobsStmt, err = db.PrepareContext(ctx, countUserEmailJobs); err != nil {
 		return nil, fmt.Errorf("error preparing query CountUserEmailJobs: %w", err)
 	}
+	if q.deleteUserEmailJobByEmailThreadIDStmt, err = db.PrepareContext(ctx, deleteUserEmailJobByEmailThreadID); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteUserEmailJobByEmailThreadID: %w", err)
+	}
 	if q.getRecruiterByEmailStmt, err = db.PrepareContext(ctx, getRecruiterByEmail); err != nil {
 		return nil, fmt.Errorf("error preparing query GetRecruiterByEmail: %w", err)
 	}
@@ -89,6 +92,11 @@ func (q *Queries) Close() error {
 	if q.countUserEmailJobsStmt != nil {
 		if cerr := q.countUserEmailJobsStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing countUserEmailJobsStmt: %w", cerr)
+		}
+	}
+	if q.deleteUserEmailJobByEmailThreadIDStmt != nil {
+		if cerr := q.deleteUserEmailJobByEmailThreadIDStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteUserEmailJobByEmailThreadIDStmt: %w", cerr)
 		}
 	}
 	if q.getRecruiterByEmailStmt != nil {
@@ -221,6 +229,7 @@ type Queries struct {
 	db                                         DBTX
 	tx                                         *sql.Tx
 	countUserEmailJobsStmt                     *sql.Stmt
+	deleteUserEmailJobByEmailThreadIDStmt      *sql.Stmt
 	getRecruiterByEmailStmt                    *sql.Stmt
 	getRecruiterOutboundMessageStmt            *sql.Stmt
 	getRecruiterOutboundMessageByRecipientStmt *sql.Stmt
@@ -243,11 +252,12 @@ type Queries struct {
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                              tx,
-		tx:                              tx,
-		countUserEmailJobsStmt:          q.countUserEmailJobsStmt,
-		getRecruiterByEmailStmt:         q.getRecruiterByEmailStmt,
-		getRecruiterOutboundMessageStmt: q.getRecruiterOutboundMessageStmt,
+		db:                                    tx,
+		tx:                                    tx,
+		countUserEmailJobsStmt:                q.countUserEmailJobsStmt,
+		deleteUserEmailJobByEmailThreadIDStmt: q.deleteUserEmailJobByEmailThreadIDStmt,
+		getRecruiterByEmailStmt:               q.getRecruiterByEmailStmt,
+		getRecruiterOutboundMessageStmt:       q.getRecruiterOutboundMessageStmt,
 		getRecruiterOutboundMessageByRecipientStmt: q.getRecruiterOutboundMessageByRecipientStmt,
 		getUserEmailJobStmt:                        q.getUserEmailJobStmt,
 		getUserEmailSyncHistoryStmt:                q.getUserEmailSyncHistoryStmt,
