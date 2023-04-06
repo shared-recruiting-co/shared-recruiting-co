@@ -273,7 +273,14 @@ create policy "Users can view their own jobs"
   on public.user_email_job for select
   using ( auth.uid() = user_id );
 
--- for now jobs are read only
+-- enable RLS to allow users to delete their own jobs
+create policy "Users can delete their own jobs"
+on "public"."user_email_job"
+as permissive
+for delete
+to public
+using ((auth.uid() = user_id));
+
 
 --------------------------------
 -- End: User (Candidate) Email Job Table

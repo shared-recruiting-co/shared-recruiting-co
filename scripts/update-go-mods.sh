@@ -5,6 +5,7 @@ pkgs=(
 "./cloudfunctions/candidate_email_sync"
 "./cloudfunctions/candidate_gmail_push_notifications"
 "./cloudfunctions/candidate_gmail_messages"
+"./cloudfunctions/candidate_gmail_label_changes"
 "./cloudfunctions/recruiter_email_sync"
 "./cloudfunctions/recruiter_gmail_push_notifications"
 "./cloudfunctions/recruiter_gmail_messages"

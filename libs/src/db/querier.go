@@ -12,6 +12,7 @@ import (
 
 type Querier interface {
 	CountUserEmailJobs(ctx context.Context, userID uuid.UUID) (int64, error)
+	DeleteUserEmailJobByEmailThreadID(ctx context.Context, arg DeleteUserEmailJobByEmailThreadIDParams) error
 	GetRecruiterByEmail(ctx context.Context, email string) (GetRecruiterByEmailRow, error)
 	GetRecruiterOutboundMessage(ctx context.Context, arg GetRecruiterOutboundMessageParams) (RecruiterOutboundMessage, error)
 	GetRecruiterOutboundMessageByRecipient(ctx context.Context, arg GetRecruiterOutboundMessageByRecipientParams) (RecruiterOutboundMessage, error)

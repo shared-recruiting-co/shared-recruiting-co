@@ -1,4 +1,4 @@
-module github.com/shared-recruiting-co/shared-recruiting-co/cloudfunctions/candidate_gmail_messages
+module github.com/shared-recruiting-co/shared-recruiting-co/cloudfunctions/candidate_gmail_label_changes
 
 go 1.19
 
