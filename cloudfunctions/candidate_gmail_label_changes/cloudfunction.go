@@ -325,22 +325,15 @@ func (cf *CloudFunction) InsertRecruiterEmailIntoDB(msg *gmail.Message, company,
 		return err
 	}
 
-	// convert epoch ms to time.Time
-	emailedAt := srcmessage.CreatedAt(msg)
-	profile, err := cf.srv.Profile()
-
-	if err != nil {
-		return fmt.Errorf("error getting profile: %w", err)
-	}
-
 	return cf.queries.InsertUserEmailJob(cf.ctx, db.InsertUserEmailJobParams{
 		UserID:        cf.user.UserID,
-		UserEmail:     profile.EmailAddress,
+		UserEmail:     cf.payload.Email,
 		EmailThreadID: msg.ThreadId,
-		EmailedAt:     emailedAt,
-		Company:       company,
-		JobTitle:      title,
-		Data:          b,
+		// convert epoch ms to time.Time
+		EmailedAt: srcmessage.CreatedAt(msg),
+		Company:   company,
+		JobTitle:  title,
+		Data:      b,
 	})
 }
 
