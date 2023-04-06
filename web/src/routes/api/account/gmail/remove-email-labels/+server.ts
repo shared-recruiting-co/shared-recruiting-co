@@ -83,9 +83,6 @@ const removeLabelsFromThread = async (accessToken: string, threadId: string, lab
   // The Gmail modify thread endpoint which will allow us to remove labels from the given thread
   const endpoint = `https://gmail.googleapis.com/gmail/v1/users/me/threads/${threadId}/modify`;
 
-  // Get the labels before the update
-  const labelsBeforeUpdate = await getThreadLabels(accessToken, threadId);
-
   // POST to the modify endpoint with the array of labels to remove
   const response = await fetch(endpoint, {
       method: 'POST',
@@ -99,20 +96,7 @@ const removeLabelsFromThread = async (accessToken: string, threadId: string, lab
     }),
   });
 
-  // Get the labels after the update
-  const labelsAfterUpdate = await getThreadLabels(accessToken, threadId);
-
-  // Calculate what is expected of the updated labels
-  const expectedLabels = labelsBeforeUpdate.filter(label => !labelIdsToRemove.includes(label));
-
-  // Check if the labels retrieved via the Gmail API match what is expected
-  const updateSuccessful = (
-    expectedLabels.length === labelsAfterUpdate.length &&
-    expectedLabels.every((value, index) => value === labelsAfterUpdate[index])
-  );
-
-  // Return a boolean indicating whether the update was successful
-  return updateSuccessful;
+  return response.ok
 };
 
 /**
