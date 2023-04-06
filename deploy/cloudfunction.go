@@ -74,11 +74,11 @@ func (i *Infra) createCloudFunctions() error {
 	}
 
 	_, err = i.scrapeFromYcJobs()
-  if err != nil {
+	if err != nil {
 		return err
 	}
-  
-  _, err = i.candidateGmailLabelChanges()
+
+	_, err = i.candidateGmailLabelChanges()
 	if err != nil {
 		return err
 	}
