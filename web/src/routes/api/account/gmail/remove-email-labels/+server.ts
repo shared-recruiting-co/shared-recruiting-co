@@ -52,11 +52,11 @@ export const POST: RequestHandler = async ({ request, locals: { getSession, supa
   // Remove all "@SRC" labels from the specified Gmail thread
   const success = await removeLabelsFromThread(accessToken, threadId, srcLabelIds);
 
-  if (success) {
-    // Return a success response
-    return new Response('success');
-  } else {
-    // Return a failure response with an appropriate error message
+  // handle the return value of removeLabelsFromThread 
+  if (!success) {
     throw error(500, 'Failed to remove SRC labels');
   }
+  
+  // success
+  return new Response('success');
 };
