@@ -1,12 +1,12 @@
 module github.com/shared-recruiting-co/shared-recruiting-co/cloudfunctions/recruiter_email_sync
 
-go 1.19
+go 1.20
 
 require (
 	cloud.google.com/go/pubsub v1.28.0
 	github.com/GoogleCloudPlatform/functions-framework-go v1.6.1
 	github.com/getsentry/sentry-go v0.16.0
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230403211827-7ab25bc2a69e
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230406032152-c8e0a3a338c7
 	google.golang.org/api v0.114.0
 )
 

@@ -176,7 +176,7 @@ func (i *Infra) candidateEmailSyncCF() (*CloudFunction, error) {
 		Project:     pulumi.String(*i.Project.ProjectId),
 		Description: pulumi.String("Sync a candidate's historic emails starting from a given date"),
 		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
-			Runtime:    pulumi.String("go119"),
+			Runtime:    pulumi.String("go120"),
 			EntryPoint: pulumi.String("Handler"),
 			EnvironmentVariables: pulumi.StringMap{
 				// Use hash to force redeploy when code changes
@@ -268,7 +268,7 @@ func (i *Infra) recruiterEmailSyncCF() (*CloudFunction, error) {
 		Project:     pulumi.String(*i.Project.ProjectId),
 		Description: pulumi.String("Sync a recruiter's historic emails starting from a given date"),
 		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
-			Runtime:    pulumi.String("go119"),
+			Runtime:    pulumi.String("go120"),
 			EntryPoint: pulumi.String("Handler"),
 			EnvironmentVariables: pulumi.StringMap{
 				// Use hash to force redeploy when code changes
@@ -360,7 +360,7 @@ func (i *Infra) candidateGmailPushNotifications(emailSync *CloudFunction) (*Clou
 		Project:     pulumi.String(*i.Project.ProjectId),
 		Description: pulumi.String("Handle candidate gmail push notifications"),
 		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
-			Runtime:    pulumi.String("go119"),
+			Runtime:    pulumi.String("go120"),
 			EntryPoint: pulumi.String("Handler"),
 			EnvironmentVariables: pulumi.StringMap{
 				// Use hash to force redeploy when code changes
@@ -499,7 +499,7 @@ func (i *Infra) candidateGmailMessages() (*CloudFunction, error) {
 		Project:     pulumi.String(*i.Project.ProjectId),
 		Description: pulumi.String("Handle candidate gmail messages"),
 		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
-			Runtime:    pulumi.String("go119"),
+			Runtime:    pulumi.String("go120"),
 			EntryPoint: pulumi.String("Handler"),
 			EnvironmentVariables: pulumi.StringMap{
 				// Use hash to force redeploy when code changes
@@ -597,7 +597,7 @@ func (i *Infra) recruiterGmailMessages() (*CloudFunction, error) {
 		Project:     pulumi.String(*i.Project.ProjectId),
 		Description: pulumi.String("Handle recruiter gmail messages"),
 		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
-			Runtime:    pulumi.String("go119"),
+			Runtime:    pulumi.String("go120"),
 			EntryPoint: pulumi.String("Handler"),
 			EnvironmentVariables: pulumi.StringMap{
 				// Use hash to force redeploy when code changes
@@ -697,7 +697,7 @@ func (i *Infra) recruiterGmailPushNotifications(emailSync *CloudFunction) (*Clou
 		Project:     pulumi.String(*i.Project.ProjectId),
 		Description: pulumi.String("Handle recruiter gmail push notifications"),
 		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
-			Runtime:    pulumi.String("go119"),
+			Runtime:    pulumi.String("go120"),
 			EntryPoint: pulumi.String("Handler"),
 			EnvironmentVariables: pulumi.StringMap{
 				// Use hash to force redeploy when code changes
@@ -818,7 +818,7 @@ func (i *Infra) candidateGmailSubscription() (*CloudFunction, error) {
 		Project:     pulumi.String(*i.Project.ProjectId),
 		Description: pulumi.String("Subscribe to the candidate's email inbox and watch for relevant emails"),
 		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
-			Runtime:    pulumi.String("go119"),
+			Runtime:    pulumi.String("go120"),
 			EntryPoint: pulumi.String("CandidateGmailSubscription"),
 			EnvironmentVariables: pulumi.StringMap{
 				// Use hash to force redeploy when code changes
@@ -923,7 +923,7 @@ func (i *Infra) recruiterGmailSubscription() (*CloudFunction, error) {
 		Project:     pulumi.String(*i.Project.ProjectId),
 		Description: pulumi.String("Subscribe to the recruiter's email inbox and watch for relevant emails"),
 		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
-			Runtime:    pulumi.String("go119"),
+			Runtime:    pulumi.String("go120"),
 			EntryPoint: pulumi.String("RecruiterGmailSubscription"),
 			EnvironmentVariables: pulumi.StringMap{
 				// Use hash to force redeploy when code changes
@@ -1027,7 +1027,7 @@ func (i *Infra) adhoc() (*CloudFunction, error) {
 		Project:     pulumi.String(*i.Project.ProjectId),
 		Description: pulumi.String("Adhoc function to run a one-off, manual tasks"),
 		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
-			Runtime:    pulumi.String("go119"),
+			Runtime:    pulumi.String("go120"),
 			EntryPoint: pulumi.String("Unsubscribe"),
 			EnvironmentVariables: pulumi.StringMap{
 				// Use hash to force redeploy when code changes
@@ -1103,7 +1103,7 @@ func (i *Infra) candidateGmailLabelChanges() (*CloudFunction, error) {
 		Project:     pulumi.String(*i.Project.ProjectId),
 		Description: pulumi.String("Handle candidate gmail label changes"),
 		BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
-			Runtime:    pulumi.String("go119"),
+			Runtime:    pulumi.String("go120"),
 			EntryPoint: pulumi.String("Handler"),
 			EnvironmentVariables: pulumi.StringMap{
 				// Use hash to force redeploy when code changes

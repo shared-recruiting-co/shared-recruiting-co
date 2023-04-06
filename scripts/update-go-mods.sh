@@ -25,5 +25,7 @@ do
   echo "Updating $(basename $pkg)"
   go get -u github.com/shared-recruiting-co/shared-recruiting-co/libs/src@${sha}
   go mod tidy
+  echo "Testing $(basename $pkg)"
+  go test
   popd
 done
