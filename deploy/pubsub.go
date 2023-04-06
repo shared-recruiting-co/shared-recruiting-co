@@ -45,8 +45,8 @@ func (i *Infra) setupTopics() error {
 		return err
 	}
 	i.Topics.RecruiterGmailMessages = recruiterGmailMessages
-  
-  scrapeJobListings, err := pubsub.NewTopic(i.ctx, "scrape-job-listings", &pubsub.TopicArgs{
+
+	scrapeJobListings, err := pubsub.NewTopic(i.ctx, "scrape-job-listings", &pubsub.TopicArgs{
 		Name:    pulumi.String("scrape-job-listings"),
 		Project: pulumi.String(*i.Project.ProjectId),
 		// TODO: Enforce schema validation
@@ -65,7 +65,6 @@ func (i *Infra) setupTopics() error {
 		return err
 	}
 	i.Topics.CandidateGmailLabelChanges = candidateGmailLabelChanges
-
 
 	return nil
 }
