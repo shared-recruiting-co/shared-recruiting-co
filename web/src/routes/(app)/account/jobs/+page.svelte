@@ -66,7 +66,6 @@
 	// TOOD:
 	// Error state (icon + No jobs + Description)
 	// Realtime
-	// Show Actions (Interested, Not Interested, Remove)
 	// Show Company Favicon/Logo
 </script>
 
@@ -219,7 +218,11 @@
 							</td>
 							<td class="px-3 py-4">
 								<div class="grid grid-cols-2 justify-items-end gap-1 lg:grid-cols-4 lg:gap-0">
-									<button class="hover:text-emerald-600" title="Interested">
+									<button
+										class="hover:text-emerald-600"
+										class:text-emerald-600={job.interested === 'interested'}
+										title="Interested"
+									>
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
 											fill="none"
@@ -235,7 +238,11 @@
 											/>
 										</svg>
 									</button>
-									<button class="hover:text-rose-600" title="Not interested">
+									<button
+										class="hover:text-rose-600"
+										class:text-rose-600={job.interested === 'not_interested'}
+										title="Not Interested"
+									>
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
 											fill="none"
@@ -251,7 +258,11 @@
 											/>
 										</svg>
 									</button>
-									<button class="hover:text-amber-600" title="Save for Later">
+									<button
+										class="hover:text-amber-600"
+										class:text-amber-600={job.interested === 'saved'}
+										title="Save for Later"
+									>
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
 											fill="none"
