@@ -162,10 +162,16 @@ func NewCloudFunction(ctx context.Context, payload schema.EmailLabelChanges) (*C
 	// set up label handlers
 	// use label IDs as keys
 	addedLabelFuncs := map[string]func(cf *CloudFunction, msg *gmail.Message) error{
-		labels.JobsOpportunity.Id: handleAddedJobOpportunityLabel,
+		labels.JobsOpportunity.Id:   handleAddedJobOpportunityLabel,
+		labels.JobsInterested.Id:    handleAddedJobInterestedLabel,
+		labels.JobsNotInterested.Id: handleAddedJobNotInterestedLabel,
+		labels.JobsSaved.Id:         handleAddedJobSavedLabel,
 	}
 	removedLabelFuncs := map[string]func(cf *CloudFunction, msg *gmail.Message) error{
-		labels.JobsOpportunity.Id: handleRemovedJobOpportunityLabel,
+		labels.JobsOpportunity.Id:   handleRemovedJobOpportunityLabel,
+		labels.JobsInterested.Id:    handleRemovedJobInterestedLabel,
+		labels.JobsNotInterested.Id: handleRemovedJobNotInterestedLabel,
+		labels.JobsSaved.Id:         handleRemovedJobSavedLabel,
 	}
 
 	return &CloudFunction{
@@ -432,6 +438,101 @@ func handleRemovedJobOpportunityLabel(cf *CloudFunction, msg *gmail.Message) err
 	if err != nil {
 		log.Printf("error deleting job: %v", err)
 	}
+
+	return nil
+}
+
+// handleAddedJobInterestedLabel handles the added job interest label
+func handleAddedJobInterestedLabel(cf *CloudFunction, msg *gmail.Message) error {
+	// For now log
+	log.Printf("added job interested label: %s", msg.Id)
+
+	// update message to remove other job interest labels
+	_, err := srcmail.ExecuteWithRetries(func() (interface{}, error) {
+		return cf.srv.Users.Messages.Modify(cf.srv.UserID, msg.Id, &gmail.ModifyMessageRequest{
+			RemoveLabelIds: []string{cf.labels.JobsNotInterested.Id, cf.labels.JobsSaved.Id},
+		}).Do()
+	})
+	if err != nil {
+		// for now, log and continue
+		log.Printf("error removing other job interest labels (interested): %v", err)
+		sentry.CaptureException(fmt.Errorf("error removing other job interest labels (interested): %w", err))
+	}
+	// update database
+	// TODO
+
+	return nil
+}
+
+// handleRemovedJobInterestedLabel handles the removed job interest label
+func handleRemovedJobInterestedLabel(cf *CloudFunction, msg *gmail.Message) error {
+	// For now log
+	log.Printf("removed job interested label: %s", msg.Id)
+
+	// update database (set to null if set to 'interest')
+	// TODO
+
+	return nil
+}
+
+// handleAddedJobNotInterestedLabel handles the job not interested label
+func handleAddedJobNotInterestedLabel(cf *CloudFunction, msg *gmail.Message) error {
+	// For now log
+	log.Printf("added job not interested label: %s", msg.Id)
+
+	// update message to remove other job interest labels
+	_, err := srcmail.ExecuteWithRetries(func() (interface{}, error) {
+		return cf.srv.Users.Messages.Modify(cf.srv.UserID, msg.Id, &gmail.ModifyMessageRequest{
+			RemoveLabelIds: []string{cf.labels.JobsInterested.Id, cf.labels.JobsSaved.Id},
+		}).Do()
+	})
+	if err != nil {
+		// for now, log and continue
+		log.Printf("error removing other job interest labels (not interested): %v", err)
+		sentry.CaptureException(fmt.Errorf("error removing other job interest labels (not interested): %w", err))
+	}
+
+	return nil
+}
+
+// handleRemovedJobNotInterestedLabel handles the removed job not interested label
+func handleRemovedJobNotInterestedLabel(cf *CloudFunction, msg *gmail.Message) error {
+	// For now log
+	log.Printf("removed job not interested label: %s", msg.Id)
+
+	// update database (set to null if set to 'not_interest')
+	// TODO
+
+	return nil
+}
+
+// handleAddedJobSavedLabel handles the job saved label
+func handleAddedJobSavedLabel(cf *CloudFunction, msg *gmail.Message) error {
+	// For now log
+	log.Printf("added job saved label: %s", msg.Id)
+
+	// update message to remove other job interest labels
+	_, err := srcmail.ExecuteWithRetries(func() (interface{}, error) {
+		return cf.srv.Users.Messages.Modify(cf.srv.UserID, msg.Id, &gmail.ModifyMessageRequest{
+			RemoveLabelIds: []string{cf.labels.JobsInterested.Id, cf.labels.JobsNotInterested.Id},
+		}).Do()
+	})
+	if err != nil {
+		// for now, log and continue
+		log.Printf("error removing other job interest labels (saved): %v", err)
+		sentry.CaptureException(fmt.Errorf("error removing job interest labels (saved): %w", err))
+	}
+
+	return nil
+}
+
+// handleRemovedJobSavedLabel handles the removed job saved label
+func handleRemovedJobSavedLabel(cf *CloudFunction, msg *gmail.Message) error {
+	// For now log
+	log.Printf("removed job saved label: %s", msg.Id)
+
+	// update database (set to null if set to 'saved')
+	// TODO
 
 	return nil
 }
