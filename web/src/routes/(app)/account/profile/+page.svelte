@@ -2,8 +2,8 @@
 	import { slide, draw, fade } from 'svelte/transition';
 	import type { PageData } from './$types';
 
-	import { UserEmailStats, type UserEmailSettings } from '$lib/supabase/client';
 	import { debounce, formError } from '$lib/forms';
+	import type { UserEmailSettings } from '$lib/supabase/client';
 	import type { FormErrors } from '$lib/forms';
 
 	import EmailSettings from './EmailSettings.svelte';
@@ -26,23 +26,6 @@
 
 	supabase
 		?.channel('table-db-changes')
-		.on(
-			'postgres_changes',
-			{
-				event: '*',
-				table: 'user_email_stat',
-				schema: 'public'
-			},
-			(payload) => {
-				// rename because of keyword
-				const { new: changed } = payload;
-				if (!changed) return;
-				// TODO: Show a cool animation when the numbers of stats change
-				if (changed.stat_id === UserEmailStats.JobsDetected) {
-					numInboundJobs = changed.stat_value;
-				}
-			}
-		)
 		.on(
 			'postgres_changes',
 			{
