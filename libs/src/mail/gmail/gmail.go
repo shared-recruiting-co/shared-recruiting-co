@@ -165,6 +165,12 @@ func (s *Service) GetOrCreateCandidateLabels() (*srclabel.CandidateLabels, error
 			result.Jobs = label
 		case srclabel.JobsOpportunity.Name:
 			result.JobsOpportunity = label
+		case srclabel.JobsInterested.Name:
+			result.JobsInterested = label
+		case srclabel.JobsNotInterested.Name:
+			result.JobsNotInterested = label
+		case srclabel.JobsSaved.Name:
+			result.JobsSaved = label
 		case srclabel.Allow.Name:
 			result.Allow = label
 		case srclabel.AllowSender.Name:
@@ -197,6 +203,24 @@ func (s *Service) GetOrCreateCandidateLabels() (*srclabel.CandidateLabels, error
 	}
 	if result.JobsOpportunity == nil {
 		result.JobsOpportunity, err = s.CreateLabel(&srclabel.JobsOpportunity)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if result.JobsInterested == nil {
+		result.JobsInterested, err = s.CreateLabel(&srclabel.JobsInterested)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if result.JobsNotInterested == nil {
+		result.JobsNotInterested, err = s.CreateLabel(&srclabel.JobsNotInterested)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if result.JobsSaved == nil {
+		result.JobsSaved, err = s.CreateLabel(&srclabel.JobsSaved)
 		if err != nil {
 			return nil, err
 		}
