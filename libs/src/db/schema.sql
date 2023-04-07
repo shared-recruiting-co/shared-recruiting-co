@@ -70,7 +70,7 @@ create policy "Users can insert their own oauth tokens."
 create policy "Users can update own oauth tokens."
   on public.user_oauth_token for update
   using ( auth.uid() = user_id );
- 
+
 --------------------------------
 -- End: User OAuth Token Table
 --------------------------------
@@ -420,7 +420,7 @@ create policy "Recruiters can delete their jobs"
 create policy "Companies can view their jobs"
   on public.job for select
   using ( company_id in (
-      select company_id 
+      select company_id
       from public.recruiter
       where user_id = auth.uid()
   ));
@@ -455,7 +455,7 @@ inner join recruiter using (user_id);
 --------------------------------
 
 create or replace function get_user_profile_by_email (input text)
-returns user_profile as 
+returns user_profile as
 $$
 select
   user_profile.*
@@ -467,7 +467,7 @@ $$
 language sql stable;
 
 create or replace function get_recruiter_by_email (input text)
-returns recruiter as 
+returns recruiter as
 $$
 select
   recruiter.*
@@ -493,7 +493,7 @@ create table public.recruiter_outbound_template (
   template_id uuid not null default uuid_generate_v4(),
   recruiter_id uuid references public.recruiter(user_id) on delete cascade not null,
   -- nullable job_id
-  job_id uuid references public.job(job_id) on delete set null, 
+  job_id uuid references public.job(job_id) on delete set null,
 
   subject text not null,
   body text not null,
@@ -542,7 +542,7 @@ returns table (
   created_at timestamp with time zone,
   updated_at timestamp with time zone,
   similarity real
-) as 
+) as
 $$
 select
     template_id,
@@ -620,7 +620,7 @@ create table public.candidate_company_inbound (
   recruiter_id uuid references public.recruiter(user_id) on delete set null,
   template_id uuid references public.recruiter_outbound_template(template_id) on delete cascade not null,
   -- nullable
-  job_id uuid references public.job(job_id) on delete set null, 
+  job_id uuid references public.job(job_id) on delete set null,
 
   created_at timestamp with time zone not null default now(),
   updated_at timestamp with time zone not null default now(),
@@ -686,14 +686,14 @@ language plpgsql volatile;
 
 -- create function to insert a row on every new recruiter_outbound_message
 create or replace function insert_candidate_company_inbound_trigger()
-returns trigger as 
+returns trigger as
 $$
 begin
 with input as (
-  select 
+  select
     *
   from (values (new.to_email, new.recruiter_id, new.template_id)) as t (candidate_email, recruiter_id, template_id)
-), 
+),
 c as (
   select
     user_id as candidate_id,
@@ -701,7 +701,7 @@ c as (
   from get_user_profile_by_email(new.to_email)
 ),
 t as (
-  select 
+  select
     template_id,
     job_id
   from public.recruiter_outbound_template
@@ -714,8 +714,8 @@ insert into public.candidate_company_inbound (
   job_id,
   recruiter_id,
   company_id
-) 
-select 
+)
+select
   input.candidate_email,
   c.candidate_id,
   input.template_id,
@@ -737,15 +737,15 @@ create trigger insert_candidate_company_inbound_trigger_after_insert after inser
   for each row execute function insert_candidate_company_inbound_trigger();
 
 -- create a trigger for inserts or updates into to recruiter_outbound_template
--- TODO: Separate triggers for update and insert 
+-- TODO: Separate triggers for update and insert
 create trigger candidate_company_inbound_trigger_recruiter_outbound_template after update on public.recruiter_outbound_template
-  for each row 
+  for each row
   when (old.job_id is distinct from new.job_id)
   execute function update_job_for_template_candidate_company_inbound_trigger();
 
 -- create a trigger for inserts into to user_oauth_token
 create trigger candidate_company_inbound_trigger_user_oauth_token after insert or update on public.user_oauth_token
-  for each row execute function update_candidate_for_email_candidate_company_inbound_trigger(); 
+  for each row execute function update_candidate_for_email_candidate_company_inbound_trigger();
 
 -- create a trigger for inserts into to user_profile
 create trigger candidate_company_inbound_trigger_user_profile after insert on public.user_profile
@@ -760,7 +760,7 @@ create trigger candidate_company_inbound_trigger_user_profile after insert on pu
 -- Start: Views for Counts of Candidates (Recipients) per Template and for Jobs
 --------------------------------
 create or replace view outbound_template_recipient_count with (security_invoker) as
-select 
+select
    template_id,
    count(distinct to_email) as num_recipients
 from recruiter_outbound_message
@@ -792,17 +792,60 @@ group by user_id;
 --------------------------------
 
 --------------------------------
+-- Start: Candidate Job Interest
+--------------------------------
+create type job_interest as enum ('interested', 'not_interested', 'saved');
+
+create table candidate_job_interest (
+  candidate_id uuid references user_profile(user_id) on delete cascade,
+  -- Note: no foreign key constraint because we want to share this table with user_email_job
+  -- we need to create a single source of truth for jobs...
+  job_id uuid not null,
+  interest job_interest not null,
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now(),
+  primary key (candidate_id, job_id)
+);
+
+create trigger handle_updated_at_candidate_job_interest before update on public.candidate_job_interest
+  for each row execute procedure moddatetime (updated_at);
+
+-- enable realtime
+alter publication supabase_realtime add table candidate_job_interest;
+
+alter table public.candidate_job_interest enable row level security;
+
+create policy "Candidates can view their own job interest"
+  on public.candidate_job_interest for select
+  using ( auth.uid() = candidate_id );
+
+create policy "Candidates can update their own job interest"
+  on public.candidate_job_interest for update
+  using ( auth.uid() = candidate_id );
+
+create policy "Candidates can insert their own job interest"
+  on public.candidate_job_interest for insert
+  with check ( auth.uid() = candidate_id );
+
+-- TODO: Allow recruiters to view job interest
+
+--------------------------------
+-- Start: Candidate Job Interest
+--------------------------------
+
+--------------------------------
 -- Start: Job Board View
 --------------------------------
 -- create a view that combines verified and unofficial jobs into one table for candidates
 create or replace view vw_job_board with (security_invoker ) as (
   with verified_jobs as (
-    select 
+    select
       cc.candidate_id as user_id,
       cc.candidate_email as user_email,
       job.job_id,
       job.title as job_title,
       job.description_url as job_description_url,
+      candidate_job_interest.interest as job_interest,
       company.company_name,
       company.website as company_website,
       recruiter.first_name || ' ' || recruiter.last_name as recruiter_name,
@@ -813,14 +856,16 @@ create or replace view vw_job_board with (security_invoker ) as (
     inner join public.company on cc.company_id = company.company_id
     inner join public.recruiter on cc.recruiter_id = recruiter.user_id
     inner join public.job on cc.job_id = job.job_id
+    left join public.candidate_job_interest on cc.candidate_id = candidate_job_interest.candidate_id and cc.job_id = candidate_job_interest.job_id
   ),
   unofficial_jobs as (
-    select 
+    select
       user_id,
       user_email,
-      job_id,
+      user_email_job.job_id,
       job_title,
       '' as job_description_url,
+      candidate_job_interest.interest as job_interest,
       company as company_name,
       '' as company_website,
       data ->> 'recruiter' as recruiter_name,
@@ -828,6 +873,9 @@ create or replace view vw_job_board with (security_invoker ) as (
       emailed_at,
       false as is_verified
     from public.user_email_job
+    left join public.candidate_job_interest
+    on user_email_job.user_id = candidate_job_interest.candidate_id
+    and user_email_job.job_id = candidate_job_interest.job_id
   )
   -- line up columns
   select * from verified_jobs
