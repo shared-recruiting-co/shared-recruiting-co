@@ -192,6 +192,45 @@ func (q *Queries) GetUserEmailJob(ctx context.Context, jobID uuid.UUID) (UserEma
 	return i, err
 }
 
+const getUserEmailJobByThreadID = `-- name: GetUserEmailJobByThreadID :one
+select
+    job_id,
+    user_id,
+    user_email,
+    email_thread_id,
+    emailed_at,
+    company,
+    job_title,
+    data,
+    created_at,
+    updated_at
+from public.user_email_job
+where user_email = $1 and email_thread_id = $2
+`
+
+type GetUserEmailJobByThreadIDParams struct {
+	UserEmail     string `json:"user_email"`
+	EmailThreadID string `json:"email_thread_id"`
+}
+
+func (q *Queries) GetUserEmailJobByThreadID(ctx context.Context, arg GetUserEmailJobByThreadIDParams) (UserEmailJob, error) {
+	row := q.queryRow(ctx, q.getUserEmailJobByThreadIDStmt, getUserEmailJobByThreadID, arg.UserEmail, arg.EmailThreadID)
+	var i UserEmailJob
+	err := row.Scan(
+		&i.JobID,
+		&i.UserID,
+		&i.UserEmail,
+		&i.EmailThreadID,
+		&i.EmailedAt,
+		&i.Company,
+		&i.JobTitle,
+		&i.Data,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getUserEmailSyncHistory = `-- name: GetUserEmailSyncHistory :one
 select
     user_id,
@@ -701,6 +740,48 @@ func (q *Queries) ListUserOAuthTokens(ctx context.Context, arg ListUserOAuthToke
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateCandidateJobInterestConditionally = `-- name: UpdateCandidateJobInterestConditionally :exec
+update public.candidate_job_interest
+set interest = $4::job_interest
+where candidate_id = $1 and job_id = $2 and interest = $3
+`
+
+type UpdateCandidateJobInterestConditionallyParams struct {
+	CandidateID uuid.UUID   `json:"candidate_id"`
+	JobID       uuid.UUID   `json:"job_id"`
+	Interest    JobInterest `json:"interest"`
+	SetInterest JobInterest `json:"set_interest"`
+}
+
+func (q *Queries) UpdateCandidateJobInterestConditionally(ctx context.Context, arg UpdateCandidateJobInterestConditionallyParams) error {
+	_, err := q.exec(ctx, q.updateCandidateJobInterestConditionallyStmt, updateCandidateJobInterestConditionally,
+		arg.CandidateID,
+		arg.JobID,
+		arg.Interest,
+		arg.SetInterest,
+	)
+	return err
+}
+
+const upsertCandidateJobInterest = `-- name: UpsertCandidateJobInterest :exec
+insert into public.candidate_job_interest(candidate_id, job_id, interest)
+values ($1, $2, $3)
+on conflict (candidate_id, job_id)
+do update set
+    interest = excluded.interest
+`
+
+type UpsertCandidateJobInterestParams struct {
+	CandidateID uuid.UUID   `json:"candidate_id"`
+	JobID       uuid.UUID   `json:"job_id"`
+	Interest    JobInterest `json:"interest"`
+}
+
+func (q *Queries) UpsertCandidateJobInterest(ctx context.Context, arg UpsertCandidateJobInterestParams) error {
+	_, err := q.exec(ctx, q.upsertCandidateJobInterestStmt, upsertCandidateJobInterest, arg.CandidateID, arg.JobID, arg.Interest)
+	return err
 }
 
 const upsertUserEmailSyncHistory = `-- name: UpsertUserEmailSyncHistory :exec

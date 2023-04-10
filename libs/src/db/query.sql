@@ -126,6 +126,21 @@ select
 from public.user_email_job
 where job_id = $1;
 
+-- name: GetUserEmailJobByThreadID :one
+select
+    job_id,
+    user_id,
+    user_email,
+    email_thread_id,
+    emailed_at,
+    company,
+    job_title,
+    data,
+    created_at,
+    updated_at
+from public.user_email_job
+where user_email = $1 and email_thread_id = $2;
+
 -- name: InsertUserEmailJob :exec
 insert into public.user_email_job(user_id, user_email, email_thread_id, emailed_at, company, job_title, data)
 values ($1, $2, $3, $4, $5, $6, $7);
@@ -206,3 +221,15 @@ from public.recruiter_outbound_template
 where recruiter_id = @user_id::uuid
 and normalized_content % @input::text
 order by 9 desc;
+
+-- name: UpsertCandidateJobInterest :exec
+insert into public.candidate_job_interest(candidate_id, job_id, interest)
+values ($1, $2, $3)
+on conflict (candidate_id, job_id)
+do update set
+    interest = excluded.interest;
+
+-- name: UpdateCandidateJobInterestConditionally :exec
+update public.candidate_job_interest
+set interest = sqlc.arg(set_interest)::job_interest
+where candidate_id = $1 and job_id = $2 and interest = $3;
