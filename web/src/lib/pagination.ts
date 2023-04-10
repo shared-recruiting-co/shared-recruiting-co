@@ -8,7 +8,7 @@ export type Pagination = {
 	resultShowingFirst: number;
 	resultShowingLast: number;
 	resultsCount: number;
-	pagesDisplayArray: Array<string>
+	pagesDisplay: Array<string>
 	pagesCount: number;
 	prevPageValid: boolean;
 	prevPageUrl: string;
@@ -47,7 +47,7 @@ export const getPagePagination = (url: URL, resultsCount: number, resultsPerPage
 	const nextPageUrl = nextPageValid ? `${baseURL}?page=${currentResultsPage + 1 }` : "javascript:void(0)";
 
 	// get the array that will be displayed as the pages are select
-	const pagesDisplayArray = getPaginationPages(currentResultsPage, pagesCount);
+	const pagesDisplay = getPaginationPages(currentResultsPage, pagesCount);
 
 	// construct the pagination object
 	const pagination: Pagination = {
@@ -58,7 +58,7 @@ export const getPagePagination = (url: URL, resultsCount: number, resultsPerPage
 		resultShowingFirst: resultShowingFirst,
 		resultShowingLast: resultShowingLast,
 		resultsCount: resultsCount,
-		pagesDisplayArray: pagesDisplayArray,
+		pagesDisplay: pagesDisplay,
 		pagesCount: pagesCount,
 		prevPageValid: prevPageValid,
 		prevPageUrl: prevPageUrl,

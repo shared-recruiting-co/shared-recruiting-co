@@ -63,7 +63,7 @@
                         />
                     </svg>
                 </a>
-                {#each pagination.pagesDisplayArray as page}
+                {#each pagination.pagesDisplay as page}
                     {@const current = page === `${pagination.currentResultsPage}`}
                     {#if page === '...'}
                         <span
