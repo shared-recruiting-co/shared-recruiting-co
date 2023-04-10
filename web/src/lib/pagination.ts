@@ -1,3 +1,71 @@
+const DEFAULT_PAGE_SIZE = 3;
+
+export type Pagination = {
+	currentResultsPage: number;
+	resultsPerPage: number;
+	resultsToFetchStart: number;
+	resultsToFetchEnd: number;
+	resultShowingFirst: number;
+	resultShowingLast: number;
+	resultsCount: number;
+	pagesDisplayArray: Array<string>
+	pagesCount: number;
+	prevPage: number;
+	prevPageValid: boolean;
+	nextPage: number;
+	nextPageValid: boolean;
+};
+
+export const getPagePagination = (url: URL, resultsCount: number, resultsPerPage = DEFAULT_PAGE_SIZE ): Pagination => {
+
+	// from the given URL, grab which page of results is currently selected (default 1)
+	const currentResultsPage = parseInt(url.searchParams.get('page')) || 1;
+
+	// define the start / stop range of rows we want to retreive from the DB for the page
+	const resultsToFetchStart = (currentResultsPage - 1) * resultsPerPage;
+	const resultsToFetchEnd = resultsToFetchStart + resultsPerPage;
+
+	// of the results, the first / last displayed on the page
+	const resultShowingFirst = (currentResultsPage - 1) * resultsPerPage + 1;
+	const resultShowingLast = Math.min(
+		currentResultsPage * resultsPerPage,
+		resultsCount
+	);
+
+	// the total number of pages
+	const pagesCount = Math.ceil(resultsCount / resultsPerPage)
+
+	// determine, based on the current page, if the prev / next pages are valid
+	const prevPageValid = (currentResultsPage > 1);
+	const nextPageValid = ((currentResultsPage < Math.ceil(resultsCount / resultsPerPage)) > 1);
+
+	// if the prev / next page are valid, store what page they should correspond to
+	const prevPage = prevPageValid ? currentResultsPage - 1 : null;
+	const nextPage = (currentResultsPage < Math.ceil(resultsCount / resultsPerPage)) ? currentResultsPage + 1 : null;
+
+	// get the array that will be displayed as the pages are select
+	const pagesDisplayArray = getPaginationPages(currentResultsPage, pagesCount);
+
+	// construct the pagination object
+	const pagination: Pagination = {
+		currentResultsPage: currentResultsPage,
+		resultsPerPage: resultsPerPage,
+		resultsToFetchStart: resultsToFetchStart,
+		resultsToFetchEnd: resultsToFetchEnd,
+		resultShowingFirst: resultShowingFirst,
+		resultShowingLast: resultShowingLast,
+		resultsCount: resultsCount,
+		pagesDisplayArray: pagesDisplayArray,
+		pagesCount: pagesCount,
+		prevPage: prevPage,
+		prevPageValid: prevPageValid,
+		nextPage: nextPage,
+		nextPageValid: nextPageValid
+	  };
+	
+	return pagination;
+};
+
 export const getPaginationPages = (current: number, total: number): string[] => {
 	if (total <= 5) {
 		return Array.from({ length: total }, (_, i) => (i + 1).toString());
