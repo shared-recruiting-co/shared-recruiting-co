@@ -13,6 +13,7 @@ import (
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
 	"github.com/getsentry/sentry-go"
+	"github.com/google/uuid"
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/idtoken"
 
@@ -373,6 +374,69 @@ func (cf *CloudFunction) IsKnownRecruitingEmail(msg *gmail.Message) bool {
 		log.Printf("error looking up known recruiting message: %v", err)
 	}
 	return false
+}
+
+// GetJobIDForMessage gets the job ID for a gmail message
+// TODO
+// Right now we make multiple requests to handle both user_email_job and candidate_company_inbound
+// We need to consolidate these into a single query
+func (cf *CloudFunction) GetJobIDForMessage(msg *gmail.Message) (*uuid.UUID, error) {
+	// - first check user_email_job
+	emailJob, err := cf.queries.GetUserEmailJobByThreadID(cf.ctx, db.GetUserEmailJobByThreadIDParams{
+		UserEmail:     cf.payload.Email,
+		EmailThreadID: msg.ThreadId,
+	})
+
+	// success
+	if err == nil {
+		return &emailJob.JobID, nil
+	} else if err != sql.ErrNoRows {
+		// unexpected error
+		return nil, err
+	}
+
+	// check recruiter_outbound_message
+	internalMessageID := srcmessage.Header(msg, "Message-ID")
+	if internalMessageID == "" {
+		log.Printf("skipping message: %s, no Message-ID header", msg.Id)
+		return nil, nil
+	}
+	// check if message is a known recruiting outbound message
+	// look up by RFC2822 message ID and to_email
+	// TODO: Is it better to use the recipient email from the header or the current user?
+	recipient := srcmessage.RecipientEmail(msg)
+	if recipient == "" {
+		log.Printf("skipping message: %s, no recipient email", msg.Id)
+		return nil, nil
+	}
+
+	outbound, err := cf.queries.GetRecruiterOutboundMessageByRecipient(cf.ctx, db.GetRecruiterOutboundMessageByRecipientParams{
+		ToEmail:           recipient,
+		InternalMessageID: internalMessageID,
+	})
+	if err == sql.ErrNoRows {
+		// not found
+		return nil, nil
+	} else if err != nil {
+		// unexpected error
+		return nil, err
+	} else if !outbound.TemplateID.Valid {
+		// no template ID
+		return nil, nil
+	}
+
+	// use template ID to get job ID
+	template, err := cf.queries.GetRecruiterOutboundTemplate(cf.ctx, outbound.TemplateID.UUID)
+	if err != nil {
+		return nil, err
+	}
+	// check if job ID is valid
+	if !template.JobID.Valid {
+		log.Printf("template %s has no job ID", outbound.TemplateID.UUID.String())
+		return nil, nil
+	}
+
+	return &template.JobID.UUID, nil
 }
 
 // Label Functions
