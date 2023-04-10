@@ -245,5 +245,5 @@ do update set
 
 -- name: UpdateCandidateJobInterestConditionally :exec
 update public.candidate_job_interest
-set interest = sqlc.arg(set_interest)::job_interest
+set interest = sqlc.narg(set_interest)::job_interest
 where candidate_id = $1 and job_id = $2 and interest = $3;

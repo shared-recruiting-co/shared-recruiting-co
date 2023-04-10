@@ -781,10 +781,10 @@ where candidate_id = $1 and job_id = $2 and interest = $3
 `
 
 type UpdateCandidateJobInterestConditionallyParams struct {
-	CandidateID uuid.UUID   `json:"candidate_id"`
-	JobID       uuid.UUID   `json:"job_id"`
-	Interest    JobInterest `json:"interest"`
-	SetInterest JobInterest `json:"set_interest"`
+	CandidateID uuid.UUID       `json:"candidate_id"`
+	JobID       uuid.UUID       `json:"job_id"`
+	Interest    JobInterest     `json:"interest"`
+	SetInterest NullJobInterest `json:"set_interest"`
 }
 
 func (q *Queries) UpdateCandidateJobInterestConditionally(ctx context.Context, arg UpdateCandidateJobInterestConditionallyParams) error {
