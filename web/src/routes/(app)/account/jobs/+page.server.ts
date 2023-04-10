@@ -1,7 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { redirect, error } from '@sveltejs/kit';
 import { getPagePagination } from '$lib/pagination';
-import type { Pagination } from './$types';
+import type { Pagination } from '$lib/pagination';
 
 
 
