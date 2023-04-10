@@ -43,8 +43,8 @@ export const getPagePagination = (url: URL, resultsCount: number, resultsPerPage
 	const nextPageValid = (currentResultsPage < pagesCount);
 
 	// if the prev / next page are valid, store what page they should correspond to
-	const prevPageUrl = prevPageValid ? `${baseURL}?page=${currentResultsPage - 1 }` : "javascript:void(0)";
-	const nextPageUrl = nextPageValid ? `${baseURL}?page=${currentResultsPage + 1 }` : "javascript:void(0)";
+	const prevPageUrl = prevPageValid ? `${baseURL}?page=${currentResultsPage - 1 }` : null;
+	const nextPageUrl = nextPageValid ? `${baseURL}?page=${currentResultsPage + 1 }` : null;
 
 	// get the array that will be displayed as the pages are select
 	const pagesDisplay = getPaginationPages(currentResultsPage, pagesCount);
