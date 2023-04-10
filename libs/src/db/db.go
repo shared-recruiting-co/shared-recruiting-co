@@ -39,6 +39,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getRecruiterOutboundMessageByRecipientStmt, err = db.PrepareContext(ctx, getRecruiterOutboundMessageByRecipient); err != nil {
 		return nil, fmt.Errorf("error preparing query GetRecruiterOutboundMessageByRecipient: %w", err)
 	}
+	if q.getRecruiterOutboundTemplateStmt, err = db.PrepareContext(ctx, getRecruiterOutboundTemplate); err != nil {
+		return nil, fmt.Errorf("error preparing query GetRecruiterOutboundTemplate: %w", err)
+	}
 	if q.getUserEmailJobStmt, err = db.PrepareContext(ctx, getUserEmailJob); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserEmailJob: %w", err)
 	}
@@ -121,6 +124,11 @@ func (q *Queries) Close() error {
 	if q.getRecruiterOutboundMessageByRecipientStmt != nil {
 		if cerr := q.getRecruiterOutboundMessageByRecipientStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getRecruiterOutboundMessageByRecipientStmt: %w", cerr)
+		}
+	}
+	if q.getRecruiterOutboundTemplateStmt != nil {
+		if cerr := q.getRecruiterOutboundTemplateStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getRecruiterOutboundTemplateStmt: %w", cerr)
 		}
 	}
 	if q.getUserEmailJobStmt != nil {
@@ -257,6 +265,7 @@ type Queries struct {
 	getRecruiterByEmailStmt                     *sql.Stmt
 	getRecruiterOutboundMessageStmt             *sql.Stmt
 	getRecruiterOutboundMessageByRecipientStmt  *sql.Stmt
+	getRecruiterOutboundTemplateStmt            *sql.Stmt
 	getUserEmailJobStmt                         *sql.Stmt
 	getUserEmailJobByThreadIDStmt               *sql.Stmt
 	getUserEmailSyncHistoryStmt                 *sql.Stmt
@@ -286,6 +295,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getRecruiterByEmailStmt:               q.getRecruiterByEmailStmt,
 		getRecruiterOutboundMessageStmt:       q.getRecruiterOutboundMessageStmt,
 		getRecruiterOutboundMessageByRecipientStmt:  q.getRecruiterOutboundMessageByRecipientStmt,
+		getRecruiterOutboundTemplateStmt:            q.getRecruiterOutboundTemplateStmt,
 		getUserEmailJobStmt:                         q.getUserEmailJobStmt,
 		getUserEmailJobByThreadIDStmt:               q.getUserEmailJobByThreadIDStmt,
 		getUserEmailSyncHistoryStmt:                 q.getUserEmailSyncHistoryStmt,

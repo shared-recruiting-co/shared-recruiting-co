@@ -610,6 +610,31 @@ func (q *HTTPQueries) InsertRecruiterOutboundMessage(ctx context.Context, arg In
 	return nil
 }
 
+func (q *HTTPQueries) GetRecruiterOutboundTemplate(ctx context.Context, templateID uuid.UUID) (RecruiterOutboundTemplate, error) {
+	basePath := "/recruiter_outbound_template"
+	query := fmt.Sprintf("select=*&template_id=eq.%s", templateID.String())
+	path := fmt.Sprintf("%s?%s", basePath, query)
+	var result RecruiterOutboundTemplate
+
+	resp, err := q.DoRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return result, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return result, fmt.Errorf("error fetching recruiter outbound template: %s", resp.Status)
+	}
+
+	var results []RecruiterOutboundTemplate
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+		return result, err
+	}
+
+	result, err = singleOrError(results)
+	return result, err
+}
+
 // InsertRecruiterOutboundTemplate inserts a recruiter's outbound template
 func (q *HTTPQueries) InsertRecruiterOutboundTemplate(ctx context.Context, arg InsertRecruiterOutboundTemplateParams) (RecruiterOutboundTemplate, error) {
 	basePath := "/recruiter_outbound_template"

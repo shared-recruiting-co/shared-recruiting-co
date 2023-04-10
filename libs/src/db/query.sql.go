@@ -158,6 +158,38 @@ func (q *Queries) GetRecruiterOutboundMessageByRecipient(ctx context.Context, ar
 	return i, err
 }
 
+const getRecruiterOutboundTemplate = `-- name: GetRecruiterOutboundTemplate :one
+select
+    template_id,
+    recruiter_id,
+    job_id,
+    subject,
+    body,
+    normalized_content,
+    metadata,
+    created_at,
+    updated_at
+from public.recruiter_outbound_template
+where template_id = $1
+`
+
+func (q *Queries) GetRecruiterOutboundTemplate(ctx context.Context, templateID uuid.UUID) (RecruiterOutboundTemplate, error) {
+	row := q.queryRow(ctx, q.getRecruiterOutboundTemplateStmt, getRecruiterOutboundTemplate, templateID)
+	var i RecruiterOutboundTemplate
+	err := row.Scan(
+		&i.TemplateID,
+		&i.RecruiterID,
+		&i.JobID,
+		&i.Subject,
+		&i.Body,
+		&i.NormalizedContent,
+		&i.Metadata,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getUserEmailJob = `-- name: GetUserEmailJob :one
 select
     job_id,

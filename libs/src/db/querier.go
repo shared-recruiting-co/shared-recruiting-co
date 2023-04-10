@@ -16,6 +16,7 @@ type Querier interface {
 	GetRecruiterByEmail(ctx context.Context, email string) (GetRecruiterByEmailRow, error)
 	GetRecruiterOutboundMessage(ctx context.Context, arg GetRecruiterOutboundMessageParams) (RecruiterOutboundMessage, error)
 	GetRecruiterOutboundMessageByRecipient(ctx context.Context, arg GetRecruiterOutboundMessageByRecipientParams) (RecruiterOutboundMessage, error)
+	GetRecruiterOutboundTemplate(ctx context.Context, templateID uuid.UUID) (RecruiterOutboundTemplate, error)
 	GetUserEmailJob(ctx context.Context, jobID uuid.UUID) (UserEmailJob, error)
 	GetUserEmailJobByThreadID(ctx context.Context, arg GetUserEmailJobByThreadIDParams) (UserEmailJob, error)
 	GetUserEmailSyncHistory(ctx context.Context, arg GetUserEmailSyncHistoryParams) (UserEmailSyncHistory, error)
