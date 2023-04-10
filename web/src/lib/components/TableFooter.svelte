@@ -10,13 +10,13 @@
 >
     <nav class="flex flex-1 justify-end md:hidden" data-sveltekit-noscroll>
         <a
-            href="/account/jobs?page={pagination.prevPage}"
+            href="{pagination.prevPageUrl}"
             class="relative inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700"
             class:hover:bg-slate-50={pagination.prevPageValid}
-            class:cursor-not-allowed={pagination.prevPageValid}>Previous</a
+            class:cursor-not-allowed={!pagination.prevPageValid}>Previous</a
         >
         <a
-            href="/account/jobs?page={pagination.nextPage}"
+            href="{pagination.nextPageUrl}"
             class="relative ml-3 inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700"
             class:hover:bg-slate-50={pagination.nextPageValid}
             class:cursor-not-allowed={!pagination.nextPageValid}>Next</a
@@ -41,7 +41,7 @@
                 data-sveltekit-noscroll
             >
                 <a
-                    href="/account/jobs?page={pagination.prevPage}"
+                    href="{pagination.prevPageUrl}"
                     class:focus:z-20={pagination.prevPageValid}
                     class:hover:bg-slate-50={pagination.prevPageValid}
                     class:cursor-not-allowed={!pagination.prevPageValid}
@@ -83,8 +83,8 @@
                     {/if}
                 {/each}
                 <a
-                    href="/account/jobs?page={pagination.nextPage}"
-                    class="relative inline-flex items-center rounded-r-md border border-slate-300 bg-white px-2 py-2 text-sm font-medium text-slate-500"
+                    href="{pagination.nextPageUrl}"
+                    class="relative button inline-flex items-center rounded-r-md border border-slate-300 bg-white px-2 py-2 text-sm font-medium text-slate-500"
                     class:focus:z-20={pagination.nextPageValid}
                     class:hover:bg-slate-50={pagination.nextPageValid}
                     class:cursor-not-allowed={!pagination.nextPageValid}

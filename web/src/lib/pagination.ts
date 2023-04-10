@@ -1,4 +1,4 @@
-const DEFAULT_PAGE_SIZE = 3;
+const DEFAULT_PAGE_SIZE = 10;
 
 export type Pagination = {
 	currentResultsPage: number;
@@ -10,13 +10,16 @@ export type Pagination = {
 	resultsCount: number;
 	pagesDisplayArray: Array<string>
 	pagesCount: number;
-	prevPage: number;
 	prevPageValid: boolean;
-	nextPage: number;
-	nextPageValid: boolean;
+	prevPageUrl: string;
+	nextPageValid: number | null;
+	nextPageUrl: string;
 };
 
 export const getPagePagination = (url: URL, resultsCount: number, resultsPerPage = DEFAULT_PAGE_SIZE ): Pagination => {
+
+	// get the base URL
+	const baseURL = url.origin + url.pathname;
 
 	// from the given URL, grab which page of results is currently selected (default 1)
 	const currentResultsPage = parseInt(url.searchParams.get('page')) || 1;
@@ -37,11 +40,11 @@ export const getPagePagination = (url: URL, resultsCount: number, resultsPerPage
 
 	// determine, based on the current page, if the prev / next pages are valid
 	const prevPageValid = (currentResultsPage > 1);
-	const nextPageValid = ((currentResultsPage < Math.ceil(resultsCount / resultsPerPage)) > 1);
+	const nextPageValid = (currentResultsPage < pagesCount);
 
 	// if the prev / next page are valid, store what page they should correspond to
-	const prevPage = prevPageValid ? currentResultsPage - 1 : null;
-	const nextPage = (currentResultsPage < Math.ceil(resultsCount / resultsPerPage)) ? currentResultsPage + 1 : null;
+	const prevPageUrl = prevPageValid ? `${baseURL}?page=${currentResultsPage - 1 }` : "javascript:void(0)";
+	const nextPageUrl = nextPageValid ? `${baseURL}?page=${currentResultsPage + 1 }` : "javascript:void(0)";
 
 	// get the array that will be displayed as the pages are select
 	const pagesDisplayArray = getPaginationPages(currentResultsPage, pagesCount);
@@ -57,10 +60,10 @@ export const getPagePagination = (url: URL, resultsCount: number, resultsPerPage
 		resultsCount: resultsCount,
 		pagesDisplayArray: pagesDisplayArray,
 		pagesCount: pagesCount,
-		prevPage: prevPage,
 		prevPageValid: prevPageValid,
-		nextPage: nextPage,
-		nextPageValid: nextPageValid
+		prevPageUrl: prevPageUrl,
+		nextPageValid: nextPageValid,
+		nextPageUrl: nextPageUrl
 	  };
 	
 	return pagination;
