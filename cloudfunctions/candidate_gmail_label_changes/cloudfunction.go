@@ -523,7 +523,28 @@ func handleAddedJobInterestedLabel(cf *CloudFunction, msg *gmail.Message) error 
 		sentry.CaptureException(fmt.Errorf("error removing other job interest labels (interested): %w", err))
 	}
 	// update database
-	// TODO
+	// 1. Get the job from the database
+	jobID, err := cf.GetJobIDForMessage(msg)
+	if err != nil {
+		log.Printf("error getting job id for message: %v", err)
+		return nil
+	} else if jobID == nil {
+		log.Printf("no job id for message: %v", msg.Id)
+		return nil
+	}
+
+	// 2. Update the job with the interested label
+	err = cf.queries.UpsertCandidateJobInterest(cf.ctx, db.UpsertCandidateJobInterestParams{
+		CandidateID: cf.user.UserID,
+		JobID:       *jobID,
+		Interest:    db.JobInterestInterested,
+	})
+
+	// for now, only log errors
+	if err != nil {
+		log.Printf("error updating job interest: %v", err)
+		sentry.CaptureException(fmt.Errorf("error updating job interest: %w", err))
+	}
 
 	return nil
 }
@@ -534,7 +555,29 @@ func handleRemovedJobInterestedLabel(cf *CloudFunction, msg *gmail.Message) erro
 	log.Printf("removed job interested label: %s", msg.Id)
 
 	// update database (set to null if set to 'interest')
-	// TODO
+	jobID, err := cf.GetJobIDForMessage(msg)
+	if err != nil {
+		log.Printf("error getting job id for message: %v", err)
+		return nil
+	} else if jobID == nil {
+		log.Printf("no job id for message: %v", msg.Id)
+		return nil
+	}
+
+	err = cf.queries.UpdateCandidateJobInterestConditionally(cf.ctx, db.UpdateCandidateJobInterestConditionallyParams{
+		CandidateID: cf.user.UserID,
+		JobID:       *jobID,
+		Interest:    db.JobInterestInterested,
+		SetInterest: db.NullJobInterest{
+			Valid: false,
+		},
+	})
+
+	// for now, only log errors
+	if err != nil {
+		log.Printf("error updating job interest: %v", err)
+		sentry.CaptureException(fmt.Errorf("error updating job interest: %w", err))
+	}
 
 	return nil
 }
