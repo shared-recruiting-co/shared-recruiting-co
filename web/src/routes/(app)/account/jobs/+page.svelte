@@ -69,7 +69,7 @@
 		// update database
 		const { error } = await supabase
 			.from('candidate_job_interest')
-			.update({ interest })
+			.upsert({ interest })
 			.eq('job_id', jobId);
 
 		if (!error) {
