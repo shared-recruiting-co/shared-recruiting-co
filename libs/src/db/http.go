@@ -723,7 +723,7 @@ type UpdateCandidateJobInterestBody struct {
 
 func (q *HTTPQueries) UpdateCandidateJobInterestConditionally(ctx context.Context, arg UpdateCandidateJobInterestConditionallyParams) error {
 	basePath := "/candidate_job_interest"
-	query := fmt.Sprintf("candidate_id=eq.%s&job_id=eq.%s&interest=eq.%s", arg.CandidateID, arg.JobID, arg.Interest)
+	query := fmt.Sprintf("candidate_id=eq.%s&job_id=eq.%s&interest=eq.%s", arg.CandidateID.String(), arg.JobID.String(), arg.Interest)
 	path := fmt.Sprintf("%s?%s", basePath, query)
 	body, err := json.Marshal(UpdateCandidateJobInterestBody{Interest: arg.SetInterest})
 	if err != nil {
