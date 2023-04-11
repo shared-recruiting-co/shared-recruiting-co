@@ -732,7 +732,7 @@ func (q *HTTPQueries) UpdateCandidateJobInterestConditionally(ctx context.Contex
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusNoContent {
 		return fmt.Errorf("error conditionally updating candidate job interest: %s", resp.Status)
 	}
 
