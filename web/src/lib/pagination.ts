@@ -53,9 +53,6 @@ export const getPagePagination = (url: URL, resultsCount: number, resultsPerPage
 	}
 
 
-	console.log(prevPageUrl)
-	console.log(nextPageUrl)
-
 	// get the array that will be displayed as the pages are select
 	const pagesDisplay = getPaginationPages(currentResultsPage, pagesCount);
 
