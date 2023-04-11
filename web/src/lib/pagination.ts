@@ -1,27 +1,24 @@
 const DEFAULT_PAGE_SIZE = 10;
 
 /**
- * Helper function to return the previous or next page url for the below pagination function
+ * Helper function returns the url of the updated param page
  *
- * @param {URL} currentPageUrl - The URL of the current page
+ * @param {string} currentPageUrl - The URL of the current page
  * @param {number} currentResultsPage - The current page number
  * @param {boolean} updatedPageValid - Whether the updated page is valid or not
  * @param {boolean} updatedPageIsPrev - True if the desired url is the previous page, otherwise next
  * @returns {string|null} - The updated page URL, or null if the updated page is not valid
  */
-const getUpdatedPageUrl = (currentPageUrl, currentResultsPage, updatedPageValid, updatedPageIsPrev) => {
+export const getUpdatedPageUrl = (currentPageUrl, updatedPage, updatedPageValid = true) => {
 
 	// set the udpate page URL to null if not valid, otherwise set it to the current url
-	let updatedPageUrl = updatedPageValid ? new URL(currentPageUrl.href) : null;
+	let updatedPageUrl = updatedPageValid ? new URL(currentPageUrl) : null;
 
 	// if the page is valid update the newly created url to be the new page url
 	if (updatedPageValid) {
 
-		// if were getting the previous page we subtract 1, otherwise add 1
-		const pageParamModifier = (updatedPageIsPrev) ? -1 : 1
-
 		// get the updated page URL
-		updatedPageUrl.searchParams.set('page', currentResultsPage + pageParamModifier);
+		updatedPageUrl.searchParams.set('page', updatedPage);
 		updatedPageUrl = updatedPageUrl.href
 	}
 
@@ -31,13 +28,14 @@ const getUpdatedPageUrl = (currentPageUrl, currentResultsPage, updatedPageValid,
 
 export type Pagination = {
 	currentResultsPage: number;
+	currentResultsPageUrl: URL;
 	resultsPerPage: number;
 	resultsToFetchStart: number;
 	resultsToFetchEnd: number;
 	resultShowingFirst: number;
 	resultShowingLast: number;
 	resultsCount: number;
-	pagesDisplay: Array<string>
+	pagesDisplay: Array<string>;
 	pagesCount: number;
 	prevPageValid: boolean;
 	prevPageUrl: string | null;
@@ -77,8 +75,8 @@ export const getPagePagination = (url: URL, resultsCount: number, resultsPerPage
 	const nextPageValid = (currentResultsPage < pagesCount);
 
 	// if the prev / next page are valid, store what page they should correspond to
-	let prevPageUrl = getUpdatedPageUrl(url, currentResultsPage, prevPageValid, true);
-	let nextPageUrl = getUpdatedPageUrl(url, currentResultsPage, nextPageValid, false);
+	let prevPageUrl = getUpdatedPageUrl(url.href, currentResultsPage - 1, prevPageValid);
+	let nextPageUrl = getUpdatedPageUrl(url.href, currentResultsPage + 1, nextPageValid);
 
 	// get the array that will be displayed as the pages are select
 	const pagesDisplay = getPaginationPages(currentResultsPage, pagesCount);
@@ -86,6 +84,7 @@ export const getPagePagination = (url: URL, resultsCount: number, resultsPerPage
 	// construct the pagination object
 	const pagination: Pagination = {
 		currentResultsPage: currentResultsPage,
+		currentResultsPageUrl: url.href,
 		resultsPerPage: resultsPerPage,
 		resultsToFetchStart: resultsToFetchStart,
 		resultsToFetchEnd: resultsToFetchEnd,

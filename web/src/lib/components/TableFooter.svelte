@@ -1,5 +1,6 @@
 <script lang="ts">
     import type { Pagination } from '$lib/pagination';
+    import { getUpdatedPageUrl }from '$lib/pagination';
 
     export let pagination: Pagination;
 </script>
@@ -72,7 +73,7 @@
                         >
                     {:else}
                         <a
-                            href="/account/jobs?page={page}"
+                            href="{getUpdatedPageUrl(pagination.currentResultsPageUrl, page)}"
                             class="relative inline-flex items-center border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-500 focus:z-20"
                             class:hover:bg-blue-50={!current}
                             class:z-10={current}
