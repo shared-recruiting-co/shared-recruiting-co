@@ -16,7 +16,7 @@ type CandidateLabels struct {
 	JobsOpportunity *gmail.Label
 	// JobsInterested is the @SRC/Jobs/Interested label for job opportunities the candidate marked as interested.
 	JobsInterested *gmail.Label
-	// JobsNotInterested is the @SRC/Jobs/NotInterested label for job opportunities the candidate marked as not interested.
+	// JobsNotInterested is the @SRC/Jobs/Not Interested label for job opportunities the candidate marked as not interested.
 	JobsNotInterested *gmail.Label
 	// JobsSaved is the @SRC/Jobs/Saved label for job opportunities the candidate saved.
 	JobsSaved *gmail.Label
@@ -68,9 +68,9 @@ var (
 			TextColor:       "#ffffff",
 		},
 	}
-	// JobsNotInterested is the @SRC/Jobs/NotInterested label for job opportunities the candidate marked as not interested.
+	// JobsNotInterested is the @SRC/Jobs/Not Interested label for job opportunities the candidate marked as not interested.
 	JobsNotInterested = gmail.Label{
-		Name: Jobs.Name + "/NotInterested",
+		Name: Jobs.Name + "/Not Interested",
 		// Show leaf labels
 		MessageListVisibility: "show",
 		// red
