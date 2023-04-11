@@ -4,11 +4,11 @@ const DEFAULT_PAGE_SIZE = 10;
  * Helper function returns the url of the updated param page
  *
  * @param {string} currentPageUrl - The URL of the current page
- * @param {boolean} updatedPage - The page number we would like to update to
+ * @param {number} updatedPage - The page number we would like to update to
  * @param {boolean} updatedPageValid - Whether the updated page is valid or not
  * @returns {string|null} - The updated page URL, or null if the updated page is not valid
  */
-export const getUpdatedPageUrl = (currentPageUrl, updatedPage, updatedPageValid = true) => {
+export const getUpdatedPageUrl = (currentPageUrl: string, updatedPage: number, updatedPageValid: boolean = true): string | null => {
 
 	// if the page is valid
 	if (updatedPageValid) {
