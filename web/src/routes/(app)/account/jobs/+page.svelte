@@ -51,9 +51,9 @@
 		// if we can find the specific email assocaiated with this job, remove its SRC email labels
 		if (email_thread_id && email) {
 			// the remove-email-labels will attempt to remove any SRC labels from the associated email
-			const resp = await fetch('/api/account/gmail/remove-email-labels', {
-				method: 'POST',
-				body: JSON.stringify({ email, email_thread_id })
+			const resp = await fetch('/api/account/gmail/labels', {
+				method: 'DELETE',
+				body: JSON.stringify({ email, threadId: email_thread_id })
 			});
 
 			// handle errors

@@ -2,6 +2,7 @@ import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getRefreshedGoogleAccessToken } from '$lib/supabase/client.server';
 import { getSRCLabels, updateThreadLabels, isValidThread } from '$lib/server/google/gmail';
+import type { Label } from '$lib/google/labels';
 
 type DeleteRequest = {
 	email: string;
