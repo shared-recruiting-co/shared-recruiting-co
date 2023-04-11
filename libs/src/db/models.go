@@ -55,6 +55,49 @@ func (ns NullInboxType) Value() (driver.Value, error) {
 	return string(ns.InboxType), nil
 }
 
+type JobInterest string
+
+const (
+	JobInterestInterested    JobInterest = "interested"
+	JobInterestNotInterested JobInterest = "not_interested"
+	JobInterestSaved         JobInterest = "saved"
+)
+
+func (e *JobInterest) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = JobInterest(s)
+	case string:
+		*e = JobInterest(s)
+	default:
+		return fmt.Errorf("unsupported scan type for JobInterest: %T", src)
+	}
+	return nil
+}
+
+type NullJobInterest struct {
+	JobInterest JobInterest
+	Valid       bool // Valid is true if JobInterest is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullJobInterest) Scan(value interface{}) error {
+	if value == nil {
+		ns.JobInterest, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.JobInterest.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullJobInterest) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.JobInterest), nil
+}
+
 type AuthUser struct {
 	ID    uuid.UUID `json:"id"`
 	Email string    `json:"email"`
@@ -74,6 +117,19 @@ type CandidateCompanyInbound struct {
 type CandidateJobCount struct {
 	CandidateID uuid.NullUUID `json:"candidate_id"`
 	NumJobs     int64         `json:"num_jobs"`
+}
+
+type CandidateJobCountUnverified struct {
+	UserID  uuid.UUID `json:"user_id"`
+	NumJobs int64     `json:"num_jobs"`
+}
+
+type CandidateJobInterest struct {
+	CandidateID uuid.UUID   `json:"candidate_id"`
+	JobID       uuid.UUID   `json:"job_id"`
+	Interest    JobInterest `json:"interest"`
+	CreatedAt   time.Time   `json:"created_at"`
+	UpdatedAt   time.Time   `json:"updated_at"`
 }
 
 type CandidateOauthToken struct {
@@ -215,17 +271,18 @@ type UserProfile struct {
 }
 
 type VwJobBoard struct {
-	UserID            uuid.NullUUID `json:"user_id"`
-	UserEmail         string        `json:"user_email"`
-	JobID             uuid.UUID     `json:"job_id"`
-	JobTitle          string        `json:"job_title"`
-	JobDescriptionUrl string        `json:"job_description_url"`
-	CompanyName       string        `json:"company_name"`
-	CompanyWebsite    string        `json:"company_website"`
-	RecruiterName     interface{}   `json:"recruiter_name"`
-	RecruiterEmail    string        `json:"recruiter_email"`
-	EmailedAt         time.Time     `json:"emailed_at"`
-	IsVerified        bool          `json:"is_verified"`
+	UserID            uuid.NullUUID   `json:"user_id"`
+	UserEmail         string          `json:"user_email"`
+	JobID             uuid.UUID       `json:"job_id"`
+	JobTitle          string          `json:"job_title"`
+	JobDescriptionUrl string          `json:"job_description_url"`
+	JobInterest       NullJobInterest `json:"job_interest"`
+	CompanyName       string          `json:"company_name"`
+	CompanyWebsite    string          `json:"company_website"`
+	RecruiterName     interface{}     `json:"recruiter_name"`
+	RecruiterEmail    string          `json:"recruiter_email"`
+	EmailedAt         time.Time       `json:"emailed_at"`
+	IsVerified        bool            `json:"is_verified"`
 }
 
 type Waitlist struct {

@@ -383,6 +383,32 @@ func (q *HTTPQueries) GetUserEmailJob(ctx context.Context, jobID uuid.UUID) (Use
 	return result, err
 }
 
+// GetUserEmailJobByThreadID fetches a user's email job by user email and thread ID
+func (q *HTTPQueries) GetUserEmailJobByThreadID(ctx context.Context, arg GetUserEmailJobByThreadIDParams) (UserEmailJob, error) {
+	basePath := "/user_email_job"
+	query := fmt.Sprintf("select=*&user_email=eq.%s&email_thread_id=eq.%s", arg.UserEmail, arg.EmailThreadID)
+	path := fmt.Sprintf("%s?%s", basePath, query)
+	var result UserEmailJob
+
+	resp, err := q.DoRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return result, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return result, fmt.Errorf("error fetching user email job by thread ID: %s", resp.Status)
+	}
+
+	var data []UserEmailJob
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return result, err
+	}
+
+	result, err = singleOrError(data)
+	return result, err
+}
+
 // ListUserEmailJobs lists a user's email jobs.
 func (q *HTTPQueries) ListUserEmailJobs(ctx context.Context, arg ListUserEmailJobsParams) ([]UserEmailJob, error) {
 	basePath := "/user_email_job"
@@ -584,6 +610,31 @@ func (q *HTTPQueries) InsertRecruiterOutboundMessage(ctx context.Context, arg In
 	return nil
 }
 
+func (q *HTTPQueries) GetRecruiterOutboundTemplate(ctx context.Context, templateID uuid.UUID) (RecruiterOutboundTemplate, error) {
+	basePath := "/recruiter_outbound_template"
+	query := fmt.Sprintf("select=*&template_id=eq.%s", templateID.String())
+	path := fmt.Sprintf("%s?%s", basePath, query)
+	var result RecruiterOutboundTemplate
+
+	resp, err := q.DoRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return result, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return result, fmt.Errorf("error fetching recruiter outbound template: %s", resp.Status)
+	}
+
+	var results []RecruiterOutboundTemplate
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+		return result, err
+	}
+
+	result, err = singleOrError(results)
+	return result, err
+}
+
 // InsertRecruiterOutboundTemplate inserts a recruiter's outbound template
 func (q *HTTPQueries) InsertRecruiterOutboundTemplate(ctx context.Context, arg InsertRecruiterOutboundTemplateParams) (RecruiterOutboundTemplate, error) {
 	basePath := "/recruiter_outbound_template"
@@ -642,4 +693,48 @@ func (q *HTTPQueries) ListSimilarRecruiterOutboundTemplates(ctx context.Context,
 
 	// no results is not an error here
 	return results, err
+}
+
+// UpsertCandidateJobInterest upserts a candidate's job interest
+func (q *HTTPQueries) UpsertCandidateJobInterest(ctx context.Context, arg UpsertCandidateJobInterestParams) error {
+	basePath := "/candidate_job_interest"
+	path := basePath
+	body, err := json.Marshal(arg)
+	if err != nil {
+		return err
+	}
+
+	resp, err := q.DoRequest(ctx, http.MethodPost, path, bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		return fmt.Errorf("error upserting candidate job interest: %s", resp.Status)
+	}
+
+	return nil
+}
+
+func (q *HTTPQueries) UpdateCandidateJobInterestConditionally(ctx context.Context, arg UpdateCandidateJobInterestConditionallyParams) error {
+	basePath := "/candidate_job_interest"
+	query := fmt.Sprintf("candidate_id=eq.%s&job_id=eq.%s&interest=eq.%s", arg.CandidateID, arg.JobID, arg.Interest)
+	path := fmt.Sprintf("%s?%s", basePath, query)
+	body, err := json.Marshal(arg)
+	if err != nil {
+		return err
+	}
+
+	resp, err := q.DoRequest(ctx, http.MethodPatch, path, bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("error conditionally updating candidate job interest: %s", resp.Status)
+	}
+
+	return nil
 }

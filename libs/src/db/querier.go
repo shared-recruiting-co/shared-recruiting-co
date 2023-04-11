@@ -16,7 +16,9 @@ type Querier interface {
 	GetRecruiterByEmail(ctx context.Context, email string) (GetRecruiterByEmailRow, error)
 	GetRecruiterOutboundMessage(ctx context.Context, arg GetRecruiterOutboundMessageParams) (RecruiterOutboundMessage, error)
 	GetRecruiterOutboundMessageByRecipient(ctx context.Context, arg GetRecruiterOutboundMessageByRecipientParams) (RecruiterOutboundMessage, error)
+	GetRecruiterOutboundTemplate(ctx context.Context, templateID uuid.UUID) (RecruiterOutboundTemplate, error)
 	GetUserEmailJob(ctx context.Context, jobID uuid.UUID) (UserEmailJob, error)
+	GetUserEmailJobByThreadID(ctx context.Context, arg GetUserEmailJobByThreadIDParams) (UserEmailJob, error)
 	GetUserEmailSyncHistory(ctx context.Context, arg GetUserEmailSyncHistoryParams) (UserEmailSyncHistory, error)
 	GetUserOAuthToken(ctx context.Context, arg GetUserOAuthTokenParams) (UserOauthToken, error)
 	GetUserProfileByEmail(ctx context.Context, email string) (UserProfile, error)
@@ -29,6 +31,8 @@ type Querier interface {
 	ListSimilarRecruiterOutboundTemplates(ctx context.Context, arg ListSimilarRecruiterOutboundTemplatesParams) ([]ListSimilarRecruiterOutboundTemplatesRow, error)
 	ListUserEmailJobs(ctx context.Context, arg ListUserEmailJobsParams) ([]UserEmailJob, error)
 	ListUserOAuthTokens(ctx context.Context, arg ListUserOAuthTokensParams) ([]UserOauthToken, error)
+	UpdateCandidateJobInterestConditionally(ctx context.Context, arg UpdateCandidateJobInterestConditionallyParams) error
+	UpsertCandidateJobInterest(ctx context.Context, arg UpsertCandidateJobInterestParams) error
 	UpsertUserEmailSyncHistory(ctx context.Context, arg UpsertUserEmailSyncHistoryParams) error
 	UpsertUserOAuthToken(ctx context.Context, arg UpsertUserOAuthTokenParams) error
 }

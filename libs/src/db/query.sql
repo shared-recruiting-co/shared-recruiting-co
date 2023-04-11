@@ -126,6 +126,21 @@ select
 from public.user_email_job
 where job_id = $1;
 
+-- name: GetUserEmailJobByThreadID :one
+select
+    job_id,
+    user_id,
+    user_email,
+    email_thread_id,
+    emailed_at,
+    company,
+    job_title,
+    data,
+    created_at,
+    updated_at
+from public.user_email_job
+where user_email = $1 and email_thread_id = $2;
+
 -- name: InsertUserEmailJob :exec
 insert into public.user_email_job(user_id, user_email, email_thread_id, emailed_at, company, job_title, data)
 values ($1, $2, $3, $4, $5, $6, $7);
@@ -186,6 +201,20 @@ where to_email = $1 and internal_message_id = $2;
 insert into public.recruiter_outbound_message(recruiter_id, message_id, internal_message_id, from_email, to_email, sent_at, template_id)
 values ($1, $2, $3, $4, $5, $6, $7);
 
+-- name: GetRecruiterOutboundTemplate :one
+select
+    template_id,
+    recruiter_id,
+    job_id,
+    subject,
+    body,
+    normalized_content,
+    metadata,
+    created_at,
+    updated_at
+from public.recruiter_outbound_template
+where template_id = $1;
+
 -- name: InsertRecruiterOutboundTemplate :one
 insert into public.recruiter_outbound_template(recruiter_id, job_id, subject, body, normalized_content, metadata)
 values ($1, $2, $3, $4, $5, $6)
@@ -206,3 +235,15 @@ from public.recruiter_outbound_template
 where recruiter_id = @user_id::uuid
 and normalized_content % @input::text
 order by 9 desc;
+
+-- name: UpsertCandidateJobInterest :exec
+insert into public.candidate_job_interest(candidate_id, job_id, interest)
+values ($1, $2, $3)
+on conflict (candidate_id, job_id)
+do update set
+    interest = excluded.interest;
+
+-- name: UpdateCandidateJobInterestConditionally :exec
+update public.candidate_job_interest
+set interest = sqlc.narg(set_interest)::job_interest
+where candidate_id = $1 and job_id = $2 and interest = $3;
