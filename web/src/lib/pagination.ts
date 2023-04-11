@@ -42,9 +42,8 @@ export const getPagePagination = (url: URL, resultsCount: number, resultsPerPage
 	// if the prev / next page are valid, store what page they should correspond to
 	let prevPageUrl = prevPageValid ? new URL(url.href) : null;
 	if (prevPageValid) {
-	  prevPageUrl.searchParams.set('page', currentResultsPage - 1);
-	  prevPageUrl = prevPageUrl.href
-
+		prevPageUrl.searchParams.set('page', currentResultsPage - 1);
+		prevPageUrl = prevPageUrl.href
 	}
 
 	let nextPageUrl = nextPageValid ? new URL(url.href) : null;
