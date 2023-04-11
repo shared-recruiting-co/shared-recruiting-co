@@ -11,13 +11,13 @@
 >
     <nav class="flex flex-1 justify-end md:hidden" data-sveltekit-noscroll>
         <a
-            href="{pagination.prevPageUrl}"
+            href={pagination.prevPageUrl}
             class="relative inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700"
             class:hover:bg-slate-50={pagination.prevPageValid}
             class:cursor-not-allowed={!pagination.prevPageValid}>Previous</a
         >
         <a
-            href="{pagination.nextPageUrl}"
+            href={pagination.nextPageUrl}
             class="relative ml-3 inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700"
             class:hover:bg-slate-50={pagination.nextPageValid}
             class:cursor-not-allowed={!pagination.nextPageValid}>Next</a
@@ -42,7 +42,7 @@
                 data-sveltekit-noscroll
             >
                 <a
-                    href="{pagination.prevPageUrl}"
+                    href={pagination.prevPageUrl}
                     class:focus:z-20={pagination.prevPageValid}
                     class:hover:bg-slate-50={pagination.prevPageValid}
                     class:cursor-not-allowed={!pagination.prevPageValid}
@@ -73,7 +73,7 @@
                         >
                     {:else}
                         <a
-                            href="{getUpdatedPageUrl(pagination.currentResultsPageUrl, page)}"
+                            href={getUpdatedPageUrl(pagination.currentResultsPageUrl, page)}
                             class="relative inline-flex items-center border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-500 focus:z-20"
                             class:hover:bg-blue-50={!current}
                             class:z-10={current}
@@ -84,7 +84,7 @@
                     {/if}
                 {/each}
                 <a
-                    href="{pagination.nextPageUrl}"
+                    href={pagination.nextPageUrl}
                     class="relative button inline-flex items-center rounded-r-md border border-slate-300 bg-white px-2 py-2 text-sm font-medium text-slate-500"
                     class:focus:z-20={pagination.nextPageValid}
                     class:hover:bg-slate-50={pagination.nextPageValid}
