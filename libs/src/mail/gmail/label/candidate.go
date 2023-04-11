@@ -14,6 +14,12 @@ type CandidateLabels struct {
 	Jobs *gmail.Label
 	// JobsOpportunity is the @SRC/Jobs/Opportunity label for identified job opportunities.
 	JobsOpportunity *gmail.Label
+	// JobsInterested is the @SRC/Jobs/Interested label for job opportunities the candidate marked as interested.
+	JobsInterested *gmail.Label
+	// JobsNotInterested is the @SRC/Jobs/Not Interested label for job opportunities the candidate marked as not interested.
+	JobsNotInterested *gmail.Label
+	// JobsSaved is the @SRC/Jobs/Saved label for job opportunities the candidate saved.
+	JobsSaved *gmail.Label
 	// Allow is the @SRC/Allow folder for senders and domains that always bypass SRC
 	Allow *gmail.Label
 	// AllowSender is the @SRC/Allow/Sender folder for senders that always bypass SRC
@@ -51,4 +57,41 @@ var (
 		// use same color as parent
 		Color: Jobs.Color,
 	}
+	// JobsInterested is the @SRC/Jobs/Interested label for job opportunities the candidate marked as interested.
+	JobsInterested = gmail.Label{
+		Name: Jobs.Name + "/Interested",
+		// Show leaf labels
+		MessageListVisibility: "show",
+		// green
+		Color: &gmail.LabelColor{
+			BackgroundColor: "#16a765",
+			TextColor:       "#ffffff",
+		},
+	}
+	// JobsNotInterested is the @SRC/Jobs/Not Interested label for job opportunities the candidate marked as not interested.
+	JobsNotInterested = gmail.Label{
+		Name: Jobs.Name + "/Not Interested",
+		// Show leaf labels
+		MessageListVisibility: "show",
+		// red
+		Color: &gmail.LabelColor{
+			BackgroundColor: "#cc3a21",
+			TextColor:       "#ffffff",
+		},
+	}
+	// JobsSaved is the @SRC/Jobs/Saved label for job opportunities the candidate saved.
+	JobsSaved = gmail.Label{
+		Name: Jobs.Name + "/Saved",
+		// Show leaf labels
+		MessageListVisibility: "show",
+		// yellow
+		Color: &gmail.LabelColor{
+			BackgroundColor: "#ffad46",
+			TextColor:       "#ffffff",
+		},
+	}
+	// TODO
+	// JobsVerified is the @SRC/Jobs/Verified label for verified job opportunities.
+	// BackgroundColor is #2da2bb
+	// TextColor is #ffffff
 )
