@@ -18,14 +18,14 @@
 	$: pages = getPaginationPages(data.pagination.page, data.pagination.numPages);
 
 	/**
-	 * Function handles removing a job from the job board, given a job, this wil:
-	 * 	 - If there is an email associated with the job, remove any SRC gmail lables
+	 * Function handles removing a job from the job board, given a job, this will:
+	 * 	 - If there is an email associated with the job, remove any SRC gmail labels
 	 * 	- Remove the job from Supabase table `user_email_job`
 	 *  - Remove the job from the locally scoped `data.jobs` array so it is removed from the UI
 	 * @param {string} jobId - The UUID of the job to be removed
 	 * @returns {Promise<void>}
 	 */
-	const handleJobRemoval = async (jobId: string): Promise<void> => {
+	const removeJob = async (jobId: string): Promise<void> => {
 		// query Supabase to get the needed data from the table `user_email_job` before its deleted
 		const { data: user_email_job_data } = await supabase
 			.from('user_email_job')
@@ -282,7 +282,7 @@
 										<button
 											class="justify-self-end hover:text-red-500"
 											title="Remove job"
-											on:click={() => handleJobRemoval(job.job_id)}
+											on:click={() => removeJob(job.job_id)}
 										>
 											<svg
 												xmlns="http://www.w3.org/2000/svg"
