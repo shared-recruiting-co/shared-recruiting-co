@@ -73,9 +73,9 @@
 
 		if (!error) {
 			// update ui
-			jobs = jobs.map((job: { job_id: string; interest: string }) => {
+			jobs = jobs.map((job: { job_id: string; job_interest: JobInterest }) => {
 				if (job.job_id === jobId) {
-					job.interest = interest;
+					job.job_interest = interest;
 				}
 				return job;
 			});
@@ -276,7 +276,7 @@
 							<td class="px-3 py-4">
 								<div class="grid grid-cols-2 justify-items-end gap-1 lg:grid-cols-4 lg:gap-0.5">
 									<button class="hover:text-emerald-600"
-										class:text-emerald-600={job.interested === JobInterest.Interested}
+										class:text-emerald-600={job.job_interest === JobInterest.Interested}
 										title="Interested"
 										on:click={() => updateJobInterest(job.job_id, JobInterest.Interested)}
 									>
@@ -297,7 +297,7 @@
 									</button>
 									<button
 										class="hover:text-rose-600"
-										class:text-rose-600={job.interested === JobInterest.NotInterested}
+										class:text-rose-600={job.job_interest === JobInterest.NotInterested}
 										title="Not Interested"
 										on:click={() => updateJobInterest(job.job_id, JobInterest.NotInterested)}
 									>
@@ -318,7 +318,7 @@
 									</button>
 									<button
 										class="hover:text-amber-600"
-										class:text-amber-600={job.interested === JobInterest.Saved}
+										class:text-amber-600={job.job_interest === JobInterest.Saved}
 										title="Save for Later"
 										on:click={() => updateJobInterest(job.job_id, JobInterest.Saved)}
 									>

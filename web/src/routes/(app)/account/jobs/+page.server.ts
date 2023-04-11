@@ -1,10 +1,13 @@
 import type { PageServerLoad } from './$types';
 import { redirect, error } from '@sveltejs/kit';
 
+	import type { JobInterest } from '$lib/supabase/client';
+
 type Job = {
 	job_id: string;
 	job_title: string;
 	job_description_url: string;
+	job_interest: JobInterest
 	company_name: string;
 	company_website: string;
 	recruiter_name: string;
