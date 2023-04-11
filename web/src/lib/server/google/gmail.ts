@@ -1,5 +1,8 @@
 import { dev } from '$app/environment';
 
+import { Label } from '$lib/google/labels';
+import type { Labels } from '$lib/google/labels';
+
 // Until we have a better local development and testing story,
 // We will always return true for dev
 const success = new Response('success');
@@ -70,37 +73,41 @@ export const sendMessage = async (
 
 /**
  * Retrieves the IDs of all Gmail labels that start with "@SRC"
- *
- * @async
- * @param {string} accessToken - A valid access token for the Gmail API
- * @returns {Array<string>} - An array of the IDs of all Gmail labels that start with "@SRC"
- * @throws Throws an error if the API request fails or if the response is invalid
  */
-export const getSrcLabelIds = async (accessToken: string): Array<string> => {
+export const getSRCLabels = async (accessToken: string): Promise<Labels> => {
+	// The Gmail labels endpoint, gives the full list of labels used in the users Gmail
+	const endpoint = 'https://gmail.googleapis.com/gmail/v1/users/me/labels';
 
-    // The Gmail labels endpoint, gives the full list of labels used in the users Gmail
-    const labelsEndpoint = `https://gmail.googleapis.com/gmail/v1/users/me/labels`;
-  
-    // query the labels endpoint
-    const response = await fetch(labelsEndpoint, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: 'application/json',
-      },
-    });
-    const data = await response.json();
+	// query the labels endpoint
+	const response = await fetch(endpoint, {
+		headers: {
+			Authorization: `Bearer ${accessToken}`,
+			Accept: 'application/json'
+		}
+	});
+	const data = await response.json();
 
-    // all SRC labels start with @SRC, we will use this to identify all the SRC labels
-    const labelPrefix = '@SRC';
+	// get a list of the label IDs that start with the above prefix
+	const srcLabels = data.labels
+		// all SRC labels start with @SRC, we will use this to identify all the SRC labels
+		.filter((label: { name: string }) => label.name.startsWith(Label.SRC))
+		.reduce(
+			(
+				acc: Labels,
+				label: {
+					name: `${Label}`;
+					id: string;
+				}
+			) => {
+				acc[label.name] = label.id;
+				return acc;
+			},
+			{} as Labels
+		);
 
-    // get a list of the label IDs that start with the above prefix
-    const srcLabelsIds = data.labels
-      .filter(label => label.name.startsWith(labelPrefix))
-      .map(label => label.id);
-  
-    // return the list of SRC label IDs
-    return srcLabelsIds;
-}
+	// return the list of SRC labels (name -> ID)
+	return srcLabels;
+};
 
 /**
  * Helper function that retrieves the label IDs of a Gmail thread (message).
@@ -112,56 +119,61 @@ export const getSrcLabelIds = async (accessToken: string): Array<string> => {
  * @throws Throws an error if the API request fails or if the response is invalid.
  */
 export const getThreadLabels = async (accessToken: string, threadId: string): Promise<string[]> => {
+	// The Gmail thread endpoint, gives the details about a specific Gmail thread
+	const endpoint = `https://gmail.googleapis.com/gmail/v1/users/me/threads/${threadId}`;
 
-  // The Gmail thread endpoint, gives the details about a specific Gmail thread
-  const endpoint = `https://gmail.googleapis.com/gmail/v1/users/me/threads/${threadId}`;
-  
-  // query the thread endpoint
-  const response = await fetch(endpoint, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      Accept: 'application/json',
-    },
-  });
+	// query the thread endpoint
+	const response = await fetch(endpoint, {
+		headers: {
+			Authorization: `Bearer ${accessToken}`,
+			Accept: 'application/json'
+		}
+	});
 
-  // Parse the API response data
-  const data = await response.json();
-  
-  // if the thread has messages with labels, return them
-  if (data.messages) {
-    return data.messages[0].labelIds
-  } else {
-    return [];
-  }
-}
+	// Parse the API response data
+	const data = await response.json();
+
+	// if the thread has messages with labels, return them
+	if (data.messages) {
+		return data.messages[0].labelIds;
+	} else {
+		return [];
+	}
+};
 
 /**
  * Remove labels from a Gmail thread using the Gmail API.
- * 
- * @param {string} accessToken - The access token for the authenticated user.
- * @param {string} threadId - The ID of the Gmail thread to modify.
- * @param {string[]} labelIdsToRemove - An array of label IDs to remove from the thread.
+ *
  * @returns {Promise<boolean>} A boolean indicating whether the labels were successfully removed from the thread.
  */
-export const removeLabelsFromThread = async (accessToken: string, threadId: string, labelIdsToRemove: string[]): Promise<boolean> => {
-    
-  // The Gmail modify thread endpoint which will allow us to remove labels from the given thread
-  const endpoint = `https://gmail.googleapis.com/gmail/v1/users/me/threads/${threadId}/modify`;
+export const updateThreadLabels = async ({
+	accessToken,
+	threadId,
+	addLabelIds,
+	removeLabelIds
+}: {
+	accessToken: string;
+	threadId: string;
+	addLabelIds?: string[];
+	removeLabelIds?: string[];
+}): Promise<boolean> => {
+	// The Gmail modify thread endpoint which will allow us to remove labels from the given thread
+	const endpoint = `https://gmail.googleapis.com/gmail/v1/users/me/threads/${threadId}/modify`;
 
-  // POST to the modify endpoint with the array of labels to remove
-  const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        removeLabelIds: labelIdsToRemove,
-        addLabelIds: [],
-    }),
-  });
+	// POST to the modify endpoint with the array of labels to remove
+	const response = await fetch(endpoint, {
+		method: 'POST',
+		headers: {
+			Authorization: `Bearer ${accessToken}`,
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			removeLabelIds,
+			addLabelIds
+		})
+	});
 
-  return response.ok
+	return response.ok;
 };
 
 /**
@@ -174,23 +186,25 @@ export const removeLabelsFromThread = async (accessToken: string, threadId: stri
  * @throws {Error} - Throws an error if the API request fails or if the response is invalid.
  */
 export const isValidThread = async (accessToken: string, threadId: string): Promise<boolean> => {
-  // The Gmail thread endpoint, which gives the details of a specific Gmail thread
-  const threadEndpoint = `https://gmail.googleapis.com/gmail/v1/users/me/threads/${threadId}`;
+	// The Gmail thread endpoint, which gives the details of a specific Gmail thread
+	const endpoint = `https://gmail.googleapis.com/gmail/v1/users/me/threads/${threadId}`;
 
-  try {
-    // Query the Gmail thread endpoint with the specified thread ID
-    const response = await fetch(threadEndpoint, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: 'application/json',
-      },
-    });
+	try {
+		// Query the Gmail thread endpoint with the specified thread ID
+		const response = await fetch(endpoint, {
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				Accept: 'application/json'
+			}
+		});
 
-    // If the API returns a valid response, the thread ID is valid and corresponds to a Gmail thread
-    return response.ok;
-    
-  } catch (err) {
-    // If the API request fails or the response is invalid, throw an error
-    throw new Error(`Failed to retrieve information for thread ID: ${threadId}, corresponds to a Gmail thread: ${err.message}`);
-  }
+		// If the API returns a valid response, the thread ID is valid and corresponds to a Gmail thread
+		return response.ok;
+	} catch (err) {
+		// If the API request fails or the response is invalid, throw an error
+		throw new Error(
+			`Failed to retrieve information for thread ID: ${threadId}, corresponds to a Gmail thread: ${err.message}`
+		);
+	}
 };
+
