@@ -564,13 +564,10 @@ func handleRemovedJobInterestedLabel(cf *CloudFunction, msg *gmail.Message) erro
 		return nil
 	}
 
-	err = cf.queries.UpdateCandidateJobInterestConditionally(cf.ctx, db.UpdateCandidateJobInterestConditionallyParams{
+	err = cf.queries.DeleteCandidateJobInterestConditionally(cf.ctx, db.DeleteCandidateJobInterestConditionallyParams{
 		CandidateID: cf.user.UserID,
 		JobID:       *jobID,
 		Interest:    db.JobInterestInterested,
-		SetInterest: db.NullJobInterest{
-			Valid: false,
-		},
 	})
 
 	// for now, only log errors
@@ -640,13 +637,10 @@ func handleRemovedJobNotInterestedLabel(cf *CloudFunction, msg *gmail.Message) e
 		return nil
 	}
 
-	err = cf.queries.UpdateCandidateJobInterestConditionally(cf.ctx, db.UpdateCandidateJobInterestConditionallyParams{
+	err = cf.queries.DeleteCandidateJobInterestConditionally(cf.ctx, db.DeleteCandidateJobInterestConditionallyParams{
 		CandidateID: cf.user.UserID,
 		JobID:       *jobID,
 		Interest:    db.JobInterestNotInterested,
-		SetInterest: db.NullJobInterest{
-			Valid: false,
-		},
 	})
 
 	// for now, only log errors
@@ -717,13 +711,10 @@ func handleRemovedJobSavedLabel(cf *CloudFunction, msg *gmail.Message) error {
 		return nil
 	}
 
-	err = cf.queries.UpdateCandidateJobInterestConditionally(cf.ctx, db.UpdateCandidateJobInterestConditionallyParams{
+	err = cf.queries.DeleteCandidateJobInterestConditionally(cf.ctx, db.DeleteCandidateJobInterestConditionallyParams{
 		CandidateID: cf.user.UserID,
 		JobID:       *jobID,
 		Interest:    db.JobInterestSaved,
-		SetInterest: db.NullJobInterest{
-			Valid: false,
-		},
 	})
 
 	// for now, only log errors
