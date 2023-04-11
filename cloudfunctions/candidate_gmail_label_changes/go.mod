@@ -7,7 +7,7 @@ require (
 	github.com/cloudevents/sdk-go/v2 v2.13.0
 	github.com/getsentry/sentry-go v0.18.0
 	github.com/google/uuid v1.3.0
-	github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230411191534-cbfcbd4128a2
+	github.com/shared-recruiting-co/shared-recruiting-co/libs/src v0.0.0-20230411200140-ae5cbccaea78
 	google.golang.org/api v0.116.0
 )
 
