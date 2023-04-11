@@ -276,8 +276,7 @@
 							</td>
 							<td class="px-3 py-4">
 								<div class="grid grid-cols-2 justify-items-end gap-1 lg:grid-cols-4 lg:gap-0.5">
-									<button
-										class="hover:text-emerald-600"
+									<button class="hover:text-emerald-600"
 										class:text-emerald-600={job.interested === JobInterest.Interested}
 										title="Interested"
 										on:click={() => updateJobInterest(job.job_id, JobInterest.Interested)}
