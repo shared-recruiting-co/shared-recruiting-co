@@ -2,6 +2,8 @@
 	import type { PageData } from './$types';
 
 	import { getPaginationPages } from '$lib/pagination';
+	import { JobInterest } from '$lib/supabase/client';
+	import { Label } from '$lib/google/labels';
 
 	export let data: PageData;
 
@@ -26,17 +28,6 @@
 	 * @returns {Promise<void>}
 	 */
 	const removeJob = async (jobId: string): Promise<void> => {
-		// query Supabase to get the needed data from the table `user_email_job` before its deleted
-		const { data: user_email_job_data } = await supabase
-			.from('user_email_job')
-			.select('email_thread_id, user_email')
-			.eq('job_id', jobId)
-			.maybeSingle();
-
-		// get the email thread ID and user email for this job
-		const email_thread_id = user_email_job_data?.email_thread_id;
-		const email = user_email_job_data?.user_email;
-
 		// delete the entry in the user_email_job table the corresponds to the selected job
 		const { error: job_deletion_error } = await supabase
 			.from('user_email_job')
@@ -48,12 +39,79 @@
 			jobs = jobs.filter((job: { job_id: string }) => job.job_id !== jobId);
 		}
 
+		// query Supabase to get the needed data from the table `user_email_job` before its deleted
+		const { data: user_email_job_data } = await supabase
+			.from('user_email_job')
+			.select('email_thread_id, user_email')
+			.eq('job_id', jobId)
+			.maybeSingle();
+
+		// get the email thread ID and user email for this job
+		const threadId = user_email_job_data?.email_thread_id;
+		const email = user_email_job_data?.user_email;
+
 		// if we can find the specific email assocaiated with this job, remove its SRC email labels
-		if (email_thread_id && email) {
+		if (threadId && email) {
 			// the remove-email-labels will attempt to remove any SRC labels from the associated email
 			const resp = await fetch('/api/account/gmail/labels', {
 				method: 'DELETE',
-				body: JSON.stringify({ email, threadId: email_thread_id })
+				body: JSON.stringify({ email, threadId })
+			});
+
+			// handle errors
+			if (resp.status !== 200) {
+				return;
+			}
+		}
+	};
+
+	const updateJobInterest = async (jobId: string, interest: JobInterest): Promise<void> => {
+		// update database
+		const { error } = await supabase
+			.from('candidate_job_interest')
+			.update({ interest })
+			.eq('job_id', jobId);
+
+		if (!error) {
+			// update ui
+			jobs = jobs.map((job: { job_id: string; interest: string }) => {
+				if (job.job_id === jobId) {
+					job.interest = interest;
+				}
+				return job;
+			});
+		}
+
+		// TODO: Support Verified Jobs!
+		// query Supabase to get the needed data from the table `user_email_job` before its deleted
+		const { data: user_email_job_data } = await supabase
+			.from('user_email_job')
+			.select('email_thread_id, user_email')
+			.eq('job_id', jobId)
+			.maybeSingle();
+
+		// get the email thread ID and user email for this job
+		const threadId = user_email_job_data?.email_thread_id;
+		const email = user_email_job_data?.user_email;
+		const addLabels =
+			interest === JobInterest.Interested
+				? [Label.JobInterested]
+				: interest === JobInterest.NotInterested
+				? [Label.JobNotInterested]
+				: [Label.JobSaved];
+		const removeLabels =
+			interest === JobInterest.Interested
+				? [Label.JobNotInterested, Label.JobSaved]
+				: interest === JobInterest.NotInterested
+				? [Label.JobInterested, Label.JobSaved]
+				: [Label.JobInterested, Label.JobNotInterested];
+
+		// if we can find the specific email assocaiated with this job, remove its SRC email labels
+		if (threadId && email) {
+			// the remove-email-labels will attempt to remove any SRC labels from the associated email
+			const resp = await fetch('/api/account/gmail/labels', {
+				method: 'PUT',
+				body: JSON.stringify({ email, threadId, addLabels, removeLabels })
 			});
 
 			// handle errors
@@ -217,11 +275,12 @@
 								</div>
 							</td>
 							<td class="px-3 py-4">
-								<div class="grid grid-cols-2 justify-items-end gap-1 lg:grid-cols-4 lg:gap-0">
+								<div class="grid grid-cols-2 justify-items-end gap-1 lg:grid-cols-4 lg:gap-0.5">
 									<button
 										class="hover:text-emerald-600"
-										class:text-emerald-600={job.interested === 'interested'}
+										class:text-emerald-600={job.interested === JobInterest.Interested}
 										title="Interested"
+										on:click={() => updateJobInterest(job.job_id, JobInterest.Interested)}
 									>
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
@@ -240,8 +299,9 @@
 									</button>
 									<button
 										class="hover:text-rose-600"
-										class:text-rose-600={job.interested === 'not_interested'}
+										class:text-rose-600={job.interested === JobInterest.NotInterested}
 										title="Not Interested"
+										on:click={() => updateJobInterest(job.job_id, JobInterest.NotInterested)}
 									>
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
@@ -260,8 +320,9 @@
 									</button>
 									<button
 										class="hover:text-amber-600"
-										class:text-amber-600={job.interested === 'saved'}
+										class:text-amber-600={job.interested === JobInterest.Saved}
 										title="Save for Later"
+										on:click={() => updateJobInterest(job.job_id, JobInterest.Saved)}
 									>
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
