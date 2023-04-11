@@ -12,6 +12,7 @@ import (
 
 type Querier interface {
 	CountUserEmailJobs(ctx context.Context, userID uuid.UUID) (int64, error)
+	DeleteCandidateJobInterestConditionally(ctx context.Context, arg DeleteCandidateJobInterestConditionallyParams) error
 	DeleteUserEmailJobByEmailThreadID(ctx context.Context, arg DeleteUserEmailJobByEmailThreadIDParams) error
 	GetRecruiterByEmail(ctx context.Context, email string) (GetRecruiterByEmailRow, error)
 	GetRecruiterOutboundMessage(ctx context.Context, arg GetRecruiterOutboundMessageParams) (RecruiterOutboundMessage, error)
@@ -31,7 +32,6 @@ type Querier interface {
 	ListSimilarRecruiterOutboundTemplates(ctx context.Context, arg ListSimilarRecruiterOutboundTemplatesParams) ([]ListSimilarRecruiterOutboundTemplatesRow, error)
 	ListUserEmailJobs(ctx context.Context, arg ListUserEmailJobsParams) ([]UserEmailJob, error)
 	ListUserOAuthTokens(ctx context.Context, arg ListUserOAuthTokensParams) ([]UserOauthToken, error)
-	UpdateCandidateJobInterestConditionally(ctx context.Context, arg UpdateCandidateJobInterestConditionallyParams) error
 	UpsertCandidateJobInterest(ctx context.Context, arg UpsertCandidateJobInterestParams) error
 	UpsertUserEmailSyncHistory(ctx context.Context, arg UpsertUserEmailSyncHistoryParams) error
 	UpsertUserOAuthToken(ctx context.Context, arg UpsertUserOAuthTokenParams) error

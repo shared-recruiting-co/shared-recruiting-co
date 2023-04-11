@@ -717,20 +717,12 @@ func (q *HTTPQueries) UpsertCandidateJobInterest(ctx context.Context, arg Upsert
 	return nil
 }
 
-type UpdateCandidateJobInterestBody struct {
-	Interest NullJobInterest `json:"interest"`
-}
-
-func (q *HTTPQueries) UpdateCandidateJobInterestConditionally(ctx context.Context, arg UpdateCandidateJobInterestConditionallyParams) error {
+func (q *HTTPQueries) DeleteCandidateJobInterestConditionally(ctx context.Context, arg DeleteCandidateJobInterestConditionallyParams) error {
 	basePath := "/candidate_job_interest"
 	query := fmt.Sprintf("candidate_id=eq.%s&job_id=eq.%s&interest=eq.%s", arg.CandidateID.String(), arg.JobID.String(), arg.Interest)
 	path := fmt.Sprintf("%s?%s", basePath, query)
-	body, err := json.Marshal(UpdateCandidateJobInterestBody{Interest: arg.SetInterest})
-	if err != nil {
-		return err
-	}
 
-	resp, err := q.DoRequest(ctx, http.MethodPatch, path, bytes.NewReader(body))
+	resp, err := q.DoRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
 		return err
 	}

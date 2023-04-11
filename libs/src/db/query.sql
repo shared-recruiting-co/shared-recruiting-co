@@ -243,7 +243,6 @@ on conflict (candidate_id, job_id)
 do update set
     interest = excluded.interest;
 
--- name: UpdateCandidateJobInterestConditionally :exec
-update public.candidate_job_interest
-set interest = sqlc.narg(set_interest)::job_interest
+-- name: DeleteCandidateJobInterestConditionally :exec
+delete from public.candidate_job_interest
 where candidate_id = $1 and job_id = $2 and interest = $3;

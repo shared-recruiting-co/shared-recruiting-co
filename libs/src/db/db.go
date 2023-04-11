@@ -27,6 +27,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.countUserEmailJobsStmt, err = db.PrepareContext(ctx, countUserEmailJobs); err != nil {
 		return nil, fmt.Errorf("error preparing query CountUserEmailJobs: %w", err)
 	}
+	if q.deleteCandidateJobInterestConditionallyStmt, err = db.PrepareContext(ctx, deleteCandidateJobInterestConditionally); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteCandidateJobInterestConditionally: %w", err)
+	}
 	if q.deleteUserEmailJobByEmailThreadIDStmt, err = db.PrepareContext(ctx, deleteUserEmailJobByEmailThreadID); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteUserEmailJobByEmailThreadID: %w", err)
 	}
@@ -84,9 +87,6 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.listUserOAuthTokensStmt, err = db.PrepareContext(ctx, listUserOAuthTokens); err != nil {
 		return nil, fmt.Errorf("error preparing query ListUserOAuthTokens: %w", err)
 	}
-	if q.updateCandidateJobInterestConditionallyStmt, err = db.PrepareContext(ctx, updateCandidateJobInterestConditionally); err != nil {
-		return nil, fmt.Errorf("error preparing query UpdateCandidateJobInterestConditionally: %w", err)
-	}
 	if q.upsertCandidateJobInterestStmt, err = db.PrepareContext(ctx, upsertCandidateJobInterest); err != nil {
 		return nil, fmt.Errorf("error preparing query UpsertCandidateJobInterest: %w", err)
 	}
@@ -104,6 +104,11 @@ func (q *Queries) Close() error {
 	if q.countUserEmailJobsStmt != nil {
 		if cerr := q.countUserEmailJobsStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing countUserEmailJobsStmt: %w", cerr)
+		}
+	}
+	if q.deleteCandidateJobInterestConditionallyStmt != nil {
+		if cerr := q.deleteCandidateJobInterestConditionallyStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteCandidateJobInterestConditionallyStmt: %w", cerr)
 		}
 	}
 	if q.deleteUserEmailJobByEmailThreadIDStmt != nil {
@@ -201,11 +206,6 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing listUserOAuthTokensStmt: %w", cerr)
 		}
 	}
-	if q.updateCandidateJobInterestConditionallyStmt != nil {
-		if cerr := q.updateCandidateJobInterestConditionallyStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing updateCandidateJobInterestConditionallyStmt: %w", cerr)
-		}
-	}
 	if q.upsertCandidateJobInterestStmt != nil {
 		if cerr := q.upsertCandidateJobInterestStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing upsertCandidateJobInterestStmt: %w", cerr)
@@ -261,6 +261,7 @@ type Queries struct {
 	db                                          DBTX
 	tx                                          *sql.Tx
 	countUserEmailJobsStmt                      *sql.Stmt
+	deleteCandidateJobInterestConditionallyStmt *sql.Stmt
 	deleteUserEmailJobByEmailThreadIDStmt       *sql.Stmt
 	getRecruiterByEmailStmt                     *sql.Stmt
 	getRecruiterOutboundMessageStmt             *sql.Stmt
@@ -280,7 +281,6 @@ type Queries struct {
 	listSimilarRecruiterOutboundTemplatesStmt   *sql.Stmt
 	listUserEmailJobsStmt                       *sql.Stmt
 	listUserOAuthTokensStmt                     *sql.Stmt
-	updateCandidateJobInterestConditionallyStmt *sql.Stmt
 	upsertCandidateJobInterestStmt              *sql.Stmt
 	upsertUserEmailSyncHistoryStmt              *sql.Stmt
 	upsertUserOAuthTokenStmt                    *sql.Stmt
@@ -288,12 +288,13 @@ type Queries struct {
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                                    tx,
-		tx:                                    tx,
-		countUserEmailJobsStmt:                q.countUserEmailJobsStmt,
-		deleteUserEmailJobByEmailThreadIDStmt: q.deleteUserEmailJobByEmailThreadIDStmt,
-		getRecruiterByEmailStmt:               q.getRecruiterByEmailStmt,
-		getRecruiterOutboundMessageStmt:       q.getRecruiterOutboundMessageStmt,
+		db:                     tx,
+		tx:                     tx,
+		countUserEmailJobsStmt: q.countUserEmailJobsStmt,
+		deleteCandidateJobInterestConditionallyStmt: q.deleteCandidateJobInterestConditionallyStmt,
+		deleteUserEmailJobByEmailThreadIDStmt:       q.deleteUserEmailJobByEmailThreadIDStmt,
+		getRecruiterByEmailStmt:                     q.getRecruiterByEmailStmt,
+		getRecruiterOutboundMessageStmt:             q.getRecruiterOutboundMessageStmt,
 		getRecruiterOutboundMessageByRecipientStmt:  q.getRecruiterOutboundMessageByRecipientStmt,
 		getRecruiterOutboundTemplateStmt:            q.getRecruiterOutboundTemplateStmt,
 		getUserEmailJobStmt:                         q.getUserEmailJobStmt,
@@ -310,7 +311,6 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		listSimilarRecruiterOutboundTemplatesStmt:   q.listSimilarRecruiterOutboundTemplatesStmt,
 		listUserEmailJobsStmt:                       q.listUserEmailJobsStmt,
 		listUserOAuthTokensStmt:                     q.listUserOAuthTokensStmt,
-		updateCandidateJobInterestConditionallyStmt: q.updateCandidateJobInterestConditionallyStmt,
 		upsertCandidateJobInterestStmt:              q.upsertCandidateJobInterestStmt,
 		upsertUserEmailSyncHistoryStmt:              q.upsertUserEmailSyncHistoryStmt,
 		upsertUserOAuthTokenStmt:                    q.upsertUserOAuthTokenStmt,

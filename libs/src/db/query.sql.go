@@ -26,6 +26,22 @@ func (q *Queries) CountUserEmailJobs(ctx context.Context, userID uuid.UUID) (int
 	return cnt, err
 }
 
+const deleteCandidateJobInterestConditionally = `-- name: DeleteCandidateJobInterestConditionally :exec
+delete from public.candidate_job_interest
+where candidate_id = $1 and job_id = $2 and interest = $3
+`
+
+type DeleteCandidateJobInterestConditionallyParams struct {
+	CandidateID uuid.UUID   `json:"candidate_id"`
+	JobID       uuid.UUID   `json:"job_id"`
+	Interest    JobInterest `json:"interest"`
+}
+
+func (q *Queries) DeleteCandidateJobInterestConditionally(ctx context.Context, arg DeleteCandidateJobInterestConditionallyParams) error {
+	_, err := q.exec(ctx, q.deleteCandidateJobInterestConditionallyStmt, deleteCandidateJobInterestConditionally, arg.CandidateID, arg.JobID, arg.Interest)
+	return err
+}
+
 const deleteUserEmailJobByEmailThreadID = `-- name: DeleteUserEmailJobByEmailThreadID :exec
 delete from public.user_email_job
 where user_email = $1 and email_thread_id = $2
@@ -772,29 +788,6 @@ func (q *Queries) ListUserOAuthTokens(ctx context.Context, arg ListUserOAuthToke
 		return nil, err
 	}
 	return items, nil
-}
-
-const updateCandidateJobInterestConditionally = `-- name: UpdateCandidateJobInterestConditionally :exec
-update public.candidate_job_interest
-set interest = $4::job_interest
-where candidate_id = $1 and job_id = $2 and interest = $3
-`
-
-type UpdateCandidateJobInterestConditionallyParams struct {
-	CandidateID uuid.UUID       `json:"candidate_id"`
-	JobID       uuid.UUID       `json:"job_id"`
-	Interest    JobInterest     `json:"interest"`
-	SetInterest NullJobInterest `json:"set_interest"`
-}
-
-func (q *Queries) UpdateCandidateJobInterestConditionally(ctx context.Context, arg UpdateCandidateJobInterestConditionallyParams) error {
-	_, err := q.exec(ctx, q.updateCandidateJobInterestConditionallyStmt, updateCandidateJobInterestConditionally,
-		arg.CandidateID,
-		arg.JobID,
-		arg.Interest,
-		arg.SetInterest,
-	)
-	return err
 }
 
 const upsertCandidateJobInterest = `-- name: UpsertCandidateJobInterest :exec
