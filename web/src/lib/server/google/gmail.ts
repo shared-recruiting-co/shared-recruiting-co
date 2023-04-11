@@ -1,5 +1,8 @@
 import { dev } from '$app/environment';
 
+import { Label } from '$lib/google/labels';
+import type { Labels } from '$lib/google/labels';
+
 // Until we have a better local development and testing story,
 // We will always return true for dev
 const success = new Response('success');
@@ -70,15 +73,10 @@ export const sendMessage = async (
 
 /**
  * Retrieves the IDs of all Gmail labels that start with "@SRC"
- *
- * @async
- * @param {string} accessToken - A valid access token for the Gmail API
- * @returns {Array<string>} - An array of the IDs of all Gmail labels that start with "@SRC"
- * @throws Throws an error if the API request fails or if the response is invalid
  */
-export const getSrcLabelIds = async (accessToken: string): Promise<string[]> => {
+export const getSRCLabels = async (accessToken: string): Promise<Labels> => {
 	// The Gmail labels endpoint, gives the full list of labels used in the users Gmail
-	const endpoint = `https://gmail.googleapis.com/gmail/v1/users/me/labels`;
+	const endpoint = 'https://gmail.googleapis.com/gmail/v1/users/me/labels';
 
 	// query the labels endpoint
 	const response = await fetch(endpoint, {
@@ -89,16 +87,26 @@ export const getSrcLabelIds = async (accessToken: string): Promise<string[]> => 
 	});
 	const data = await response.json();
 
-	// all SRC labels start with @SRC, we will use this to identify all the SRC labels
-	const labelPrefix = '@SRC';
-
 	// get a list of the label IDs that start with the above prefix
-	const srcLabelsIds = data.labels
-		.filter((label) => label.name.startsWith(labelPrefix))
-		.map((label) => label.id);
+	const srcLabels = data.labels
+		// all SRC labels start with @SRC, we will use this to identify all the SRC labels
+		.filter((label: { name: string }) => label.name.startsWith(Label.SRC))
+		.reduce(
+			(
+				acc: Labels,
+				label: {
+					name: `${Label}`;
+					id: string;
+				}
+			) => {
+				acc[label.name] = label.id;
+				return acc;
+			},
+			{} as Labels
+		);
 
-	// return the list of SRC label IDs
-	return srcLabelsIds;
+	// return the list of SRC labels (name -> ID)
+	return srcLabels;
 };
 
 /**
