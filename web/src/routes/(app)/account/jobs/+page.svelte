@@ -7,7 +7,7 @@
 
 	export let data: PageData;
 
-	$: ({ supabase, jobs } = data);
+	$: ({ supabase, jobs, session } = data);
 
 	$: showingStart = (data.pagination.page - 1) * data.pagination.perPage + 1;
 	$: showingEnd = Math.min(
@@ -69,7 +69,7 @@
 		// update database
 		const { error } = await supabase
 			.from('candidate_job_interest')
-			.upsert({ interest })
+			.upsert({ interest, candidate_id: session!.user.id })
 			.eq('job_id', jobId);
 
 		if (!error) {
