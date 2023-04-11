@@ -1,7 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { redirect, error } from '@sveltejs/kit';
 
-	import type { JobInterest } from '$lib/supabase/client';
+import type { JobInterest } from '$lib/supabase/client';
 
 type Job = {
 	job_id: string;
