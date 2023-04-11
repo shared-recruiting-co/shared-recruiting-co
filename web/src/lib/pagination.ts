@@ -4,26 +4,26 @@ const DEFAULT_PAGE_SIZE = 10;
  * Helper function returns the url of the updated param page
  *
  * @param {string} currentPageUrl - The URL of the current page
- * @param {number} currentResultsPage - The current page number
+ * @param {boolean} updatedPage - The page number we would like to update to
  * @param {boolean} updatedPageValid - Whether the updated page is valid or not
- * @param {boolean} updatedPageIsPrev - True if the desired url is the previous page, otherwise next
  * @returns {string|null} - The updated page URL, or null if the updated page is not valid
  */
 export const getUpdatedPageUrl = (currentPageUrl, updatedPage, updatedPageValid = true) => {
 
-	// set the udpate page URL to null if not valid, otherwise set it to the current url
-	let updatedPageUrl = updatedPageValid ? new URL(currentPageUrl) : null;
-
-	// if the page is valid update the newly created url to be the new page url
+	// if the page is valid
 	if (updatedPageValid) {
+		
+		// create a new URL object from the current url
+		let updatedPageUrl = new URL(currentPageUrl) 
 
-		// get the updated page URL
+		//return the udpate url
 		updatedPageUrl.searchParams.set('page', updatedPage);
-		updatedPageUrl = updatedPageUrl.href
-	}
+		return updatedPageUrl.href
+	} else {
 
-	// return the updated page URL
-	return updatedPageUrl
+		// otherwise return null
+		return null
+	}
 }
 
 export type Pagination = {
