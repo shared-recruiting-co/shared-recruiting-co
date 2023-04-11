@@ -136,16 +136,19 @@ export const getThreadLabels = async (accessToken: string, threadId: string): Pr
 /**
  * Remove labels from a Gmail thread using the Gmail API.
  *
- * @param {string} accessToken - The access token for the authenticated user.
- * @param {string} threadId - The ID of the Gmail thread to modify.
- * @param {string[]} labelIdsToRemove - An array of label IDs to remove from the thread.
  * @returns {Promise<boolean>} A boolean indicating whether the labels were successfully removed from the thread.
  */
-export const removeLabelsFromThread = async (
-	accessToken: string,
-	threadId: string,
-	labelIdsToRemove: string[]
-): Promise<boolean> => {
+export const updateThreadLabels = async ({
+	accessToken,
+	threadId,
+	addLabelIds,
+	removeLabelIds
+}: {
+	accessToken: string;
+	threadId: string;
+	addLabelIds?: string[];
+	removeLabelIds?: string[];
+}): Promise<boolean> => {
 	// The Gmail modify thread endpoint which will allow us to remove labels from the given thread
 	const endpoint = `https://gmail.googleapis.com/gmail/v1/users/me/threads/${threadId}/modify`;
 
@@ -157,8 +160,8 @@ export const removeLabelsFromThread = async (
 			'Content-Type': 'application/json'
 		},
 		body: JSON.stringify({
-			removeLabelIds: labelIdsToRemove,
-			addLabelIds: []
+			removeLabelIds,
+			addLabelIds
 		})
 	});
 

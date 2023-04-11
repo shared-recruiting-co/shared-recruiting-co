@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getRefreshedGoogleAccessToken } from '$lib/supabase/client.server';
-import { getSrcLabelIds, removeLabelsFromThread, isValidThread } from '$lib/server/google/gmail';
+import { getSrcLabelIds, updateThreadLabels, isValidThread } from '$lib/server/google/gmail';
 
 /**
  * Main handler function for this POST request route
@@ -42,9 +42,9 @@ export const POST: RequestHandler = async ({ request, locals: { getSession, supa
 	const srcLabelIds = await getSrcLabelIds(accessToken);
 
 	// Remove all "@SRC" labels from the specified Gmail thread
-	const success = await removeLabelsFromThread(accessToken, threadId, srcLabelIds);
+	const success = await updateThreadLabels({ accessToken, threadId, removeLabelIds: srcLabelIds });
 
-	// handle the return value of removeLabelsFromThread
+	// handle the return value of updateThreadLabels
 	if (!success) {
 		throw error(500, 'Failed to remove SRC labels');
 	}
