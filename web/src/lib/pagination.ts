@@ -1,5 +1,34 @@
 const DEFAULT_PAGE_SIZE = 10;
 
+/**
+ * Helper function to return the previous or next page url for the below pagination function
+ *
+ * @param {URL} currentPageUrl - The URL of the current page
+ * @param {number} currentResultsPage - The current page number
+ * @param {boolean} updatedPageValid - Whether the updated page is valid or not
+ * @param {boolean} updatedPageIsPrev - True if the desired url is the previous page, otherwise next
+ * @returns {string|null} - The updated page URL, or null if the updated page is not valid
+ */
+const getUpdatedPageUrl = (currentPageUrl, currentResultsPage, updatedPageValid, updatedPageIsPrev) => {
+
+	// set the udpate page URL to null if not valid, otherwise set it to the current url
+	let updatedPageUrl = updatedPageValid ? new URL(currentPageUrl.href) : null;
+
+	// if the page is valid update the newly created url to be the new page url
+	if (updatedPageValid) {
+
+		// if were getting the previous page we subtract 1, otherwise add 1
+		const pageParamModifier = (updatedPageIsPrev) ? -1 : 1
+
+		// get the updated page URL
+		updatedPageUrl.searchParams.set('page', currentResultsPage + pageParamModifier);
+		updatedPageUrl = updatedPageUrl.href
+	}
+
+	// return the updated page URL
+	return updatedPageUrl
+}
+
 export type Pagination = {
 	currentResultsPage: number;
 	resultsPerPage: number;
@@ -16,6 +45,14 @@ export type Pagination = {
 	nextPageUrl: string | null;
 };
 
+/**
+ * Returns an object representing pagination information for the given inputs
+ *
+ * @param {URL} url - The URL of the current page
+ * @param {number} resultsCount - The total number of results fetched from the DB
+ * @param {number} resultsPerPage - The number of results to display per page (default above)
+ * @returns {Pagination} - An object representing pagination information for the search results
+ */
 export const getPagePagination = (url: URL, resultsCount: number, resultsPerPage = DEFAULT_PAGE_SIZE ): Pagination => {
 
 	// from the given URL, grab which page of results is currently selected (default 1)
@@ -40,18 +77,8 @@ export const getPagePagination = (url: URL, resultsCount: number, resultsPerPage
 	const nextPageValid = (currentResultsPage < pagesCount);
 
 	// if the prev / next page are valid, store what page they should correspond to
-	let prevPageUrl = prevPageValid ? new URL(url.href) : null;
-	if (prevPageValid) {
-		prevPageUrl.searchParams.set('page', currentResultsPage - 1);
-		prevPageUrl = prevPageUrl.href
-	}
-
-	let nextPageUrl = nextPageValid ? new URL(url.href) : null;
-	if (nextPageValid) {
-		nextPageUrl.searchParams.set('page', currentResultsPage + 1);
-		nextPageUrl = nextPageUrl.href
-	}
-
+	let prevPageUrl = getUpdatedPageUrl(url, currentResultsPage, prevPageValid, true);
+	let nextPageUrl = getUpdatedPageUrl(url, currentResultsPage, nextPageValid, false);
 
 	// get the array that will be displayed as the pages are select
 	const pagesDisplay = getPaginationPages(currentResultsPage, pagesCount);
