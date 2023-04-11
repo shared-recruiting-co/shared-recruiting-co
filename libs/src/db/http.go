@@ -717,11 +717,15 @@ func (q *HTTPQueries) UpsertCandidateJobInterest(ctx context.Context, arg Upsert
 	return nil
 }
 
+type UpdateCandidateJobInterestBody struct {
+	Interest NullJobInterest `json:"interest"`
+}
+
 func (q *HTTPQueries) UpdateCandidateJobInterestConditionally(ctx context.Context, arg UpdateCandidateJobInterestConditionallyParams) error {
 	basePath := "/candidate_job_interest"
 	query := fmt.Sprintf("candidate_id=eq.%s&job_id=eq.%s&interest=eq.%s", arg.CandidateID, arg.JobID, arg.Interest)
 	path := fmt.Sprintf("%s?%s", basePath, query)
-	body, err := json.Marshal(arg)
+	body, err := json.Marshal(UpdateCandidateJobInterestBody{Interest: arg.SetInterest})
 	if err != nil {
 		return err
 	}
