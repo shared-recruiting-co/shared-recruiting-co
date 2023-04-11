@@ -11,15 +11,12 @@ export type Pagination = {
 	pagesDisplay: Array<string>
 	pagesCount: number;
 	prevPageValid: boolean;
-	prevPageUrl: string;
-	nextPageValid: number | null;
-	nextPageUrl: string;
+	prevPageUrl: string | null;
+	nextPageValid: boolean;
+	nextPageUrl: string | null;
 };
 
 export const getPagePagination = (url: URL, resultsCount: number, resultsPerPage = DEFAULT_PAGE_SIZE ): Pagination => {
-
-	// get the base URL
-	const baseURL = url.origin + url.pathname;
 
 	// from the given URL, grab which page of results is currently selected (default 1)
 	const currentResultsPage = parseInt(url.searchParams.get('page')) || 1;
@@ -43,8 +40,22 @@ export const getPagePagination = (url: URL, resultsCount: number, resultsPerPage
 	const nextPageValid = (currentResultsPage < pagesCount);
 
 	// if the prev / next page are valid, store what page they should correspond to
-	const prevPageUrl = prevPageValid ? `${baseURL}?page=${currentResultsPage - 1 }` : null;
-	const nextPageUrl = nextPageValid ? `${baseURL}?page=${currentResultsPage + 1 }` : null;
+	let prevPageUrl = prevPageValid ? new URL(url.href) : null;
+	if (prevPageValid) {
+	  prevPageUrl.searchParams.set('page', currentResultsPage - 1);
+	  prevPageUrl = prevPageUrl.href
+
+	}
+
+	let nextPageUrl = nextPageValid ? new URL(url.href) : null;
+	if (nextPageValid) {
+		nextPageUrl.searchParams.set('page', currentResultsPage + 1);
+		nextPageUrl = nextPageUrl.href
+	}
+
+
+	console.log(prevPageUrl)
+	console.log(nextPageUrl)
 
 	// get the array that will be displayed as the pages are select
 	const pagesDisplay = getPaginationPages(currentResultsPage, pagesCount);
