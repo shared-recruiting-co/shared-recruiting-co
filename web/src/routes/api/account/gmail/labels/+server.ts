@@ -84,12 +84,12 @@ export const PUT: RequestHandler = async ({ request, locals: { getSession, supab
 
 	// Get the label IDs for all "@SRC" labels
 	const srcLabels = await getSRCLabels(accessToken);
+
 	// get label ids from srcLabels, filter out any undefined labels
 	const addLabelIds = addLabels?.map((label) => srcLabels[label as Label]).filter(Boolean) || [];
 	const removeLabelIds =
 		removeLabels?.map((label) => srcLabels[label as Label]).filter(Boolean) || [];
 
-	// Remove all "@SRC" labels from the specified Gmail thread
 	const success = await updateThreadLabels({ accessToken, threadId, removeLabelIds, addLabelIds });
 
 	return json({ success });
