@@ -58,7 +58,7 @@ export const getPagePagination = (url: URL, resultsCount: number, resultsPerPage
 
 	// define the start / stop range of rows we want to retreive from the DB for the page
 	const resultsToFetchStart = (currentResultsPage - 1) * resultsPerPage;
-	const resultsToFetchEnd = resultsToFetchStart + resultsPerPage;
+	const resultsToFetchEnd = (resultsToFetchStart + resultsPerPage) - 1;
 
 	// of the results, the first / last displayed on the page
 	const resultShowingFirst = (currentResultsPage - 1) * resultsPerPage + 1;
