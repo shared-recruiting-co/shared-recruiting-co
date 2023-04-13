@@ -2,16 +2,8 @@ import type { PageLoad } from './$types';
 
 import type { Database } from '$lib/supabase/types';
 
-const PAGE_SIZE = 10;
-
-type Pagination = {
-	page: number;
-	perPage: number;
-	numPages: number;
-	numResults: number;
-	hasNext: boolean;
-	hasPrev: boolean;
-};
+import { getPagePagination } from '$lib/pagination';
+import type { Pagination } from '$lib/pagination';
 
 type Sequence = Database['public']['Tables']['recruiter_outbound_template']['Row'] & {
 	recipient_count: number;
@@ -30,21 +22,7 @@ type Data = {
 export const load: PageLoad<Data> = async ({ url, parent }) => {
 	const { supabase } = await parent();
 
-	// assume parent is checking for session
-	const page = parseInt(url.searchParams.get('page') || '1') || 1;
-	const start = (page - 1) * PAGE_SIZE;
-
-	const stop = start + PAGE_SIZE;
-
-	// TODO: Use Promise.all() to get all the data at once
-
-	// Get outbound recruiter template
-	const { data: outboundTemplates } = await supabase
-		.from('recruiter_outbound_template')
-		.select('*,job(*)')
-		.order('created_at', { ascending: false })
-		.range(start, stop);
-
+	// get recruiter outbound template count for pagination
 	let { count, error: countError } = await supabase
 		.from('recruiter_outbound_template')
 		.select('*', {
@@ -59,6 +37,16 @@ export const load: PageLoad<Data> = async ({ url, parent }) => {
 	if (count === null) {
 		count = 0;
 	}
+
+	// get pagination results 
+	const pagination: Pagination = getPagePagination(url, count);
+
+	// Get outbound recruiter template
+	const { data: outboundTemplates } = await supabase
+	.from('recruiter_outbound_template')
+	.select('*,job(*)')
+	.order('created_at', { ascending: false })
+	.range(pagination.resultsToFetchStart, pagination.resultsToFetchEnd);
 
 	// Get count of recipients (candidates) per template
 	const { data: recipientCounts, error: recipientCountsError } = await supabase
@@ -84,13 +72,6 @@ export const load: PageLoad<Data> = async ({ url, parent }) => {
 	return {
 		sequences,
 		jobs,
-		pagination: {
-			page,
-			perPage: PAGE_SIZE,
-			numPages: Math.ceil(count / PAGE_SIZE),
-			numResults: count,
-			hasPrev: page > 1,
-			hasNext: page < Math.ceil(count / PAGE_SIZE)
-		}
+		pagination
 	};
 };
