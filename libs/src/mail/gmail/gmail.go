@@ -171,6 +171,8 @@ func (s *Service) GetOrCreateCandidateLabels() (*srclabel.CandidateLabels, error
 			result.JobsNotInterested = label
 		case srclabel.JobsSaved.Name:
 			result.JobsSaved = label
+		case srclabel.JobsVerified.Name:
+			result.JobsVerified = label
 		case srclabel.Allow.Name:
 			result.Allow = label
 		case srclabel.AllowSender.Name:
@@ -221,6 +223,12 @@ func (s *Service) GetOrCreateCandidateLabels() (*srclabel.CandidateLabels, error
 	}
 	if result.JobsSaved == nil {
 		result.JobsSaved, err = s.CreateLabel(&srclabel.JobsSaved)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if result.JobsVerified == nil {
+		result.JobsVerified, err = s.CreateLabel(&srclabel.JobsVerified)
 		if err != nil {
 			return nil, err
 		}

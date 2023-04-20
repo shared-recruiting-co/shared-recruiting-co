@@ -20,6 +20,8 @@ type CandidateLabels struct {
 	JobsNotInterested *gmail.Label
 	// JobsSaved is the @SRC/Jobs/Saved label for job opportunities the candidate saved.
 	JobsSaved *gmail.Label
+	// JobsVerified is the @SRC/Jobs/Verified label for job opportunities that are sent from recruiters using SRC
+	JobsVerified *gmail.Label
 	// Allow is the @SRC/Allow folder for senders and domains that always bypass SRC
 	Allow *gmail.Label
 	// AllowSender is the @SRC/Allow/Sender folder for senders that always bypass SRC
@@ -90,8 +92,15 @@ var (
 			TextColor:       "#ffffff",
 		},
 	}
-	// TODO
 	// JobsVerified is the @SRC/Jobs/Verified label for verified job opportunities.
-	// BackgroundColor is #2da2bb
-	// TextColor is #ffffff
+	JobsVerified = gmail.Label{
+		Name: Jobs.Name + "/Verified",
+		// Show leaf labels
+		MessageListVisibility: "show",
+		// teal-ish with white text
+		Color: &gmail.LabelColor{
+			BackgroundColor: "#2da2bb",
+			TextColor:       "#ffffff",
+		},
+	}
 )
