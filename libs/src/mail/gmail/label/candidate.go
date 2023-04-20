@@ -97,9 +97,9 @@ var (
 		Name: Jobs.Name + "/Verified",
 		// Show leaf labels
 		MessageListVisibility: "show",
-		// gray-ish black with white text
+		// teal-ish with white text
 		Color: &gmail.LabelColor{
-			BackgroundColor: "#333633",
+			BackgroundColor: "#2da2bb",
 			TextColor:       "#ffffff",
 		},
 	}
