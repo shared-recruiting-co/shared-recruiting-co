@@ -375,6 +375,12 @@ func (cf *CloudFunction) processMessages(messageIDs []string) error {
 		return fmt.Errorf("error processing recruiting emails: %v", err)
 	}
 
+	// Label known recruiting emails (verified oppurtunities)
+	err = cf.labelKnownRecruitingEmails(knownRecruitingEmailIDs)
+	if err != nil {
+		return fmt.Errorf("error processing known recruiting emails (verified oppurtunities): %v", err)
+	}
+
 	// Save statistics at end to avoid re-counting
 	if !cf.settings.DryRun && len(messages) > 0 {
 		err := cf.queries.IncrementUserEmailStat(
@@ -453,6 +459,30 @@ func (cf *CloudFunction) processRecruitingEmails(messageIDs []string) error {
 
 		if err != nil {
 			return fmt.Errorf("error modifying recruiting emails: %v", err)
+		}
+	}
+
+	return nil
+}
+
+func (cf *CloudFunction) labelKnownRecruitingEmails(messageIDs []string) error {
+	if len(messageIDs) == 0 {
+		return nil
+	}
+
+	if !cf.settings.DryRun {
+		_, err := srcmail.ExecuteWithRetries(func() (interface{}, error) {
+			err := cf.srv.Users.Messages.BatchModify(cf.srv.UserID, &gmail.BatchModifyMessagesRequest{
+				Ids: messageIDs,
+				// Add verified label
+				AddLabelIds:    []string{cf.labels.JobsVerified.Id},
+			}).Do()
+			// hack to make compatible with ExecuteWithRetries requirements
+			return nil, err
+		})
+
+		if err != nil {
+			return fmt.Errorf("error modifying known (verified) recruiting emails: %v", err)
 		}
 	}
 
