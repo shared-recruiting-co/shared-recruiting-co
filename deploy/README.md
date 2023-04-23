@@ -38,6 +38,6 @@ This file specifies the Go module for the Shared Recruiting Co. deployment direc
 #### main.go
 The `main.go` file contains the main function that sets up the infrastructure for the Shared Recruiting Co. platform. It imports various packages from the `pulumi-gcp/sdk/v6/go/gcp` and `pulumi/sdk/v3/go` libraries. The `main` function creates a new Pulumi stack and sets up a storage bucket, grants publish permission to a Gmail topic, and creates cloud functions. The `Infra` struct contains the context, configuration, project, GCF bucket, and topics. The `Topics` struct contains various Gmail topics used by the platform. The `MaxEventArcTriggerTimeout` and `MaxHTTPTriggerTimeout` variables define the maximum timeout values for event arc and HTTP triggers, respectively. The `DefaultRegion` variable defines the default region for the storage bucket. The `TODOs` section lists tasks that need to be completed.
 
-#### "pubsub.go
+#### pubsub.go
 The `pubsub.go` file contains a function called `setupTopics()` that sets up topics for candidate and recruiter Gmail subscriptions, messages, and label changes using the Google Cloud Pub/Sub service. The function creates new topics with specified names and project IDs, and enforces schema validation. The function returns an error if any of the topic creations fail.
 
