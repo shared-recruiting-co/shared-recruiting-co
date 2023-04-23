@@ -4,8 +4,7 @@
 
 The `deploy` directory contains files related to the deployment of the SRC recruiting platform. It includes configuration files for Pulumi, a cloud infrastructure management tool, and GolangCI-Lint, a Go linter. The directory also contains Go files that create and configure cloud functions for various tasks in the platform, as well as unit tests for some of these functions. Additionally, there are files that set up a storage bucket and topics for candidate and recruiter Gmail subscriptions using the Google Cloud Pub/Sub service. The `main.go` file contains the main function that sets up the infrastructure for the platform.
 
-
-## Technologies 
+## Tech Stack
 
 The technologies used by the `deploy` directory are:
 
