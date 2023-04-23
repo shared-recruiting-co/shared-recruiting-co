@@ -186,6 +186,98 @@ create policy "Users can update their own profile"
 --------------------------------
 
 --------------------------------
+-- Start: User Email Tables
+--------------------------------
+-- Create separate tables for email and email settings for simpler RLS
+-- 1. user_email table
+
+-- Note: There is probably a better way to do...
+-- Goal is to distinguish between basic "non-managed" emails, google email, and future email types (outlook, etc.)
+create type email_type as ('basic', 'google');
+
+-- TODO: how would we adapt this to support outlook emails?
+create table public.user_email (
+    user_id uuid references public.user_profile(user_id) on delete cascade not null,
+    email text not null,
+    email_type email_type not null,
+    is_verified boolean not null default false,
+    created_at timestamp with time zone not null default now(),
+    updated_at timestamp with time zone not null default now(),
+
+    primary key (user_id, email)
+);
+
+create trigger handle_updated_at_user_email before update on public.user_email
+  for each row execute procedure moddatetime (updated_at);
+
+-- enable realtime
+alter publication supabase_realtime add table user_email_stat;
+
+alter table public.user_email enable row level security;
+
+create policy "Users can view their own email"
+  on public.user_email for select
+  using ( auth.uid() = user_id );
+
+create policy "Users can delete their own email"
+  on public.user_email for delete
+  using ( auth.uid() = user_id );
+
+-- 2. user_email_settings table
+create table public.user_email_setting (
+    user_id uuid references public.user_profile(user_id) on delete cascade not null,
+    email text references public.user_email(email) on delete cascade not null,
+    -- jsonb because different email_types will have different settings
+    settings jsonb not null default '{}'::jsonb,
+    created_at timestamp with time zone not null default now(),
+    updated_at timestamp with time zone not null default now(),
+
+    primary key (user_id, email)
+);
+
+create trigger handle_updated_at_user_email_setting before update on public.user_email_setting
+  for each row execute procedure moddatetime (updated_at);
+
+-- enable realtime
+alter publication supabase_realtime add table user_email_setting;
+
+alter table public.user_email_setting enable row level security;
+
+create policy "Users can view their own email settings"
+  on public.user_email_setting for select
+  using ( auth.uid() = user_id );
+
+create policy "Users can update their own email settings"
+  on public.user_email_setting for update
+  using ( auth.uid() = user_id );
+
+-- 3. vw_user_email table
+-- view to join user_email and user_email_setting
+-- TODO: Use jsonb for settings to allow different settings per email
+-- TODO: Last Synced At?
+-- TODO: candidate_oauth table?
+create view public.vw_user_email as
+select
+    ue.user_id,
+    ue.email,
+    ue.is_verified,
+    ue.is_managed,
+    ue.created_at,
+    ue.updated_at,
+    ues.is_active,
+    ues.auto_archive,
+    ues.auto_contribute,
+    ues.created_at as setting_created_at,
+    ues.updated_at as setting_updated_at
+from public.user_email ue
+join public.user_email_setting ues on ue.user_id = ues.user_id and ue.email = ues.email;
+
+--------------------------------
+-- End: User Email Tables
+--------------------------------
+
+
+--------------------------------
 -- Start: User (Candidate) Email Stat Table
 --------------------------------
 
