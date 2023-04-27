@@ -19,7 +19,6 @@ var (
 
 // TODOs
 // 3. How do we grant invoker permission to service account to execute other cloudfunction's cloud run service
-// 5. Cloud Scheduler
 // Read about https://www.pulumi.com/docs/guides/testing/
 
 type Topics struct {
