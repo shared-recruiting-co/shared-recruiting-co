@@ -45,7 +45,7 @@
 		"@neoconfetti/svelte": "^1.0.0",
 		"@sentry/node": "^7.51.0",
 		"@supabase/auth-helpers-sveltekit": "^0.9.4",
-		"@supabase/supabase-js": "^2.21.0",
+		"@supabase/supabase-js": "^2.23.0",
 		"@vercel/analytics": "^1.0.0",
 		"js-yaml": "^4.1.0"
 	}
