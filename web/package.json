@@ -14,7 +14,7 @@
 		"gen-types": "npx supabase gen types typescript --local > src/lib/supabase/types.ts && npm run format"
 	},
 	"devDependencies": {
-		"@playwright/test": "1.32.3",
+		"@playwright/test": "1.34.3",
 		"@sveltejs/adapter-auto": "^2.1.0",
 		"@sveltejs/kit": "^1.18.0",
 		"@tailwindcss/forms": "^0.5.3",
