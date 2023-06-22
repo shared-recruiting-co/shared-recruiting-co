@@ -54,6 +54,7 @@ jobs:
           - "./cloudfunctions/recruiter_gmail_push_notifications"
           - "./cloudfunctions/candidate_gmail_messages"
           - "./cloudfunctions/recruiter_gmail_messages"
+          - "./cloudfunctions/scrape_job_listings"
           - "./cloudfunctions/candidate_gmail_label_changes"
           - "./libs/src" 
           - "./deploy" 
