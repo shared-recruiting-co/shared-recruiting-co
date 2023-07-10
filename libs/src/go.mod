@@ -6,12 +6,12 @@ require (
 	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/google/uuid v1.3.0
 	github.com/jaytaylor/html2text v0.0.0-20211105163654-bc68cce691ba
-	golang.org/x/oauth2 v0.9.0
+	golang.org/x/oauth2 v0.10.0
 	google.golang.org/api v0.130.0
 )
 
 require (
-	cloud.google.com/go/compute v1.19.3 // indirect
+	cloud.google.com/go/compute v1.20.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
