@@ -3,6 +3,7 @@ import { redirect } from '@sveltejs/kit';
 
 export const load: PageLoad = async ({ parent }) => {
 	const { session, supabase } = await parent();
+	console.log('LOGIN', session);
 	if (!session) return {};
 
 	const [{ data: profile }, { data: waitlist }] = await Promise.all([

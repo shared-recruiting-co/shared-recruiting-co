@@ -10,6 +10,7 @@ type Data = {
 
 export const load: PageLoad<Data> = async ({ parent }) => {
 	const { session, supabase } = await parent();
+	console.log('HERE!!!', session);
 	// require user to be logged in
 	if (!session) {
 		throw redirect(303, '/login');

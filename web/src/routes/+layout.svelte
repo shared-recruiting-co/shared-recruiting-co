@@ -10,7 +10,7 @@
 
 	export let data: LayoutData;
 
-	$: ({ supabase } = data);
+	$: ({ supabase, session } = data);
 
 	// use Vercel analytics
 	inject({ mode: dev ? 'development' : 'production' });
@@ -24,8 +24,10 @@
 
 		const {
 			data: { subscription }
-		} = supabase.auth.onAuthStateChange(() => {
-			invalidate('supabase:auth');
+		} = supabase.auth.onAuthStateChange((event, _session) => {
+			if (_session?.expires_at !== session?.expires_at) {
+        invalidate('supabase:auth');
+      }
 		});
 
 		return () => {

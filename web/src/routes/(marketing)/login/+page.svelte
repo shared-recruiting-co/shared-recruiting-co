@@ -12,7 +12,8 @@
 			const { error } = await supabase.auth.signInWithOAuth({
 				provider: 'google',
 				options: {
-					redirectTo: `${window.location.origin}/account/profile`
+					// redirectTo: `${window.location.origin}/account/profile`
+					redirectTo: `${window.location.origin}/api/auth/callback?redirectTo=/account`
 				}
 			});
 			if (error) throw error;
