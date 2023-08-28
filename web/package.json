@@ -17,7 +17,7 @@
 		"@playwright/test": "1.37.1",
 		"@sveltejs/adapter-auto": "^2.1.0",
 		"@sveltejs/kit": "^1.22.3",
-		"@tailwindcss/forms": "^0.5.4",
+		"@tailwindcss/forms": "^0.5.5",
 		"@tailwindcss/typography": "^0.5.8",
 		"@types/google.accounts": "^0.0.7",
 		"@types/js-yaml": "^4.0.5",
