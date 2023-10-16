@@ -46,7 +46,7 @@
 		"@sentry/node": "^7.70.0",
 		"@supabase/auth-helpers-sveltekit": "0.9.4",
 		"@supabase/supabase-js": "^2.29.0",
-		"@vercel/analytics": "^1.0.2",
+		"@vercel/analytics": "^1.1.1",
 		"js-yaml": "^4.1.0"
 	}
 }
