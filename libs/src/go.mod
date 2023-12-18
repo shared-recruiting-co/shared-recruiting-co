@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/cenkalti/backoff/v4 v4.2.1
-	github.com/google/uuid v1.4.0
+	github.com/google/uuid v1.5.0
 	github.com/jaytaylor/html2text v0.0.0-20211105163654-bc68cce691ba
 	golang.org/x/oauth2 v0.15.0
 	google.golang.org/api v0.152.0
