@@ -41,7 +41,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@markdoc/markdoc": "^0.3.2",
+		"@markdoc/markdoc": "^0.4.0",
 		"@neoconfetti/svelte": "^1.0.0",
 		"@sentry/node": "^7.80.1",
 		"@supabase/auth-helpers-sveltekit": "0.9.4",
